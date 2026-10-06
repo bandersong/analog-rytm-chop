@@ -1,0 +1,69 @@
+[mod]
+id      = "0001-chop"
+title   = "CHOP: a second SAMPLE page that turns the twelve pads into sample-start markers"
+
+# Off in the default build, which carries 0008 SMP CUT instead. The CHOP build is
+# `make chop` (0000 0001 0002 0003); `make chop-min` (0000 0001) is the bisection
+# build. The id 0001 once belonged to a retracted MKII mod, 0001-microtiming-fine,
+# which 0002 still excludes by that full id; it does not exist in this tree and the
+# id strings differ, so nothing conflicts (see design.md).
+enabled = false
+
+# CHOP detours the same four page hosts as 0008 SMP CUT and 0004 LFO RND
+# (page_info, page_get_value, param_apply_delta, param_value_text) and takes the
+# same `cave` claim, so it can never be in one image with either.
+excludes = ["0004-lfo-rnd", "0008-sample-cut"]
+
+# re-only | built | hardware-verified | retracted
+status  = "built"
+
+summary = """
+On the SAMPLE view, press SAMPLE (let go, pause, press again; not a quick
+double-tap, which is stock 1.73's sample-list shortcut and stays stock) for the
+CHOP page: PAD (1..12, the marker being edited), STA (0..120, that marker: a
+sample start on stock's STA scale) and CHP (OFF/ON). Turning CHP right switches
+CHOP on for the track that is selected at that moment; left switches it off. The
+twelve markers start at 0, 10, 20 ... 110.
+
+While CHOP is on, pad k sets the chop track's STA to marker k through the same
+call a STA knob turn ends in - so under live REC stock records a normal trig with
+a normal STA p-lock - and then plays the chop track as a normal pad hit would.
+Pads do not switch track in CHOP. Hold a pad and turn STA to move its marker.
+
+The markers live in RAM only: a power cycle resets them and ends CHOP. Nothing new
+is saved anywhere; recorded chops are ordinary STA p-locks and play back on stock
+firmware. Like a STA knob turn, every pad hit also changes the chop track's base
+STA (the kit is edited). Never run on hardware: see design.md for the test card.
+"""
+
+[sources]
+stub = "stub.s"
+
+[requires]
+# CHOP calls nothing in 0000-shared (and must not use its sound helpers: STA is
+# written through the active kit at project + 232, not PROJ_KIT = 352).
+shared = false
+symbols = [
+  "page_info_resume",
+  "page_get_value_body",
+  "param_apply_delta_track",
+  "param_value_text_args",
+  "view_invalidate",
+  "track_index_of",
+  "project_singleton",
+  "is_key_held",
+  "project_kit",
+  "kit_track_param_set",
+  "param_set_value",
+  "PARAM_ID_STA",
+  "ui_pad_on_resume",
+  "ui_pad_off_resume",
+  "samp_key_resume",
+  "samp_key_to_base",
+  "page_cycle_arm",
+  "ev_is_down",
+  "ev_is_held",
+  "ev_bit4",
+  "weak_ptr_expired",
+  "lock_delta_body",
+]
