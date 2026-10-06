@@ -106,7 +106,7 @@ shasum -a 256 build/AR1_OS1.73_0000_0001.syx
 3. **Control build first:** drag `build/AR1_OS1.73_control.syx` onto Transfer > DROP and press **YES** on the Rytm. Check it boots and plays normally. This proves the toolchain on your unit.
 4. **Then Sample Focus:** do the same with `build/AR1_OS1.73_0000_0001.syx`.
 
-The hardware-proven step-lock build (CHOP + step-lock + euclid/velocity, sha256 `a96657b4…caf6`) is the previous patch, commit `800b437` of this repo's `mods/0001-chop/rytm1_mods-chop.patch`, built with `make chop`.
+The hardware-proven step-lock build (CHOP + step-lock + euclid/velocity, sha256 `a96657b4…caf6`) is the previous patch, commit `f82a2f4` of this repo's `mods/0001-chop/rytm1_mods-chop.patch`, built with `make chop`.
 5. Don't power off during an update or during the first boot after it.
 
 If Transfer refuses a file as "same version", nothing was written. Use the recovery route below to send it.
