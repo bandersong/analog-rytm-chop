@@ -1,0 +1,6 @@
+stock/*
+!stock/.gitkeep
+upstream/*
+!upstream/README.md
+*.syx
+.DS_Store
