@@ -6,3 +6,4 @@ upstream/*
 .DS_Store
 proto/chop/target/
 !stock/SHA256SUMS
+build/
