@@ -4,3 +4,4 @@ upstream/*
 !upstream/README.md
 *.syx
 .DS_Store
+proto/chop/target/

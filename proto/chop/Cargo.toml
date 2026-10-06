@@ -1,0 +1,10 @@
+[package]
+name = "chop"
+version = "0.1.0"
+edition = "2021"
+description = "Host-side sample-chop prototype for the Analog Rytm: pads fire one track from stored sample-start markers"
+publish = false
+
+[dependencies]
+midir = "0.11.0"
+serde_json = "1"
