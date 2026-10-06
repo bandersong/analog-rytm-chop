@@ -2,36 +2,38 @@
 id      = "0001-chop"
 title   = "CHOP: a second SAMPLE page that turns the twelve pads into sample-start markers"
 
-# Off in the default build, which carries 0008 SMP CUT instead. The CHOP build is
-# `make samplefocus` (Sample Focus image A: 0000 0001); `make chop-min` is the same
-# composition. The round-4 `make chop` (0000 0001 0002 0003) is retired: CHOP's
-# code now also lives in the part of cave2 that 0002 uses. The id 0001 once
+# Off in the default build, which carries 0008 SMP CUT instead. The CHOP builds are
+# `make samplefocus` (Sample Focus image A': 0000 0001; `make chop-min` is the same
+# composition) and `make samplefocus-cut` (image B: 0000 0001 0008). The round-4
+# `make chop` (0000 0001 0002 0003) is retired: CHOP's code now also lives in the parts
+# of cave2 that 0002 and 0003 use. The id 0001 once
 # belonged to a retracted MKII mod, 0001-microtiming-fine, which 0002 still
 # excludes by that full id; it does not exist in this tree and the id strings
 # differ, so nothing conflicts (see design.md).
 enabled = false
 
-# CHOP detours the same four page hosts as 0008 SMP CUT and 0004 LFO RND
-# (page_info, page_get_value, param_apply_delta, param_value_text) and takes the
-# same `cave` claim, so it can never be in one image with either. Since Sample
-# Focus it also claims 0002's part of cave2, so it can never be in one image with
-# 0002 either.
-excludes = ["0002-euclid-accents", "0004-lfo-rnd", "0008-sample-cut"]
+# CHOP detours the same page hosts as 0004 LFO RND, so it can never be in one image
+# with it. Since corp round 7 (D26/D27/D29) it shares an image with 0008 SMP CUT
+# (image B, `make samplefocus-cut`): CHOP owns the page hosts and sends 0008's ids
+# 1..2 and page 12 to 0008's shared_cut_* handlers, and the layout keeps the two
+# apart, which layout.py checks (0008 is no longer excluded). CHOP's cave2 claims are
+# 0002's and 0003's, so it excludes both (neither is in a Sample Focus image).
+excludes = ["0002-euclid-accents", "0003-velocity-humanise", "0004-lfo-rnd"]
 
 # re-only | built | hardware-verified | retracted
 status  = "built"
 
 summary = """
-Sample Focus (image A, `make samplefocus`). On the SAMPLE view, press SAMPLE (let
+Sample Focus (image A' = image A minus STR, `make samplefocus`). On the SAMPLE view, press SAMPLE (let
 go, pause, press again; not a quick double-tap, which is stock 1.73's sample-list
 shortcut and stays stock) for the CHOP page: A PAD (1..12, the marker being
 edited), B STA (0..120 with stock STA's resolution: fine steps under SAMPLE POS
 RES = HI), C CHP (OFF/ON: right switches CHOP on for the track selected at that
 moment), D END (a pad also sets the slice end), E DIV (1..12 equal slices), F LAY
 (turn right: the slices go onto the EMPTY steps of the chop track's pattern), G RND
-(turned while trig keys are held: each held step gets a random slice) and H STR
-(EXPERIMENTAL: the chop track's LFO sweeps STA over 1..64 steps; the speed rule is
-unverified). The twelve markers start at 0, 10, 20 ... 110.
+(turned while trig keys are held: each held step gets a random slice); H is blank
+(image A's STR, an LFO stretch macro, was removed in round 7: it did not sweep on
+hardware). The twelve markers start at 0, 10, 20 ... 110.
 
 While CHOP is on, pad k sets the chop track's STA to marker k through the same
 call a STA knob turn ends in - so under live REC stock records a normal trig with
@@ -41,19 +43,31 @@ k: each held step gets an STA p-lock = marker k (stock's own held-trig path); th
 base STA is then left alone.
 
 Everything CHOP keeps lives in RAM only: a power cycle resets it and ends CHOP.
-What it writes (STA/END p-locks, LAY's trigs, base STA/END/LFO values) is ordinary
+What it writes (STA/END p-locks, LAY's trigs, base STA/END values) is ordinary
 stock data that plays on stock firmware. The round-4 page, pads, live-REC locks,
-note-off pairing and step lock are confirmed on hardware (build a96657b4); nothing
-added in Sample Focus has run on hardware: see design.md (H7-H14).
+note-off pairing and step lock are confirmed on hardware (build a96657b4). Of Sample
+Focus only image A's STR has a hardware report (it did not sweep, so round 7 removed
+it); image A' and its rows (design.md H7-H11, H13, H14) have not run. Round 7 (D29)
+also removed image A's STA dial graphic (the CHOP STA dial is id 4's own) to fit image B,
+`make samplefocus-cut`: image A' plus 0008 SMP CUT, built, never run (design.md S1-S10).
 """
 
 [sources]
 stub = "stub.s"
 
+[params]
+# 1 = image B (`make samplefocus-cut`): 0000-shared is built with lean = 1, so its
+# claim is the lean one at the end of its slot, and CHOP's .text claim runs on into
+# the slot's head (registry, 0001-chop). It must match 0000-shared's lean: with lean = 0
+# the two claims overlap and the build is refused; with lean = 1 and shared_lean = 0
+# the head is simply unused. Image A' (`make samplefocus`, `make chop-min`) is 0.
+shared_lean = 0
+
 [requires]
 # CHOP calls shared_rnd (RND, knob G) and nothing else in 0000-shared; its sound
 # writes go through the active kit at project + 232 (project_kit), never through
-# 0000-shared's sound helpers.
+# 0000-shared's sound helpers. With 0008 as a provider it also jumps to 0008's
+# shared_cut_* handlers (assembled only when build/shared.inc defines them).
 shared = true
 symbols = [
   "page_info_resume",

@@ -25,16 +25,9 @@
         |                       held: each held step gets the STA (and, END on,
         |                       END) of a random marker 0..DIV-1; each detent
         |                       re-rolls. Without a held trig it does nothing.
-        |   H STR (2)  OFF, 1, 2, 4 ... 64 steps   EXPERIMENTAL (D21): with CHOP
-        |                       on, a change sets the chop track's LFO to sweep
-        |                       STA once over that many steps (DST STA, WAV RMP,
-        |                       MOD ONE, SPH 0, FAD 0, SPD 32, MUL by steps, DEP
-        |                       full) plus END 120 and LOP OFF, base values with
-        |                       record 0; OFF sets DST to none and DEP to 0. The
-        |                       speed rule (steps = 2048 / (SPD * MUL)) is
-        |                       Elektron convention, NOT verified on this
-        |                       firmware. No RETRIG is written: set it on the
-        |                       steps with stock's RETRIG menu.
+        |   H (none)            blank. Image A's STR (id 2, an LFO stretch
+        |                       macro) was removed in round 7 (D24): it did not
+        |                       sweep on hardware. Id 2 is 0008's HCT again.
         |
         | While CHOP is on, pad k (0..11) does three things, in the UI task, before
         | stock sees the pad: chop_pad = k; the chop track's STA is set to marker k
@@ -53,18 +46,31 @@
         | that is not 0xFF, which then goes back to 0xFF - whatever chop_on is at
         | the release. Pad ids outside 0..11 touch no table: stock, byte for byte.
         |
-        | State is RAM only (the block at the end of .text, in `cave`; the image
+        | State is RAM only (the block at the end of .chst, in `cave`; the image
         | bytes are the power-on defaults). Nothing is saved. CHOP mode is the flag
         | chop_on, not "the CHOP page is on screen", so no view pointer is ever kept.
         |
-        | Sections: .text in `cave` (the gates, the pad gates, chop_set_sta, the
-        | page data, the strings and the state, last); .cave2 in `cave2` (the step
-        | lock and everything added after round 4 that does not have to sit on the
-        | hot path). cave2 is within bsr.w range of cave.
+        | Sections (corp round 7, one layout for image A' and image B; registry
+        | 0001-chop): .chst in `cave` (the pad gates, chop_value and, last, the
+        | state: run-time state only in `cave`, read pc-relative by the code next to
+        | it); .text in `cave2` (the page gates, the SAMPLE key gate, lock_gate,
+        | the helpers and the Sample Focus knobs, then the long knob names); .cave2
+        | in `cave2` above 0000-shared's slot (the step lock and RND); .cave3 in
+        | `cave3` (constants only: the SAMP page list, the CHOP descriptor, the page
+        | name and the short knob names). cave and cave2 are within bsr.w range of
+        | each other; nothing branches to or from cave3.
         |
         | Every gate below that 0008 also has (page_info / get / delta / text) keeps
         | 0008's entry frame, displaced instructions, rejoin label and epilogue
         | verbatim (mods/0008-sample-cut/stub.s). Addresses and receipts: design.md.
+        |
+        | Image B (corp round 7, D26): with 0008-sample-cut in the same build, this
+        | mod is the single owner of the page hosts (page_info, get, delta, text,
+        | lock). 0008 then builds without its own page gates (own_pages = 0)
+        | and provides its handlers as shared_cut_* labels in build/shared.inc;
+        | the gates here send ids 1..2 (LCT, HCT) to them and answer page 12 with
+        | 0008's descriptor. Without 0008 (image A', chop-min) none of that is
+        | assembled (.ifdef): the code is image A' exactly.
 
         .include "symbols.inc"
         .include "shared.inc"                     | shared_rnd (0000-shared)
@@ -74,7 +80,6 @@
         .equ    ID_PAD,         3                 | dead Error records 3..5
         .equ    ID_STA,         4
         .equ    ID_CHP,         5
-        .equ    ID_STR,         2                 | dead Error record 2 (id 7 is not dead)
         .equ    ID_END,         11                | dead Error records 11..14 (D19)
         .equ    ID_DIV,         12
         .equ    ID_LAY,         13
@@ -87,7 +92,7 @@
         .equ    K_DIV,          4
         .equ    K_LAY,          5
         .equ    K_RND,          6
-        .equ    K_STR,          7
+        .equ    K_CUT,          7                 | not a CHOP knob: 0008's ids 1..2 (image B)
         .equ    PADS,           12
         .equ    STA_MAX,        0x7800            | stock STA's ROM max (id 43): 120.0 in 8.8
         .equ    SAMP_KEY,       50                | the SAMPLE key's code (0x400ce2e0 moveq #50)
@@ -129,7 +134,16 @@ page_info_gate:
         lea     page_chop,%a0
         move.l  %a0,%d0
         rts
-1:      moveq   #10,%d1                           | displaced
+1:
+        .ifdef  shared_cut_page_id
+        moveq   #shared_cut_page_id,%d0           | image B: 0008's SMP CUT page (12)
+        cmp.l   4(%sp),%d0
+        bne.s   3f
+        move.l  #shared_cut_page,%d0              | its descriptor, as 0008's own gate
+        rts
+3:
+        .endif
+        moveq   #10,%d1                           | displaced
         move.l  %sp@(4),%d0                       | displaced
         jmp     page_info_resume
 
@@ -143,6 +157,13 @@ get_gate:
         bsr.w   chop_knob                         | d0 = the knob, or -1
         tst.l   %d0
         bmi.s   9f
+        .ifdef  shared_cut_get
+        moveq   #K_CUT,%d1
+        cmp.l   %d1,%d0
+        bne.s   1f
+        jmp     shared_cut_get                    | image B, ids 1..2: 0008's dial; its rts
+1:
+        .endif
         bra.w   chop_value                        | d0 = the shown value, 8.8; its rts
 9:      lea     %sp@(-12),%sp                     | displaced
         moveml  %d2-%d3/%a2,%sp@                  | displaced
@@ -169,7 +190,7 @@ get_gate:
         |
         | CHP left, and CHP right latching another track, first give the chop
         | track's END back (chop_end_restore: only while CHOP and END are on).
-        | The knobs D..H go to chop_delta_more (cave2) with whole steps.
+        | The knobs D..G go to chop_delta_more (cave2) with whole steps.
         | chop_knob keeps d3, which the stock path needs (`mvzb %d3,%d3`).
         | ------------------------------------------------------------------
         .align  2
@@ -178,6 +199,13 @@ delta_gate:
         bsr.w   chop_knob                         | d0 = the knob, or -1; keeps d3
         tst.l   %d0
         bmi.w   9f
+        .ifdef  shared_cut_delta
+        moveq   #K_CUT,%d1
+        cmp.l   %d1,%d0
+        bne.s   13f
+        jmp     shared_cut_delta                  | image B, ids 1..2: 0008's knob, the
+13:                                               | host frame as is; its epilogue
+        .endif
         move.l  %sp@(24),%d2                      | the delta, 8.8
         move.l  %d0,%d3                           | the knob
         subq.l  #1,%d0
@@ -189,7 +217,7 @@ delta_gate:
         moveq   #K_CHP,%d1
         cmp.l   %d1,%d3
         beq.w   3f                                | CHP
-        bsr.w   chop_delta_more                   | D..H: d2 steps, d3 knob, a2 view
+        bsr.w   chop_delta_more                   | D..G: d2 steps, d3 knob, a2 view
         bra.w   6f
 10:     moveq   #0,%d0                            | PAD: 0..11 (shown 1..12)
         move.b  chop_pad,%d0
@@ -271,7 +299,8 @@ delta_gate:
         | 0 a number, through stock STA's own text routine (sta_value_text, '%d.'
         | with a fraction, else '%d'), so the STA marker reads exactly as stock
         | STA does and (k+1)<<8 reads 1..12 - it writes the terminator (sprintf);
-        | 1 OFF/ON; 2 a dash (an action knob); 3 OFF for 0, else a number.
+        | 1 OFF/ON; 2 a dash (an action knob). (Kind 3, OFF or a number, was
+        | STR's alone and went with it, D24.)
         | ------------------------------------------------------------------
         .align  2
 text_gate:
@@ -279,6 +308,13 @@ text_gate:
         bsr.w   chop_knob                         | keeps d4/a3
         tst.l   %d0
         bmi.w   9f
+        .ifdef  shared_cut_text
+        moveq   #K_CUT,%d1
+        cmp.l   %d1,%d0
+        bne.s   7f
+        jmp     shared_cut_text                   | image B, ids 1..2: 0008's popup, d4 =
+7:                                                | the id; its epilogue
+        .endif
         move.l  %d0,%d2                           | the knob
         bsr.w   chop_value                        | d0 = the value, 8.8
         move.l  %sp@(36),%a1                      | the output buffer
@@ -289,14 +325,11 @@ text_gate:
         moveq   #2,%d3
         cmp.l   %d3,%d1
         beq.s   3f                                | 2: a dash
-        bhi.s   1f                                | 3: OFF, or a number
         tst.l   %d0                               | 1: OFF / ON
         beq.s   2f
         move.b  #0x4f,(%a1)+                      | ON
         move.b  #0x4e,(%a1)+
         bra.s   5f
-1:      tst.l   %d0
-        bne.s   4f
 2:      move.b  #0x4f,(%a1)+                      | OFF
         move.b  #0x46,(%a1)+
         move.b  #0x46,(%a1)+
@@ -412,6 +445,7 @@ sample_key_gate:
         | the stock continuation follow. V is the 8.8 marker. With END on, the
         | step lock also locks END on each held step (chop_held_lock).
         | ------------------------------------------------------------------
+        .section .chst,"awx"                    | cave, with the state (pc-relative reads)
         .align  2
 pad_on_gate:
         move.l  4(%a2),%d0                        | k
@@ -430,18 +464,15 @@ pad_on_gate:
         move.b  %d1,(%a0)                         | chop_route[k] = T: its note-off follows
         move.b  %d0,chop_pad
         lea     chop_marks,%a0
-        mvz.w   0(%a0,%d0.l*2),%d1                | V = marker k, 8.8
-        moveq   #0,%d0
-        move.b  chop_track,%d0                    | T
+        mvz.w   0(%a0,%d0.l*2),%d3                | V = marker k, 8.8, in d3: free here
+        move.l  %d1,%d0                           | (the re-emitted moveq sets it) and
+        move.l  %d3,%d1                           | kept by every helper below
         bsr.w   chop_held_lock                    | d0 = 1: held steps locked
         tst.l   %d0
         bne.s   2f                                | D15a: locked, no chop_set_sta
-        moveq   #0,%d0                            | reload: the helper clobbers
-        move.b  chop_pad,%d0                      | d0/d1/a0/a1
-        lea     chop_marks,%a0
-        mvz.w   0(%a0,%d0.l*2),%d1                | V = marker k (k = chop_pad), 8.8
-        moveq   #0,%d0
-        move.b  chop_track,%d0                    | T
+        moveq   #0,%d0                            | reload T: the helper clobbers
+        move.b  chop_track,%d0                    | d0/d1/a0/a1 (it writes no state)
+        move.l  %d3,%d1                           | V, unchanged (marks, chop_pad unwritten)
         bsr.w   chop_set_sta
         bsr.w   chop_end_hit                      | END on: the slice's END, after STA
 2:      moveq   #0,%d0
@@ -485,11 +516,12 @@ pad_off_gate:
         | returns 0 - what stock returns when slot 0x6c says the id cannot be
         | locked - so a CHOP knob never writes a stock p-lock. RND (knob G) is
         | the one that does something here: chop_rnd_held, the step lock with
-        | random markers, which also returns 0. STR (knob H) turns as it does
-        | without a held trig (chop_str_held: base values only, never a lock)
-        | and returns 0. Every other id: stock.
+        | random markers, which also returns 0. In image B, 0008's ids 1..2
+        | (K_CUT) return 0 here too (D26; corp r5b pages P8). Every other id:
+        | stock.
         | Entered by a jmp at the entry: (%sp) return, 4 view, 8 id, 12 delta.
         | ------------------------------------------------------------------
+        .text
         .align  2
 lock_gate:
         move.l  8(%sp),%d0
@@ -499,9 +531,6 @@ lock_gate:
         moveq   #K_RND,%d1
         cmp.l   %d1,%d0
         beq.w   chop_rnd_held                     | its rts returns to the encoder
-        moveq   #K_STR,%d1
-        cmp.l   %d1,%d0
-        beq.w   chop_str_held                     | its rts returns to the encoder
         moveq   #0,%d0
         rts
 9:      lea     -48(%sp),%sp                      | displaced
@@ -515,39 +544,22 @@ lock_gate:
         | the same call stock makes at 0x4008ba12..0x4008ba54 (with id 0x29
         | there). Under LO the writer floors V itself (0x400a71be). T > 11
         | returns without writing: 0x400a39fa maps 12 and up to the FX set.
-        | UI task only. Clobbers d0/d1/a0/a1, keeps everything else.
+        | Since corp round 7 (D29) it is a tail into chop_put (cave2) with id 43
+        | and record 1: chop_put is this routine's body for any id and either
+        | record flag (same guard, same calls, same arguments), so the two
+        | copies became one. UI task only. Clobbers d0/d1/a0/a1, keeps
+        | everything else.
         | ------------------------------------------------------------------
         .align  2
 chop_set_sta:
-        cmpi.l  #PADS-1,%d0
-        bhi.s   9f
-        lea     -8(%sp),%sp
-        movem.l %d2-%d3,(%sp)
-        move.l  %d0,%d2                           | T
-        move.l  %d1,%d3                           | V, 8.8
-        jsr     project_singleton
-        move.l  %d0,-(%sp)
-        jsr     project_kit                       | project + 232, the active kit
-        addq.l  #4,%sp
-        move.l  %d2,-(%sp)                        | T
-        move.l  %d0,-(%sp)                        | kit
-        jsr     kit_track_param_set               | d0 = track T's SoundParameterSet
-        addq.l  #8,%sp
-        pea     1                                 | notify
-        pea     1                                 | record: a p-lock under live REC
-        move.l  %d2,-(%sp)                        | T
-        move.l  %d3,-(%sp)                        | V, 8.8
-        pea     PARAM_ID_STA                      | 43
-        move.l  %d0,-(%sp)                        | set
-        jsr     param_set_value
-        lea     24(%sp),%sp
-        movem.l (%sp),%d2-%d3
-        lea     8(%sp),%sp
-9:      rts
+        movea.w #PARAM_ID_STA,%a0                 | id 43
+        movea.w #1,%a1                            | record: a p-lock under live REC
+        bra.w   chop_put                          | its rts returns to the caller
 
         | ------------------------------------------------------------------
-        | chop_knob(d0 = param id) -> d0 = the CHOP knob (K_PAD..), or -1 for
-        | every id that is not CHOP's (and for ids above 15 or negative).
+        | chop_knob(d0 = param id) -> d0 = the CHOP knob (K_PAD..), K_CUT for
+        | 0008's ids 1..2 in image B, or -1 for every other id (and for ids
+        | above 15 or negative).
         | Clobbers d0/d1/a0; keeps everything else.
         | ------------------------------------------------------------------
         .align  2
@@ -563,10 +575,10 @@ chop_knob:
 
         | ------------------------------------------------------------------
         | chop_value(d0 = knob) -> d0 = what the knob shows, 8.8: PAD (k+1)<<8,
-        | the STA marker as it is, CHP / END 0 or 0x100, DIV 1..12 << 8, STR
-        | 0 (OFF) or its steps 1..64 << 8, the action knobs 0. Clobbers d0/d1/a0;
-        | keeps a1.
+        | the STA marker as it is, CHP / END 0 or 0x100, DIV 1..12 << 8, the
+        | action knobs 0. Clobbers d0/d1/a0; keeps a1.
         | ------------------------------------------------------------------
+        .section .chst,"awx"
         .align  2
 chop_value:
         tst.l   %d0
@@ -593,25 +605,16 @@ chop_value:
         move.b  chop_end,%d0                      | END 0/1
         bra.s   8f
 4:      subq.l  #1,%d0
-        bne.s   5f
+        bne.s   6f
         moveq   #0,%d0
         move.b  chop_div,%d0                      | DIV 1..12
-        bra.s   8f
-5:      subq.l  #3,%d0
-        bne.s   6f
-        moveq   #0,%d0                            | STR: 0 = OFF
-        moveq   #0,%d1
-        move.b  chop_str,%d1                      | 0..7
-        beq.s   8f
-        subq.l  #1,%d1
-        moveq   #1,%d0
-        lsl.l   %d1,%d0                           | 1, 2, 4 ... 64 steps
         bra.s   8f
 6:      moveq   #0,%d0                            | LAY, RND: action knobs
         rts
 8:      lsl.l   #8,%d0
         rts
 
+        .text
         | clamp(d0, d1 = max) -> d0 in 0..max. Clobbers nothing else.
         .align  2
 clamp:  tst.l   %d0
@@ -625,22 +628,8 @@ clamp:  tst.l   %d0
         | ------------------------------------------------------------------
         | Data
         | ------------------------------------------------------------------
-        | STR's {id, raw 8.8 value} rows (in cave with the hot path: cave2 is
-        | full). r5c-stretch S1/S3/S4/S11, ROM ranges checked:
-        | DST 67 = STA's container index 21 << 8; WAV 68 RMP 5; MOD 70 ONE 3; SPH
-        | 69 0; FAD 66 0x4000 (centre = no fade); SPD 64 0x6000 (shown 32 if the
-        | display is raw >> 8 - 64, INFERRED); MUL 65 by steps; DEP 71 0x7fff
-        | (full positive: the whole STA range, constant, skeptic P7 - its real
-        | scale and the RMP direction are hardware calibrations); END 44 0x7800;
-        | LOP 45 0 (off).
-        .align  2
-chop_str_on:
-        .word   67, 0x1500, 68, 0x0500, 70, 0x0300, 69, 0x0000
-        .word   66, 0x4000, 64, 0x6000, 65, 0xffff, 71, 0x7fff
-        .word   PARAM_ID_END, 0x7800, 45, 0x0000, 0
-chop_str_off:                                     | DST none (0), DEP 0x4000 (0)
-        .word   67, 0x0000, 71, 0x4000, 0
-
+        .section .cave3,"aw"                    | cave3: constants only ("aw" so that nm
+                                                  | lists its labels as D, which build.py reads)
         .align  2
 chop_pages:                                       | the SAMP view's pages
         .long   PAGE_SAMP, PAGE_CHOP
@@ -648,15 +637,21 @@ chop_pages:                                       | the SAMP view's pages
 page_chop:                                        | {name, top row, bottom row}
         .long   str_page
         .long   ID_PAD, ID_STA, ID_CHP, ID_END
-        .long   ID_DIV, ID_LAY, ID_RND, ID_STR
+        .long   ID_DIV, ID_LAY, ID_RND, 0         | knob H: none (STR removed, D24)
 
-        | id -> CHOP knob (-1: not CHOP's), for ids 0..15
+        .text
+        | id -> CHOP knob (-1: not CHOP's), for ids 0..15; in image B ids 1..2
+        | (0008's LCT, HCT) map to K_CUT, which the gates hand to 0008
 chop_ktab:
-        .byte   -1, -1, K_STR, K_PAD, K_STA, K_CHP, -1, -1
+        .ifdef  shared_cut_get
+        .byte   -1, K_CUT, K_CUT, K_PAD, K_STA, K_CHP, -1, -1
+        .else
+        .byte   -1, -1, -1, K_PAD, K_STA, K_CHP, -1, -1
+        .endif
         .byte   -1, -1, -1, K_END, K_DIV, K_LAY, K_RND, -1
         | CHOP knob -> how its popup prints (text_gate)
 chop_tkind:
-        .byte   0, 0, 1, 1, 0, 2, 2, 3          | PAD STA CHP END DIV LAY RND STR
+        .byte   0, 0, 1, 1, 0, 2, 2             | PAD STA CHP END DIV LAY RND
 
 
         | ==================================================================
@@ -729,20 +724,11 @@ chop_held_with:
         addq.l  #4,%sp
         cmp.l   %d2,%d0
         bne.w   8f                                | not the chop track
-        pea     PARAM_ID_STA
-        jsr     param_info                        | STA's RAM record
-        addq.l  #4,%sp
-        move.l  %d0,%a0
-        move.l  (%a0),%d0
-        btst    #8,%d0
+        moveq   #PARAM_ID_STA,%d0
+        bsr.w   chop_locked                       | STA's RAM record, bit 8
         bne.w   8f                                | 0x100: STA cannot be locked now
-        jsr     project_singleton
-        move.l  %d0,-(%sp)
-        jsr     project_kit
-        move.l  %d2,(%sp)                         | T
-        move.l  %d0,-(%sp)                        | kit
-        jsr     kit_track_param_set               | track T's SoundParameterSet
-        addq.l  #8,%sp
+        move.l  %d2,%d0                           | T
+        bsr.w   chop_set_of                       | track T's SoundParameterSet
         move.l  %d3,12(%sp)                       | fn+0  V (8.8, as the knob)
         move.l  %d0,16(%sp)                       | fn+4  set
         lea     chop_fn_mgr,%a0
@@ -750,12 +736,8 @@ chop_held_with:
         moveq   #-1,%d3                           | fn+16 E: -1 = no END lock
         tst.b   chop_end
         beq.s   1f
-        pea     PARAM_ID_END
-        jsr     param_info                        | END's RAM record
-        addq.l  #4,%sp
-        move.l  %d0,%a0
-        move.l  (%a0),%d0
-        btst    #8,%d0
+        moveq   #PARAM_ID_END,%d0
+        bsr.w   chop_locked                       | END's RAM record, bit 8
         bne.s   1f                                | 0x100: END cannot be locked now
         moveq   #0,%d0
         move.b  chop_pad,%d0
@@ -801,30 +783,31 @@ chop_lock_step:
         | chop_lock_one(step, set, V, E): set->vt[0x40](set, 43, V, step), then
         | if E >= 0, set->vt[0x40](set, 44, E, step). 0x400a6bd0 writes the
         | SELECTED track and floors 43/44 under LO itself (dis:214107-214114,
-        | 214142). Clobbers d0/d1/a0/a1.
+        | 214142). Clobbers d0/d1/a0/a1. Since corp round 7 (D29) the two calls
+        | share one body (1:, d0 = the id pushed as a long, d1 = the value);
+        | d0 on return is no longer -1 when E < 0, which nobody reads: chop_lay
+        | drops it, and the held-step iterator (hold_each_step, dis 0x400368d2
+        | 'jsr %a0@' then 'lea / tstb %sp@(35)') never reads the invoker's d0.
         .align  2
 chop_lock_one:
-        move.l  4(%sp),-(%sp)                     | step
-        move.l  16(%sp),-(%sp)                    | V
-        pea     PARAM_ID_STA                      | 43
-        move.l  20(%sp),%a1                       | set
+        move.l  12(%sp),%d1                       | V
+        moveq   #PARAM_ID_STA,%d0                 | 43
+        bsr.s   1f
+        move.l  16(%sp),%d1                       | E
+        bmi.s   9f                                | -1: no END lock
+        moveq   #PARAM_ID_END,%d0                 | 44
+        bsr.s   1f
+9:      rts
+1:      move.l  8(%sp),-(%sp)                     | step (past both returns)
+        move.l  %d1,-(%sp)                        | the value
+        move.l  %d0,-(%sp)                        | the id
+        move.l  24(%sp),%a1                       | set
         move.l  %a1,-(%sp)
         move.l  (%a1),%a0
         move.l  0x40(%a0),%a0                     | SoundParameterSet vt[0x40]
         jsr     (%a0)
         lea     16(%sp),%sp
-        move.l  16(%sp),%d0                       | E
-        bmi.s   9f
-        move.l  4(%sp),-(%sp)                     | step
-        move.l  %d0,-(%sp)                        | E
-        pea     PARAM_ID_END                      | 44
-        move.l  20(%sp),%a1                       | set
-        move.l  %a1,-(%sp)
-        move.l  (%a1),%a0
-        move.l  0x40(%a0),%a0
-        jsr     (%a0)
-        lea     16(%sp),%sp
-9:      rts
+        rts
 
         | The functor's manager word. 0x4003683c only tests it for non-null;
         | nothing calls it (no copy, no destroy). Harmless if ever called.
@@ -836,10 +819,12 @@ chop_fn_mgr:
         | ------------------------------------------------------------------
         | chop_put(d0 = T, d1 = V 8.8, a0 = param id, a1 = record 0/1):
         | param_set_value(kit_track_param_set(project_kit(project), T), id, V,
-        | T, record, notify 1) - chop_set_sta's call, for any id and either
-        | record flag. T > 11 returns without writing (12+ is the FX set).
+        | T, record, notify 1) - stock's STA-style writer call, for any id and
+        | either record flag (chop_set_sta is its tail with 43 and record 1).
+        | T > 11 returns without writing (12+ is the FX set).
         | UI task only. Clobbers d0/d1/a0/a1, keeps everything else.
         | ------------------------------------------------------------------
+        .text
         .align  2
 chop_put:
         cmpi.l  #PADS-1,%d0
@@ -850,14 +835,7 @@ chop_put:
         move.l  %d1,%d3                           | V
         move.l  %a0,%a2                           | id
         move.l  %a1,%a3                           | record
-        jsr     project_singleton
-        move.l  %d0,-(%sp)
-        jsr     project_kit                       | project + 232, the active kit
-        addq.l  #4,%sp
-        move.l  %d2,-(%sp)                        | T
-        move.l  %d0,-(%sp)                        | kit
-        jsr     kit_track_param_set               | d0 = track T's SoundParameterSet
-        addq.l  #8,%sp
+        bsr.s   chop_set_of                       | d0 = T -> track T's SoundParameterSet
         pea     1                                 | notify
         move.l  %a3,-(%sp)                        | record
         move.l  %d2,-(%sp)                        | T
@@ -869,6 +847,37 @@ chop_put:
         movem.l (%sp),%d2-%d3/%a2-%a3
         lea     16(%sp),%sp
 9:      rts
+
+        | chop_set_of(d0 = T) -> d0 = kit_track_param_set(project_kit(
+        | project_singleton()), T), track T's SoundParameterSet: the three
+        | calls chop_put and chop_held_with each made inline until corp round 7
+        | (D29), in the same order with the same arguments. T is not checked
+        | here (both callers already refused T > 11). Clobbers d0/d1/a0/a1.
+        .align  2
+chop_set_of:
+        move.l  %d0,-(%sp)                        | T, kit_track_param_set's 2nd argument
+        jsr     project_singleton
+        move.l  %d0,-(%sp)
+        jsr     project_kit                       | project + 232, the active kit
+        move.l  %d0,(%sp)                         | kit, over the project
+        jsr     kit_track_param_set               | (kit, T)
+        addq.l  #8,%sp
+        rts
+
+        | chop_locked(d0 = param id) -> Z clear (bne) when the id cannot be
+        | p-locked now: bit 8 (0x100) of its RAM record's first long, the test
+        | the page view's slot 0x6c makes. param_info(id) with the id pushed as
+        | a long, as the four inline copies did (pea id) until corp round 7
+        | (D29). Clobbers d0/d1/a0/a1; the flags survive the rts.
+        .align  2
+chop_locked:
+        move.l  %d0,-(%sp)
+        jsr     param_info                        | the id's RAM record
+        addq.l  #4,%sp
+        move.l  %d0,%a0
+        move.l  (%a0),%d0
+        btst    #8,%d0
+        rts
 
         | ------------------------------------------------------------------
         | chop_next_above(d0 = k 0..11) -> d0 = E: the smallest marker strictly
@@ -906,12 +915,8 @@ chop_end_hit:
         move.b  chop_pad,%d0
         bsr.s   chop_next_above
         move.l  %d0,%d1                           | E
-        moveq   #0,%d0
-        move.b  chop_track,%d0                    | T
-        movea.w #PARAM_ID_END,%a0
         movea.w #1,%a1                            | record
-        bra.w   chop_put
-9:      rts
+        bra.s   chop_end_put                      | T, id 44, chop_put
 
         | ------------------------------------------------------------------
         | chop_end_restore: while CHOP and END are both on, the chop track's END
@@ -919,6 +924,8 @@ chop_end_hit:
         | value, never a p-lock (D20 / r5c skeptic P2: otherwise a later STA
         | above the last slice end leaves STA > END). Otherwise nothing.
         | Clobbers d0/d1/a0/a1.
+        | chop_end_put (d1 = the value, a1 = the record flag): the tail both
+        | share since corp round 7 (D29): T = chop_track, id 44, chop_put.
         | ------------------------------------------------------------------
         .align  2
 chop_end_restore:
@@ -926,17 +933,18 @@ chop_end_restore:
         beq.s   9f
         tst.b   chop_end
         beq.s   9f
+        move.l  #STA_MAX,%d1                      | 0x7800: END's max and default
+        suba.l  %a1,%a1                           | record 0
+chop_end_put:
         moveq   #0,%d0
         move.b  chop_track,%d0                    | T
-        move.l  #STA_MAX,%d1                      | 0x7800: END's max and default
         movea.w #PARAM_ID_END,%a0
-        suba.l  %a1,%a1                           | record 0
         bra.w   chop_put
 9:      rts
 
         | ------------------------------------------------------------------
         | chop_delta_more(d2 = whole steps, non-zero; d3 = the knob, K_END..;
-        | a2 = the view): the knobs D..H with no trig held (delta_gate). d2/d3
+        | a2 = the view): the knobs D..G with no trig held (delta_gate). d2/d3
         | are param_apply_delta's to restore (its epilogue does), so they are
         | free here. Clobbers d0/d1/a0/a1 too; keeps a2.
         |   END: right on; left off, and while CHOP is on the chop track's END
@@ -945,7 +953,6 @@ chop_end_restore:
         |        change (turned against an end) leaves them alone.
         |   LAY: right: chop_lay; left: nothing.
         |   RND: nothing here (it acts on held steps, through lock_gate).
-        |   STR: chop_str_turn.
         | ------------------------------------------------------------------
         .align  2
 chop_delta_more:
@@ -963,12 +970,6 @@ chop_delta_more:
 2:      moveq   #K_LAY,%d0
         cmp.l   %d0,%d3
         beq.w   chop_lay                          | LAY: its rts returns to delta_gate
-        moveq   #K_STR,%d0
-        cmp.l   %d0,%d3
-        bne.s   3f
-        move.l  %d2,%d0                           | STR: whole steps
-        bra.w   chop_str_turn                     | its rts returns to delta_gate
-3:
         moveq   #K_DIV,%d0
         cmp.l   %d0,%d3
         bne.s   9f
@@ -1074,22 +1075,14 @@ chop_lay:
         moveq   #1,%d1
         cmp.l   %d1,%d0
         beq.w   9f                                | euclid mode: steps are remapped
-        pea     PARAM_ID_STA
-        jsr     param_info
-        addq.l  #4,%sp
-        move.l  %d0,%a0
-        move.l  (%a0),%d0
-        btst    #8,%d0
+        moveq   #PARAM_ID_STA,%d0
+        bsr.w   chop_locked
         bne.w   9f                                | 0x100: STA cannot be locked now
         moveq   #-1,%d6                           | END wanted: -1 no, 0 yes
         tst.b   chop_end
         beq.s   1f
-        pea     PARAM_ID_END
-        jsr     param_info
-        addq.l  #4,%sp
-        move.l  %d0,%a0
-        move.l  (%a0),%d0
-        btst    #8,%d0
+        moveq   #PARAM_ID_END,%d0
+        bsr.w   chop_locked
         bne.s   1f                                | END cannot be locked now
         moveq   #0,%d6
 1:      move.l  %a4,-(%sp)
@@ -1156,6 +1149,7 @@ chop_lay:
         | hold sequence) with chop_rnd_step as the invoker. Returns d0 = 0, as
         | lock_gate does for CHOP's other knobs (the caller ignores it).
         | ------------------------------------------------------------------
+        .section .cave2,"ax"
         .align  2
 chop_rnd_held:
         tst.b   chop_on
@@ -1208,132 +1202,45 @@ chop_rnd_step:
         move.l  (%sp)+,%d2
         rts
 
-        | ------------------------------------------------------------------
-        | STR (D21), EXPERIMENTAL. chop_str = 0 OFF, 1..7 = 1, 2, 4 ... 64 steps.
-        |
-        | chop_str_held: knob H turned with a trig held or a lock source on
-        | (lock_gate, (%sp) return, 12(%sp) the 8.8 delta): the same turn as
-        | without (base values, record 0 - never a p-lock, so no stock lock for
-        | id 2 either, r5c skeptic P3); returns d0 = 0.
-        | chop_str_turn(d0 = whole steps, signed): chop_str = clamp(chop_str +
-        | steps, 0..7); on a change, and only while CHOP is on (skeptic P6: the
-        | chop track is stale otherwise), chop_str_apply. With CHOP off the
-        | value is stored and nothing is written.
-        | chop_str_apply(d0 = 0..7): param_set_value(set_T, id, value, T,
-        | record 0, notify 1) through chop_put for each row of chop_str_on
-        | (value 0xffff = MUL, (7 - idx) << 8, so N = 2^(idx-1) steps needs MUL
-        | 2^(6 - (idx-1)) under the unverified rule 2048 / (32 * MUL)), or of
-        | chop_str_off for 0. No RETRIG write (skeptic P5). T > 11: chop_put
-        | refuses. Clobbers d0/d1/a0/a1; keeps d2/a2.
-        | ------------------------------------------------------------------
-        .align  2
-chop_str_held:
-        move.l  12(%sp),%d0
-        asr.l   #8,%d0                            | whole steps, sign kept
-        beq.s   9f
-        bsr.s   chop_str_turn
-9:      moveq   #0,%d0
-        rts
-
-        .align  2
-chop_str_turn:
-        move.l  %d2,-(%sp)
-        moveq   #0,%d1
-        move.b  chop_str,%d1
-        move.l  %d1,%d2                           | the old value
-        add.l   %d1,%d0
-        moveq   #7,%d1
-        bsr.w   clamp                             | 0..7
-        cmp.l   %d2,%d0
-        beq.s   9f                                | no change: nothing written
-        move.b  %d0,chop_str
-        tst.b   chop_on
-        beq.s   9f                                | CHOP off: stored only
-        bsr.s   chop_str_apply
-9:      move.l  (%sp)+,%d2
-        rts
-
-        .align  2
-chop_str_apply:
-        lea     -8(%sp),%sp
-        movem.l %d2/%a2,(%sp)
-        moveq   #7,%d2
-        sub.l   %d0,%d2
-        lsl.l   #8,%d2                            | MUL raw = (7 - idx) << 8
-        lea     chop_str_on,%a2
-        tst.l   %d0
-        bne.s   1f
-        lea     chop_str_off,%a2
-1:      mvz.w   (%a2)+,%d0                        | the id; 0 ends the list
-        beq.s   9f
-        mvz.w   (%a2)+,%d1                        | the value
-        cmpi.l  #0xffff,%d1
-        bne.s   2f
-        move.l  %d2,%d1                           | MUL by steps
-2:      move.l  %d0,%a0                           | id
-        moveq   #0,%d0
-        move.b  chop_track,%d0                    | T
-        suba.l  %a1,%a1                           | record 0: base values only
-        bsr.w   chop_put
-        bra.s   1b
-9:      movem.l (%sp),%d2/%a2
-        lea     8(%sp),%sp
-        rts
+        | (dial_gate, image A's optional D18 detour at param_knob_draw 0x400a587c
+        | that drew the CHOP STA knob's dial with stock STA's functor, was
+        | removed in corp round 7 (D29, to fit image B): the CHOP STA dial now
+        | draws as id 4's own dial, as it did before image A. Its value, text and
+        | resolution are unchanged.)
 
         | ------------------------------------------------------------------
-        | dial_gate (D18, optional): param_knob_draw's entry 0x400a587c, a
-        | SoundParameterSet vtable slot (4 vtable words point at the entry,
-        | nothing into +2..+7), called for every knob dial. For id 4 (the CHOP
-        | STA knob, CHOP's alone) it stores 43 into the id slot, so the dial is
-        | drawn with stock STA's dial functor (0x400f8a3a: 0..0x7800 rescaled to
-        | the full sweep, plus its 16-step fraction glyph). param_knob_draw reads
-        | that slot only for param_info and overwrites it itself before the
-        | callback (dis:212548-212563 'movel %sp@(32),%sp@- / jsr 0x400f8718 ...
-        | movel %d2,%sp@(32)'), so the change ends there. Every other id: the
-        | displaced instructions and the rejoin, d0 only clobbered (the entry).
-        | Entered by a jmp at the entry: (%sp) return, 4 set, 8 id, 12 value.
+        | Strings (constants): the page's name, the parameters' group name and
+        | the knobs' long and short names, which the ROM records point at
+        | (registry from_symbol patches) - nothing in the code reads them. The
+        | long names end .text (cave2); the page name and the short names follow
+        | the descriptor in .cave3.
         | ------------------------------------------------------------------
-        .align  2
-dial_gate:
-        moveq   #ID_STA,%d0
-        cmp.l   8(%sp),%d0
-        bne.s   1f
-        moveq   #PARAM_ID_STA,%d0
-        move.l  %d0,8(%sp)                        | id 4 draws as id 43
-1:      lea     %sp@(-24),%sp                     | displaced
-        moveml  %d2-%d6/%a2,%sp@                  | displaced
-        jmp     param_knob_draw_body
-
-        | ------------------------------------------------------------------
-        | Strings (constants, in cave2): the page's name, the parameters' group
-        | name and the knobs' long and short names, which the ROM records point
-        | at (registry from_symbol patches).
-        | ------------------------------------------------------------------
-str_page:
-str_group:      .asciz  "CHOP"
+        .text
 str_pad_l:      .asciz  "Chop Pad"
 str_sta_l:      .asciz  "Pad Start"
 str_chp_l:      .asciz  "Chop Mode"
 str_end_l:      .asciz  "Slice End"
 str_div_l:      .asciz  "Divide"
 str_lay_l:      .asciz  "Lay Out"
-str_str_l:      .asciz  "Stretch"
 str_rnd_l:      .asciz  "Shuffle"
+
+        .section .cave3,"aw"
+str_page:
+str_group:      .asciz  "CHOP"
 str_pad:        .asciz  "PAD"
 str_sta:        .asciz  "STA"
 str_chp:        .asciz  "CHP"
 str_end:        .asciz  "END"
 str_div:        .asciz  "DIV"
 str_lay:        .asciz  "LAY"
-str_str:        .asciz  "STR"
 str_rnd:        .asciz  "RND"
 
         | ------------------------------------------------------------------
-        | Run-time state, RAM only, at the end of .text in `cave` (after every
+        | Run-time state, RAM only, at the end of .chst in `cave` (after every
         | entry point: build.py refuses an odd entry). The image bytes are the
         | power-on defaults; nothing is saved.
         | ------------------------------------------------------------------
-        .text
+        .section .chst,"awx"
         .align  4
 chop_state:
 chop_on:        .byte   0                         | CHOP mode
@@ -1347,6 +1254,5 @@ chop_route:                                       | per pad: where its note-on w
         .byte   0xff, 0xff, 0xff, 0xff, 0xff, 0xff | (the chop track), 0xFF = stock
         .byte   0xff, 0xff, 0xff, 0xff, 0xff, 0xff
 chop_div:       .byte   12                        | DIV (knob E), 1..12
-chop_str:       .byte   0                         | STR (knob H), 0 OFF .. 7
         .align  4
 chop_rng:       .long   0x5eed0001                | RND's own LCG word (shared_rnd)

@@ -8,12 +8,19 @@ Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/
 |---|---|
 | MK1, OS 1.73 | ✅ Working on hardware |
 | MK2 | ❌ Not yet |
-| Builds reproducibly | ✅ Fresh clone + patch gives the same file, sha256 `734607ae…14dc` |
+| Builds reproducibly | ✅ Fresh clone + patch gives the same files (`86e1dd1b…a9a1`, `23a20937…7915`) |
 | Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
-| Sample Focus (hi-res, END, DIV, LAY, RND, STR) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
+| Sample Focus (hi-res, END, DIV, LAY, RND) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
+| SMP CUT (FILTER ×2: low/high cut), fixed for MK1 | 🧪 Built, reviewed, reproducible; first MK1 run pending |
+| STR (time-stretch) | ❌ Removed: didn't work on hardware |
 | Recovery code untouched | ✅ Byte-for-byte identical to stock |
 
-## Sample Focus (newest build, not yet hardware-tested)
+## Sample Focus + SMP CUT (newest, `make samplefocus-cut`)
+CHOP's page (below, minus STR) plus rytm1_mods' **SMP CUT** page on **FILTER ×2** (LCT low cut / HCT high cut on the sample layer), fixed for the MK1: the original uses the MK2's kit and sound offsets, which can crash an MK1. CHOP owns the shared page hooks and hands SMP CUT's knobs to its code. Fitted by code compaction; no features dropped except STR. **SMP CUT has not run on an MK1 yet**: see the test card (S1–S10).
+Expected sha256 of `build/AR1_OS1.73_0000_0001_0008.syx`: `86e1dd1b2a177b709d1e3977ee61b7f228d587ab752416d203014e66d21fa9a1`.
+Without SMP CUT: `make samplefocus` → `build/AR1_OS1.73_0000_0001.syx`, `23a20937c06fe856abcd1013bda03a14eb775dbcccb9329145d0d808c5157915`.
+
+## Sample Focus (previous build; STR has since been removed)
 `make samplefocus` builds CHOP plus a full 8-knob page (0000-shared + CHOP only; no euclid/velocity):
 
 | Knob | Does |
@@ -25,10 +32,10 @@ Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/
 | DIV | re-chop into 1–12 equal slices |
 | LAY | lay slices onto the empty steps of the pattern |
 | RND | GRID REC: hold steps + turn → random slice per step |
-| STR | experimental: sets the LFO up to sweep STA over 1–64 steps (time-stretch trick) |
+| ~~STR~~ | removed (didn't work) |
 
-Needs SAMPLE POS RES = HI for decimals. Turn STR off before CHP off. LAY has no undo.
-Expected sha256 of `build/AR1_OS1.73_0000_0001.syx`: `734607ae8a213a328a46c474abd2d4b55853172761e753af34e921f41b9d14dc`.
+Needs SAMPLE POS RES = HI for decimals. LAY has no undo.
+(With STR, previous patch: `734607ae…14dc`. The current patch builds the no-STR version.)
 
 ## How it works
 
@@ -83,12 +90,13 @@ git checkout 2fae7ce
 git am /path/to/this-repo/mods/0001-chop/rytm1_mods-chop.patch
 cp /path/to/Analog-Rytm_OS1.73.syx stock/Analog-Rytm_OS1.73.syx
 make setup          # fetches and builds the firmware container tool
-make samplefocus    # newest: CHOP + hi-res + END/DIV/LAY/RND/STR; must end with PASS
+make samplefocus-cut   # newest: CHOP (hi-res, END/DIV/LAY/RND) + SMP CUT; must end with PASS
+make samplefocus       # same without SMP CUT
 make control        # stock code repacked, for your first flash
 ```
 On macOS, if `python3` is older than 3.11, add `PY=python3.12` to each `make` command.
 
-The end of `make samplefocus`'s output must show all three of these:
+The end of the `make` output must show all three of these:
 ```
 ok   null repack: stock .syx rebuilds byte-identically
 ok   embedded bootstrap image unchanged (87,068 B) - recovery path intact
@@ -96,15 +104,17 @@ PASS
 ```
 Then check your build is the same file this repo was tested with:
 ```bash
+shasum -a 256 build/AR1_OS1.73_0000_0001_0008.syx
+# 86e1dd1b2a177b709d1e3977ee61b7f228d587ab752416d203014e66d21fa9a1   (samplefocus-cut)
 shasum -a 256 build/AR1_OS1.73_0000_0001.syx
-# 734607ae8a213a328a46c474abd2d4b55853172761e753af34e921f41b9d14dc
+# 23a20937c06fe856abcd1013bda03a14eb775dbcccb9329145d0d808c5157915   (samplefocus)
 ```
 
 ### 3. Flash (Transfer)
 1. Back up your projects and +Drive in Transfer.
 2. Connect USB, power on, and in Transfer > CONNECTION set MIDI IN and OUT to the Analog Rytm.
 3. **Control build first:** drag `build/AR1_OS1.73_control.syx` onto Transfer > DROP and press **YES** on the Rytm. Check it boots and plays normally. This proves the toolchain on your unit.
-4. **Then Sample Focus:** do the same with `build/AR1_OS1.73_0000_0001.syx`.
+4. **Then Sample Focus + SMP CUT:** do the same with `build/AR1_OS1.73_0000_0001_0008.syx` (or `..._0000_0001.syx` without SMP CUT).
 
 The hardware-proven step-lock build (CHOP + step-lock + euclid/velocity, sha256 `a96657b4…caf6`) is the previous patch, commit `f82a2f4` of this repo's `mods/0001-chop/rytm1_mods-chop.patch`, built with `make chop`.
 5. Don't power off during an update or during the first boot after it.

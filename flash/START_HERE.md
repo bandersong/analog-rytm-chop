@@ -13,7 +13,23 @@ Nothing here has run on a Rytm yet. Every check that can be done on a computer p
 
 If Transfer refuses a file as "same version", nothing was written. Stop, or use the recovery route.
 
-## NEWEST: Sample Focus (`4_SAMPLE-FOCUS_…syx`) — not yet tested on hardware
+## NEWEST: Sample Focus + SMP CUT (`5_SAMPLE-FOCUS+SMP-CUT_…syx`) — not yet tested on hardware
+- **SAMPLE ×2 → CHOP**: PAD, STA (hi-res), CHP, END, DIV, LAY, RND. Knob H is blank (STR removed — it didn't work).
+- **FILTER ×2 → SMP CUT**: LCT (low cut) and HCT (high cut) on the sample layer, per track, saved with the sound.
+- The CHOP STA dial now uses its own default graphic (the stock-STA-looking dial was dropped to make room). Values and decimals are unchanged.
+- **This is SMP CUT's first-ever run on an MK1**, and its filter runs inside the audio engine. Test it before you rely on it:
+  1. First boot: on a sound you haven't touched, LCT/HCT must read "off" (no cut). If not, stop and tell me **before saving anything**.
+  2. FILTER, pause, FILTER → SMP CUT page. Turn LCT up: lows thin out. HCT down: highs roll off. Only on that track.
+  3. All 12 tracks playing with LCT/HCT on: listen for clicks or dropouts (that would mean the filter is too heavy for the audio engine).
+  4. Set cuts on two tracks, save kit + project, power-cycle: the values must come back.
+  5. Then CHOP as before (pads, live REC, step-lock, END/DIV/LAY/RND), with CHP OFF when you want to select another track for SMP CUT.
+  6. Known quirk: turning HCT then LCT very quickly can make LCT jump back — just turn LCT again.
+- Fallbacks: `4b_SAMPLE-FOCUS-no-STR_…` (same CHOP, no SMP CUT), then `2b_CHOP+STEPLOCK_…` (proven).
+- Full list: design.md, test card S1–S10 and H rows.
+
+The SMP CUT warning further down ("don't flash rytm1_mods' SMP CUT builds") still applies to **rytm1_mods' own** builds; file 5 carries the MK1-fixed SMP CUT.
+
+## Sample Focus with STR (`4_SAMPLE-FOCUS_…syx`) — superseded: STR doesn't work; use 4b or 5
 Everything from the step-lock build, minus euclid accents and velocity humanise, plus a full 8-knob CHOP page:
 
 | Knob | Does |
