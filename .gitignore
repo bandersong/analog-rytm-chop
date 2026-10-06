@@ -5,3 +5,4 @@ upstream/*
 *.syx
 .DS_Store
 proto/chop/target/
+!stock/SHA256SUMS
