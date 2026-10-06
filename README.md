@@ -10,7 +10,25 @@ Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/
 | MK2 | ❌ Not yet |
 | Builds reproducibly | ✅ Fresh clone + patch gives the same file, sha256 `a96657b4…caf6` |
 | Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
+| Sample Focus (hi-res, END, DIV, LAY, RND, STR) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
 | Recovery code untouched | ✅ Byte-for-byte identical to stock |
+
+## Sample Focus (newest build, not yet hardware-tested)
+`make samplefocus` builds CHOP plus a full 8-knob page (0000-shared + CHOP only; no euclid/velocity):
+
+| Knob | Does |
+|---|---|
+| PAD | which marker you're editing |
+| STA | the marker, hi-res like stock STA (slow = decimals, FUNC = whole steps) |
+| CHP | CHOP on/off |
+| END | each pad also sets END to the next marker (slice playback) |
+| DIV | re-chop into 1–12 equal slices |
+| LAY | lay slices onto the empty steps of the pattern |
+| RND | GRID REC: hold steps + turn → random slice per step |
+| STR | experimental: sets the LFO up to sweep STA over 1–64 steps (time-stretch trick) |
+
+Needs SAMPLE POS RES = HI for decimals. Turn STR off before CHP off. LAY has no undo.
+Expected sha256 of `build/AR1_OS1.73_0000_0001.syx`: `734607ae8a213a328a46c474abd2d4b55853172761e753af34e921f41b9d14dc`.
 
 ## How it works
 
@@ -65,7 +83,8 @@ git checkout 2fae7ce
 git am /path/to/this-repo/mods/0001-chop/rytm1_mods-chop.patch
 cp /path/to/Analog-Rytm_OS1.73.syx stock/Analog-Rytm_OS1.73.syx
 make setup          # fetches and builds the firmware container tool
-make chop           # builds + verifies; must end with PASS
+make chop           # (retired in the newest patch: use `make samplefocus`)
+make samplefocus    # newest: CHOP + hi-res + END/DIV/LAY/RND/STR; must end with PASS
 make control        # stock code repacked, for your first flash
 ```
 On macOS, if `python3` is older than 3.11, add `PY=python3.12` to each `make` command.

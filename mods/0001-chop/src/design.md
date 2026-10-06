@@ -1,13 +1,20 @@
 # 0001 CHOP - design
 
-Status: **built** (`make chop`, `make chop-min` and `make control` PASS verify in the
-guest VM, 2026-10-05, after the round-4 change D15 below - the step lock; `make random`
-and the default `make` passed earlier the same day and do not contain 0001). The round-3
-build (page, pads, live-REC locks) is reported working on the founder's MK1 (corp round-4
-brief; no hardware receipt in this file); **the round-4 step lock has never run on
-hardware.**
+Status: **built** - Sample Focus image A (`make samplefocus` = 0000-shared + 0001-chop,
+tag 0000_0001; `make chop-min` is the same composition) and `make control` PASS verify in
+the guest VM, 2026-10-06, after every one of the seven Sample Focus steps below; the
+default `make` (0000 0002 0003 0008) and `make random` (0000 0002 0003 0004), which do
+not contain 0001, PASS as well. **Nothing added in Sample Focus has run on hardware.**
+The round-4 image (`make chop` at commit ee8665e, build a96657b4...caf6: page, pads,
+live-REC locks, note-off pairing, step lock) is confirmed working on the founder's MK1
+(hardware result 2026-10-06, below). `make chop` (0000 0001 0002 0003) is retired: CHOP
+now also claims the part of cave2 that 0002 occupies (see Build).
 Local only: this tree has no license and is never pushed or published. Nothing here
 flashes a device; the founder flashes.
+Commit hashes in this file are those after the 2026-10-06 re-author of branch `chop` to
+bandersong (every commit 2fae7ce..chop; trees, messages and dates unchanged). The corp
+notes cite the earlier hashes: the map is `corp/r6-integrator/reauthor_map.txt`, and the
+old commits stay on branch `chop-pre-reauthor-20261006`.
 
 Line references `dis:N` are lines of
 `/Users/creative/analog rytm firmware/build/mainos_1.73_emac.dis` (objdump of
@@ -17,7 +24,29 @@ and D8a, `r2-re/results.json`, `r2-re/skeptic_fixes.md`). Round 3 (D8a) pairs ea
 note-off with its note-on; receipts in `corp/fixer-r3/`. Round 4 (D15-D15d) adds the step
 lock: trig key(s) held + pad = STA p-lock of that pad's marker on every held step; RE in
 `corp/r4-re/results.json` (seats r4-heldlock HL1-HL13 and r4-padheld F1-F10, and their
-skeptics' plan problems), build receipts in `corp/r4-builder/`.
+skeptics' plan problems), build receipts in `corp/r4-builder/`. Round 6 ("Sample Focus",
+D17-D23) adds hi-res markers and five knobs; RE in `corp/r5-re`, `corp/r5b-re`,
+`corp/r5c-re` (`results.json`, with the skeptics' plan problems), build and proof receipts
+in `corp/r6-builder/` (`s1`..`s7`: one folder per step, with the guest logs, the built
+.bin/.syx/manifest/ELF and the read-only checks).
+
+## Summary (README text)
+
+**CHOP - Sample Focus (MK1 OS 1.73, image A).** A second page on the SAMPLE view turns
+the twelve pads into twelve sample-start markers for one track. On the SAMPLE view,
+press SAMPLE, let go, pause, press again: the CHOP page. Turn CHP right and the track
+selected at that moment becomes the *chop track*; from then on pad k sets the chop
+track's STA to marker k and plays it, as a STA knob turn and a pad hit would - so under
+live REC stock records an ordinary trig with an ordinary STA p-lock. Hold trig keys of the
+chop track (GRID REC) and hit a pad: each held step gets STA = that marker as a p-lock.
+The markers have stock STA's resolution (fine steps under SAMPLE POS RES = HI). END sets
+each slice's end too, DIV re-chops the sample into 1..12 equal slices, LAY lays the slices
+out on the empty steps of the pattern, RND (turned while holding trigs) gives each held
+step a random slice, and STR (EXPERIMENTAL) sets up the track's LFO to sweep STA over 1..64
+steps. Everything CHOP keeps is RAM only (a power cycle resets it); what it writes into
+patterns and kits (STA/END p-locks, trigs, base STA/END/LFO values) are ordinary stock
+values that play on stock firmware. No euclid accents, no velocity humanise, no SMP CUT in
+this image.
 
 ## What it does
 
@@ -32,24 +61,32 @@ length in seconds is UNKNOWN (H3).
 | knob | id | shows | turning it |
 |---|---|---|---|
 | A `PAD` | 3 | 1..12 | which marker PAD/STA edit (a pad hit in CHOP also sets it) |
-| B `STA` | 4 | 0..120 | that marker: a sample start on stock's STA scale (id 43, max 0x7800) |
-| C `CHP` | 5 | OFF / ON | right: CHOP on, for the track selected at that moment (the *chop track*); left: off |
-| D..H | 0 | blank | - |
+| B `STA` | 4 | 0..120, stock STA's text (`40.` when there is a fraction) | that marker, 8.8 like stock STA (id 43, max 0x7800): HI = fine and accelerated steps, LO = whole steps, FUNC = one whole step (rounded down first), press-and-turn = big steps; the dial draws as stock STA's |
+| C `CHP` | 5 | OFF / ON | right: CHOP on, for the track selected at that moment (the *chop track*); left: off (END on: the chop track's END back to 120 first) |
+| D `END` | 11 | OFF / ON | right: on - a pad also sets the chop track's END to its slice end (the next marker above its own, else 120), after STA; left: off, and the chop track's END goes back to 120 |
+| E `DIV` | 12 | 1..12 | re-chop: marker i = ((i mod DIV) x 120) / DIV for all twelve (pads above DIV repeat the slices); overwrites hand-set markers; turning against an end changes nothing |
+| F `LAY` | 13 | `-` | right: lay the slices out - n = min(DIV, pattern length) slices on steps i x length / n; only an EMPTY step gets a trig plus its STA (and END) p-lock; left: nothing |
+| G `RND` | 14 | `-` | only while trig key(s) of the chop track are held: each held step gets the STA (and END) p-lock of a random slice 0..DIV-1; each detent re-rolls; otherwise nothing |
+| H `STR` | 2 | OFF, 1, 2, 4 ... 64 | EXPERIMENTAL: the chop track's LFO sweeps STA once over that many steps (below); OFF switches the sweep off |
 
-The twelve markers start at 0, 10, 20 ... 110.
+The twelve markers start at 0, 10, 20 ... 110 (DIV 12). Gestures: no new pad gestures -
+the pads do what they did in round 4; every new action is a knob on the CHOP page, and the
+one "hold trig + turn knob" action (RND) is stock's own grammar.
 
 While CHOP is on, a hit on pad k (k = 0..11):
 
 1. `chop_pad = k` (the PAD knob follows; it is redrawn at the next redraw);
 2. **with trig key(s) of the chop track held (D15):** STA = marker k is written as a
-   p-lock on every held step, exactly what stock does when you hold those trigs and turn
-   the STA knob; the base STA is left alone, so step 3 below is skipped (see "The step
-   lock"). Otherwise:
+   p-lock on every held step (and END = its slice end, with END on and END lockable),
+   exactly what stock does when you hold those trigs and turn the STA knob; the base STA
+   is left alone, so step 3 below is skipped (see "The step lock"). Otherwise:
 3. the chop track's STA is set to marker k with
-   `param_set_value(set, 43, marker << 8, T, record = 1, notify = 1)` on
+   `param_set_value(set, 43, marker, T, record = 1, notify = 1)` (marker in 8.8) on
    `set = kit_track_param_set(project_kit(project_singleton()), T)` - the call a STA
    knob turn ends in (dis:213877-213897 `braw 0x400a6316` with flags 1, 1), so under
-   live REC stock writes an ordinary STA p-lock on the chop track's current step;
+   live REC stock writes an ordinary STA p-lock on the chop track's current step; with
+   END on, the same call for END (id 44) follows, after STA, as stock's own STA/END
+   writer orders them (0x4008b840);
 4. either way, the pad id in the UI message is rewritten to the chop track, and the message goes
    on into stock. KeyboardView then plays (and live-records) the chop track exactly as
    a hit on its own pad: no hand-built fire call, and no track switch away from it.
@@ -65,14 +102,18 @@ off, pads 0..11 only store 0xFF in `chop_route` and the messages stay stock.
 
 CHOP mode is the RAM flag `chop_on`, not "the CHOP page is on screen" (D6): leaving the
 page does not end CHOP; CHP OFF or a power cycle does. Nothing is saved: markers, the
-chop track and the flag are RAM only and come back as the image's defaults at power-on.
-A recorded chop is an ordinary STA p-lock and plays back on stock firmware.
+chop track, the knob values and the flag are RAM only and come back as the image's
+defaults at power-on. A recorded chop is an ordinary STA (and END) p-lock and plays back
+on stock firmware.
 
-Consequences to know (by design, from the STA lane):
+Consequences to know (by design):
 - Like a STA knob turn, every pad hit in CHOP also changes the chop track's base STA
-  and marks the kit edited (kit_param_changed). Leaving CHOP does not restore it. The one
-  exception is a pad hit that wrote held-step locks (D15a): like the stock STA knob on
-  held trigs, it leaves the base STA and the kit untouched.
+  (and END, with END on) and marks the kit edited (kit_param_changed). Leaving CHOP does
+  not restore STA. The one exception is a pad hit that wrote held-step locks (D15a): like
+  the stock STA knob on held trigs, it leaves the base values and the kit untouched.
+- END OFF, CHP OFF (with END on) and CHP re-latching another track (with END on) write
+  the chop track's END = 120 (record 0: a base value, never a lock) - also when END had
+  never moved it, so a hand-set END on that track is replaced by 120.
 - A repeated hit on the same marker still writes and still records (slot 0x24 is only a
   range check, sta-14).
 - **CHOP is for the normal pad mode (D14).** With chromatic, scale or any other pad mode
@@ -84,109 +125,146 @@ Consequences to know (by design, from the STA lane):
 - **While CHP is ON, every pad press goes to the chop track and writes its STA - with or
   without a held key** (TRK, FUNC, or any modifier + pad gesture is rewritten too), so the
   pads cannot select another track until CHP is OFF.
-- **Pad pressure (aftertouch) is not rerouted in v1** (UI-loop case 2 is untouched): leaning
+- **Pad pressure (aftertouch) is not rerouted** (UI-loop case 2 is untouched): leaning
   on a pad in CHOP still drives the pad's own track, while its note plays the chop track.
+- LAY and STR edit the pattern and the kit with no undo: LAY's trigs and locks stay until
+  you clear them (a later DIV change leaves them as they are), STR overwrites the chop
+  track's LFO, END and LOOP base values (reload the kit to get them back).
+- **STR acts only while CHOP is on.** CHP OFF does not stop a sweep STR set up, and with
+  CHOP off H only changes its number: turn STR OFF before CHP OFF or a re-latch. Keep END
+  OFF while you use STR (END on moves END to each slice end and cuts the sweep). Details in
+  "STR" below.
 
 ## Build
 
 ```
-make chop       # 0000-shared 0001-chop 0002-euclid-accents 0003-velocity-humanise
-                # -> build/AR1_OS1.73_0000_0001_0002_0003.syx
-make chop-min   # 0000-shared 0001-chop (bisection) -> build/AR1_OS1.73_0000_0001.syx
+make samplefocus  # Sample Focus image A: 0000-shared 0001-chop
+                  # -> build/AR1_OS1.73_0000_0001.syx
+make chop-min     # the same composition and tag (kept for the bisection habit)
+make control      # no mods: stock MAIN OS repacked by our tool
+make chop         # RETIRED: prints why and exits 2 (round 4 = commit ee8665e)
 ```
 
-Both run `symbols layout` first, then `build.py --mods ... --tag ...`, then
-`verify.py --tag ...` (modelled on `random`). Builds run only in the guest VM.
-0001 is `enabled = false`, so the default `make` is unchanged (0000 0002 0003 0008;
-rebuilt after this change: byte-identical .syx, PASS). `make control` (no mods: 0
-differing regions) and `make random` (0000 0002 0003 0004) PASS as well.
+Each runs `symbols layout` first, then `build.py --mods ... --tag ...`, then
+`verify.py --tag ...`. Builds run only in the guest VM. 0001 is `enabled = false`, so the
+default `make` is unchanged in composition (0000 0002 0003 0008); it and `make random`
+(0000 0002 0003 0004) rebuild and PASS after every Sample Focus step (they change only by
+0000-shared's PROJ_KIT fix, 2 bytes, below).
+
+**Why `make chop` is retired.** D22 puts CHOP's new code in cave2, the space 0002 and
+0003 leave free in image A. CHOP's second claim, 0x402a2780 + 0x5b8 (section `.cave2`),
+is exactly 0002's claim, so `excludes` now lists `0002-euclid-accents` and a build with
+both can no longer exist (build.py would refuse at "cave ... is not free"). 0003's claim
+is untouched, so 0000 + 0001 + 0003 would still lay out; it is not a target. The round-4
+image is reproducible from commit ee8665e (`make chop`, a96657b4...caf6).
+
+**0000-shared PROJ_KIT = 232 (D17).** 0000-shared's `shared_sound_of` used the MKII kit
+offset 352; on MK1 1.73 the active kit is project + 232 (project_kit 0x400ab706,
+`addil #232`; r5b-offsets O1, skeptic-confirmed). Fixed. CHOP itself never calls it (its sound
+writes go through project_kit); in image A it is dead code, and the fix is for image B
+(0008 SMP CUT). The built operand is `pea %a0@(232)` (`4868 00e8`) at 0x402a2db4 and
+`4868 0160` appears nowhere in the image (python byte search, `corp/r6-builder` step 1 and
+final). 0008's own `SOUND0 = 352+60` is NOT fixed here (image B).
 
 verify.py's claim check credits a changed byte to the first registry claim that covers
-it, whatever its owner, so its log can name 0008 or 0004 claims for CHOP bytes; and it
-does not test the .syx packet / content / stream checksums (the vendored tool's extract
-ignores its own verdict). Both were checked separately for these builds (in-build claims
-only: every changed byte covered; all .syx gates ok, ELE2 header equal to stock); making
-verify.py do it is a separate tools change.
+it, whatever its owner, so its log can name 0008 or 0004 claims for CHOP bytes (it does
+for the dial_gate host 0x400a587c, which 0004 also claims). The read-only
+`corp/r6-builder/prove.py` matches every changed byte against the claims of the mods in
+the build only (0 unclaimed, below).
 
 **The CHOP image has no SMP CUT (0008) and no LFO RND (0004).** CHOP detours the same
 four page hosts (0x400f8736, 0x400381a0, 0x400376e4, 0x400a5908), which build.py
 refuses to patch twice (its expect check), and takes the same `cave` claim; so
-`excludes = ["0004-lfo-rnd", "0008-sample-cut"]`. Chaining with `chain_pos` is the
-alternative if the founder ever wants both in one image.
+`excludes = ["0002-euclid-accents", "0004-lfo-rnd", "0008-sample-cut"]`. Chaining with
+`chain_pos` needs a tools change first (r5b space skeptic S12: layout.py and build.py
+refuse a shared host today).
 
 **The id 0001.** It belonged to a retracted MKII mod, `0001-microtiming-fine`, which
 `mods/0002-euclid-accents/mod.toml` still lists in `excludes`. `layout.load_excludes`
 works on full id strings, so `0001-microtiming-fine` (which does not exist in this tree)
-and `0001-chop` never meet: layout reports `layout ok`, and `make chop` builds with
-0001 and 0002 together. Cosmetic only.
+and `0001-chop` never meet. Cosmetic only.
 
 ## Placement
 
-One claim, `cave` 0x402a1b30 + 0x4d0 (the pool 0008 and 0004 use), section `.text`;
-the stub is 1224 B (0x402a1b30..0x402a1ff7, `make chop` and `make chop-min` logs:
-"0001-chop: stub 0x402a1b30 (1224 B)"), so **8 bytes of the claim are left free**
-(0x402a1ff8..0x402a1fff, zero in the built image; stock UTF-16 data starts at
-0x402a2000, unchanged). Round 3 was 932 B; the step lock (D15) added 292 B. Code, the page
-list and descriptor, the strings and the 28 B of RAM state all fit there; nothing goes
-in cave3 (whose `.tab` neighbour is unexplained, F15), and no second claim was needed
-(D15c). The state sits at the end, after every entry point (build.py refuses an odd
-entry); addresses from `m68k-elf-nm` of the built `obj/0001-chop.elf`, the same in both
-CHOP images (nm of both ELFs compared, round 4):
+Two claims (D22: run-time state stays in `cave`; code goes to `cave2`; nothing in cave3 or
+cave4..6):
 
-| label | addr (built, round 4) | default |
+| claim | section | holds | built size | free |
+|---|---|---|---|---|
+| `cave` 0x402a1b30 + 0x4d0 | `.text` | the nine gates' hot paths, chop_set_sta, chop_knob, chop_value, clamp, STR's value rows, the page list and descriptor, the knob tables, then the RAM state | 1216 B (0x402a1b30..0x402a1fef) | 16 B |
+| `cave2` 0x402a2780 + 0x5b8 (0002's space) | `.cave2` | the step lock (chop_held_lock / chop_held_with, chop_lock_step, chop_lock_one, chop_fn_mgr), chop_put, END, DIV, LAY, RND, STR, dial_gate, the strings | 1461 B (0x402a2780..0x402a2d34) | 3 B |
+
+(Sizes from the `make samplefocus` log, "0001-chop: stub 0x402a1b30 (1216 B)" and
+"0x402a2780 (1461 B)"; 0000-shared stays at 0x402a2d38, 234 B.) cave2 is within `bsr.w`
+range of cave (0x402a2780 - 0x402a1b30 = 0xc50), and every call between the two is a
+16-bit displacement the linker resolved (a miss would fail at link time). cave2 holds code
+only. Both pools have hardware evidence: the round-4 image ran CHOP's code and state in
+cave, and 0002/0003's code and state in cave2.
+
+The state sits at the end of `.text`, after every entry point (build.py refuses an odd
+entry); addresses from `m68k-elf-nm` of the built `obj/0001-chop.elf` (image A):
+
+| label | addr | default |
 |---|---|---|
-| `chop_on` | 0x402a1fdc | 0 |
-| `chop_track` | 0x402a1fdd | 0 |
-| `chop_pad` | 0x402a1fde | 0 |
-| `chop_rsv` | 0x402a1fdf | 0 |
-| `chop_marks[12]` | 0x402a1fe0 | 0, 10, 20 ... 110 |
-| `chop_route[12]` | 0x402a1fec | 0xFF x 12 (D8a: no note-on rewritten yet) |
+| `chop_on` | 0x402a1fc0 | 0 |
+| `chop_track` | 0x402a1fc1 | 0 |
+| `chop_pad` | 0x402a1fc2 | 0 |
+| `chop_end` | 0x402a1fc3 | 0 (END off; was the spare byte `chop_rsv`) |
+| `chop_marks[12]` | 0x402a1fc4 | 8.8 words 0x0000, 0x0a00 ... 0x6e00 (0, 10 ... 110) |
+| `chop_route[12]` | 0x402a1fdc | 0xFF x 12 (D8a: no note-on rewritten yet) |
+| `chop_div` | 0x402a1fe8 | 12 |
+| `chop_str` | 0x402a1fe9 | 0 (STR OFF) |
+| `chop_rng` | 0x402a1fec | 0x5eed0001 (RND's LCG word; the same sequence after every power-on) |
 
-(Round 3 had them at 0x402a1eb8..0x402a1ed3; the step lock's code moved them up. Any
-round-3 address below that is labelled "round 3" refers to that build.)
+(Round 3 had the state at 0x402a1eb8..0x402a1ed3 and round 4 at 0x402a1fdc..0x402a1ff7;
+any address below labelled "round 3" or "round 4" refers to that build.)
 
-Every field is a byte, so every store is one instruction. Nothing is written in the
-embedded bootstrap [0x4028c708, 0x402a1b24): verify reports it unchanged, and a python
-byte compare of each built MAIN OS against `build/stock_mainos.bin` over that span finds
-0 differing bytes (chop, chop-min, control).
+Nothing is written in the embedded bootstrap [0x4028c708, 0x402a1b24): verify reports it
+unchanged, and a python byte compare of the built MAIN OS against
+`build/stock_mainos.bin` over that span finds 0 differing bytes (every step, s1..s7).
 
 ## Hooks
 
 All expect bytes were re-read from `build/stock_mainos.bin` with python; the registry
 entries are in `registry/allocations.toml` under `0001-chop`.
 
-### Detours (8)
+### Detours (9)
 
 | host | expect | entry | rejoin | what |
 |---|---|---|---|---|
-| 0x400f8736 | 720a202f0004 | page_info_gate | 0x400f873c | page_info answers id 11 with `page_chop` (0008's gate verbatim) |
-| 0x400381a0 | 4feffff448d7040c | get_gate | 0x400381a8 | page_get_value for ids 3..5 = shown value << 8 |
-| 0x400376e4 | 77832f2a0074 | delta_gate | 0x400376ea | param_apply_delta for ids 3..5: RAM only, then view_invalidate; 0003's gate rejoins here |
-| 0x400a5908 | 242f0020262f0024 | text_gate | 0x400a5910 | param_value_text for ids 3..5: number, or OFF / ON |
+| 0x400f8736 | 720a202f0004 | page_info_gate | 0x400f873c | page_info answers id 11 with `page_chop`, and gives id 4 STA's encoder step fields (D18) |
+| 0x400381a0 | 4feffff448d7040c | get_gate | 0x400381a8 | page_get_value for CHOP's eight ids = the shown value, 8.8 |
+| 0x400376e4 | 77832f2a0074 | delta_gate | 0x400376ea | param_apply_delta for CHOP's ids: RAM (and the knobs' own writes), then view_invalidate |
+| 0x400a5908 | 242f0020262f0024 | text_gate | 0x400a5910 | param_value_text for CHOP's ids: stock STA's text, OFF / ON, or `-` |
 | 0x400ce4b8 | 2f0247f9400706f0 | sample_key_gate | 0x400ce4c0 | the SAMPLE key on the SAMP view (below) |
 | 0x400a1ee2 | 48780080767e | pad_on_gate | 0x400a1ee8 | UI-loop case 3, pad note-on (D7) |
 | 0x400a1f26 | 487800804eb94008022e | pad_off_gate | 0x400a1f30 | UI-loop case 4, pad note-off, 10 bytes displaced, paired with its note-on (D8, D8a) |
-| 0x40038336 | 4fefffd048d70cfc | lock_gate | 0x4003833e | held-trig knob path, slot 0x7c (D10) |
+| 0x40038336 | 4fefffd048d70cfc | lock_gate | 0x4003833e | held-trig knob path, slot 0x7c (D10): 0 for CHOP's ids; RND and STR branch here |
+| 0x400a587c | 4fefffe848d7047c | dial_gate | 0x400a5884 | param_knob_draw: id 4 draws as id 43 (D18 optional) |
 
 Each stub re-emits exactly the displaced instructions and then `jmp`s the rejoin;
-verify.py checks both, and the built image was disassembled to check them by hand
-(below).
+verify.py checks both ("re-emitted", "rejoins"), and `corp/r6-builder/s7/stackcheck.txt`
+shows each re-emit path leaves with the stack offset the re-emitted instructions make
+(pad gates -4: the `pea 0x80`; get -12, lock -48, dial -24: the prologue's `lea`).
 
-### Patches (17)
+### Patches (42)
 
 - SAMP view page list: count 0x400c7162 `7201` -> `7202`; list 0x400c7168 `401af520`
   ({4}) -> `chop_pages` = {4, 11}.
-- PARAM_ROM records 3, 4, 5 (0x4018e004 + 52*id), five fields each, as 0008 does for
-  its ids: container index +4 `ffffffff` -> 0; max +0xc 0 -> `00007f00`; long name +0x28,
-  group +0x2c, short name +0x30 -> `Chop Pad`/`Pad Start`/`Chop Mode`, `CHOP`,
-  `PAD`/`STA`/`CHP`. Record type +0 stays `ffffffff`, as in 0008.
+- PARAM_ROM records 3, 4, 5 and (Sample Focus) 11, 12, 13, 14 and 2 (0x4018e004 +
+  52*id), five fields each, as 0008 does for its ids: container index +4 `ffffffff` -> 0;
+  max +0xc 0 -> `00007f00`; long name +0x28, group +0x2c, short name +0x30 -> the CHOP
+  strings (`Chop Pad`/`Pad Start`/`Chop Mode`/`Slice End`/`Divide`/`Lay Out`/`Shuffle`/
+  `Stretch`, `CHOP`, `PAD`/`STA`/`CHP`/`END`/`DIV`/`LAY`/`RND`/`STR`). Record type +0
+  stays `ffffffff`, as in 0008: the boot map builder then keeps every one of them out of
+  its container-index, CC and NRPN maps (Knob ids, below). Read back from the built image
+  with python (`corp/r6-builder/s6/rom_page_check.txt`: knobs A..H = ids 3, 4, 5, 11, 12,
+  13, 14, 2 with those names, index 0, max 0x7f00).
 
-The range is 0..0x7f00 for all three, not the page lane's 0x0c00/0x7800/0x0100: the
-encoder handler's step size is computed from the ROM range (0x4006db16 via 0x40006ed0;
-the exact scaling is UNKNOWN), and 0x7f00 is the range 0008 and 0004 use with the same
-`asr #8` = whole-steps delta gates (0004 ran on MKII). With a small range a detent may
-come out below one step and the knob would do nothing. The dial graphic therefore
-shows PAD and CHP on a 0..127 scale; the number shown is the value (cosmetic).
+The range is 0..0x7f00 for all eight: the encoder handler's step threshold is computed
+from the ROM range and gives 0x100 for 0x7f00 as for STA's 0x7800 (r5 encoder enc-4).
+PAD, CHP, END, DIV, LAY, RND and STR keep their boot encoder template 0x401ba38c (0x100
+per tick: whole steps after `asr #8`); only id 4 gets STA's template (D18, below).
 
 ### The SAMPLE key (D3)
 
@@ -247,6 +325,10 @@ needed.
 
 ### The pads (D7, D8, D8a)
 
+(Sample Focus: the marker is an 8.8 word, loaded with `mvzw %a0@(0,%d0:l:2)`; with END
+on, `chop_end_hit` follows `chop_set_sta`. Everything else below is unchanged - proof (b)
+in "Sample Focus".)
+
 UI loop (dis:207717-207727): `pea 0x40b1065c; moveq #39,%d3; jsr 0x400012c8` takes a
 message into a2 and switches on its first byte through the jump table at 0x400a1e62
 (entry 3 = 0x0080 -> 0x400a1ee2, entry 4 = 0x00c4 -> 0x400a1f26; a python scan of all
@@ -295,9 +377,10 @@ message into a2 and switches on its first byte through the jump table at 0x400a1
 `chop_set_sta(d0 = T, d1 = V)`: `T > 11` unsigned returns before touching anything
 (0x400a39fa maps 12 and up to the FX set, kit+4724, sk-sta F1; stock guards the same way
 at dis:180148-180154). Otherwise: project_singleton -> project_kit (0x400ab706, +232) ->
-kit_track_param_set(kit, T) (0x400a39fa) -> param_set_value(set, 43, V << 8, T, 1, 1)
-(0x400a6316, the entry, so any future gate on it still runs). Stock precedent, the same
-sequence with id 0x29: dis:180147-180167. It runs in the UI task only (the case-3 loop).
+kit_track_param_set(kit, T) (0x400a39fa) -> param_set_value(set, 43, V, T, 1, 1)
+(0x400a6316, the entry, so any future gate on it still runs). V is the 8.8 marker since
+Sample Focus (rounds 2-4 sent the byte marker << 8: the same value for whole markers).
+Stock precedent, the same sequence with id 0x29: dis:180147-180167. It runs in the UI task only (the case-3 loop).
 It never uses 0000-shared's `shared_sound_of` / `PROJ_KIT = 352`.
 
 ### The held-trig path (D10)
@@ -306,11 +389,12 @@ The encoder handler calls page-view slot 0x7c (0x40038336) instead of slot 0x58
 (param_apply_delta, where delta_gate sits) when 0x40036512(view+108) is non-null or
 0x400366a2 is true (dis:75274-75284, 75341-75347): the held-trig / lock-source path,
 which would make a stock p-lock. 0008 has no guard there. `lock_gate` at its entry
-returns `d0 = 0` for ids 3..5 - what slot 0x7c itself returns when slot 0x6c says the id
-cannot be locked (dis:73011-73018, 73154-73157) - and the only caller ignores d0
+returns `d0 = 0` for CHOP's ids (3, 4, 5, 11, 12, 13; RND 14 and STR 2 first take
+their own branches, which also end in `d0 = 0`) - what slot 0x7c itself returns when slot
+0x6c says the id cannot be locked (dis:73011-73018, 73154-73157) - and the only caller ignores d0
 (`lea %sp@(12),%sp; braw 0x40039f8e`). Slot 0x7c has no direct jsr; seven vtable words
 point at it (base 0x4019a7ac+0x7c and SAMP 0x401b0a84+0x7c among them) and nothing points
-into its first 8 bytes past the entry. No stock page lists ids 3..5 (python read of all
+into its first 8 bytes past the entry. No stock page lists ids 1..15 (python read of all
 eleven descriptors), so every other id goes down the stock path unchanged.
 
 ### The step lock (D15-D15d, round 4)
@@ -345,7 +429,8 @@ fails (every call before the last guard is a getter: they only read):
 
 Then, as stock: `set = kit_track_param_set(project_kit(project_singleton()), T)`; a
 16-byte functor on the helper's own stack frame, `{+0 V << 8, +4 set, +8 manager, +12
-chop_lock_step}`; `hold_set_edited(S, 1)` (S+352 = 1: the trig key's release then skips
+chop_lock_step}` (round 4; since Sample Focus V is already 8.8 and the functor is 20 B,
+see the note at the end of this section); `hold_set_edited(S, 1)` (S+352 = 1: the trig key's release then skips
 its pending toggle, dis:79485-79489); `hold_each_step(S, &fn, 0)`;
 `hold_clear_actions(S)` (clears the 64 pending release actions S+88..S+343); return 1.
 `chop_lock_step(fn*, step, bool* stop)` calls `set->vt[0x40](set, 43, V << 8, step)`
@@ -363,7 +448,7 @@ NoteEvent buffer) survive.
 What the lock is and where it lands (the claims as the RE skeptics worded them):
 - **Same store as the stock knob:** `0x400a6bd0 -> 0x400bd5b4 -> 0x400a9984`, a dense RAM
   table (track*2837 + step*44 + lockid words); an existing STA lock on a held step is
-  overwritten in place with V << 8. Any cap in the DataChangeInfo ->
+  overwritten in place with V (round 4: V << 8). Any cap in the DataChangeInfo ->
   `PatternParamLocks::updateMirror(patternParamLocksStorage_v0_t*)` storage mirror is
   **UNKNOWN, and identical to stock's** (the knob path fires the same notify).
 - `0x400a6bd0` never reads its set argument: it writes the **selected** track
@@ -395,10 +480,16 @@ New stock symbols (re/symbols.toml, with receipts): `ui_states` 0x401573b6,
 `project_selection` 0x400ab6ce. `param_info` (0x400f8718) already existed. No new detour
 or patch: the existing pad_on_gate detour carries it, so the registry is unchanged.
 
+**Sample Focus.** The helper is now `chop_held_with(d0 = T, d1 = V, a1 = the invoker)`
+with `chop_held_lock` = the same with `chop_lock_step`; the functor is 20 bytes (+16 = E,
+the END lock, or -1), and chop_lock_step hands (step, set, V, E) to `chop_lock_one`, which
+makes round 4's STA call and, only for E >= 0, the END call after it. RND uses the same
+helper with `chop_rnd_step`. Guards and stock call sequence are round 4's (proof (b)).
+
 #### Round-4 proof on the built image (host, read-only objdump / python)
 
 Files in `corp/r4-builder/` (copies of the guest's outputs): `baseline-head/` (HEAD
-4bde508's `make chop` image, rebuilt in the guest: identical to the pre-existing one) and
+58ca59b's `make chop` image, rebuilt in the guest: identical to the pre-existing one) and
 `v2/` (this build); disassemblies `v2/HEAD_pad_on_gate_chop_set_sta.dis`,
 `v2/NEW_pad_on_gate_through_chop_fn_mgr.dis`, `v2/cave_code.dis`. The r4 integrator's
 corrections (`corp/r4-integrator/`) are text only, in this file and in the registry's
@@ -442,7 +533,7 @@ cave note: `make chop`, `make chop-min` and `make control` were rebuilt in the g
   relocated jmp targets of the lock_gate and pad_off_gate detours, the chop_pages
   pointer, and the nine string pointers in PARAM_ROM records 3..5.
 
-## Disassembly check of the built image
+## Disassembly check of the built image (round 3)
 
 (Round 3. In the round-4 build the stub labels moved: pad_on_gate 0x402a1ce6 (same),
 pad_off_gate 0x402a1d58, lock_gate 0x402a1d8c, chop_set_sta 0x402a1daa, chop_held_lock
@@ -541,11 +632,295 @@ Round 4 (`corp/r4-builder/regions.py` on the copies in `corp/r4-builder/v2/`, ou
 - All three: 0 differing bytes in [0x4028c708, 0x402a1b24); verify.py also reports
   "embedded bootstrap image unchanged" and "null repack" ok.
 
+## Sample Focus (round 6, D17-D23)
+
+Built in seven steps, each built and verified in the guest before the next and committed
+on branch `chop` (step 1 f50dd30, 2 ad157ce, 3 d9b0302, 4 449b935, 5 90500f4, 6 5a3e44b,
+7 5ecdce6): (1) PROJ_KIT fix + `samplefocus`; (2) hi-res markers; (3) knob ids + END +
+DIV; (4) RND; (5) LAY; (6) STR; (7) the optional STA dial. Nothing was dropped: every
+step fits (D22's drop order STR, LAY, RND was not needed).
+
+### Knob ids (D19)
+
+Knobs D..H need five dead parameter records. TRUTH named 7, 11, 12, 13, 14; each was
+re-proven here (read-only python over `build/stock_mainos.bin`, grep over the stock
+disassembly; scripts in `corp/r6-builder`):
+
+- **ROM record.** 11..14 are byte-for-byte the Error class of 3..5 (type, container index
+  and +0x1c all ffffffff, min = max = default 0, names Error / "" / ERR); only +0x14, the
+  CC words +0x18 and the self-id +0x20 differ.
+- **Pages.** No stock page descriptor (pages 0..10, 0x4024c5d4 + 36*p) lists any id from 1
+  to 15.
+- **RAM record.** The static ctor builds the records of 2, 3, 4, 5, 7, 11, 12, 13, 14 the
+  same way: +0 cleared, +4..+0x17 from template 0x401ba38c (d2, written once at
+  dis:480429 and not again through id 14), text functor 0x416a6a4c at +24, dial functor
+  0x416a684c at +40, +64/+80 cleared (dis:480466-480482 for id 2, 480590-480647 for 11..14;
+  `ramrec.py`). Nothing else addresses the RAM table except param_info (its one `addil
+  #0x416a6aa4`, dis:322116).
+- **No reference.** No instruction operand and no 32-bit word at any byte offset of the
+  image points into records 1..14 (`0x4018e038..0x4018e310`; all access is id*52).
+- **Maps.** The boot builder 0x40006bb8 (container-index, CC and NRPN maps) skips every
+  record whose type is not 0..62 (dis:7311-7406: `cmpl %d2,%d5` with 52, then the 53..55,
+  56..59, 60/61/62 tests, else `0x40006d22` = next record), so type-ffffffff ids are in no
+  map; the CC-in lookup reads only those maps (r5c sk-stretch). The CC/NRPN getters
+  (0x400070ae/d0/f2) are called only from SoundParameterSet methods (MIDI out on
+  param_set_value), which CHOP never calls with its own ids.
+- **No constant.** None of the 82 direct calls of the 14 PARAM_ROM getters, param_info or
+  param_set_value passes 1, 2, 7 or 11..14 as an immediate (`idconst2.py`: the only
+  constant ids are 41 and 55). Register-indirect calls and id lists walked at run time
+  (e.g. 0x400ac6xx, 0x400ae86x) take ids from variables - the same residual ids 3..5
+  have carried on hardware since round 2.
+
+**Id 7 is rejected.** Its record is Error-named, but its CC word is 92 and its +0x1c is
+0xe8 = NRPN 1:104 - the MK1 manual's "Active Scene" (appendix C.3), in the kit-common
+group whose neighbours are ids 6, 8, 9, 10 (Machine Type, Solo, Mute, Level = NRPN 1:103,
+1:102, 1:101, 1:100). It is a live kit parameter's record; patching its container index to
+0 could redirect a stock scene path, and nothing here traced those paths. **Knob H uses
+id 2** instead: Error class (type/index/+0x1c ffffffff, CC 2/34, +0x14 = 1 like id 3),
+proven dead the same way. Id 2 is 0008 SMP CUT's HCT, which is not in image A (0001
+excludes 0008); **image B must re-allocate** (CHOP 8 knobs + SMP CUT 2 > the 9 dead ids
+1..5, 11..14).
+
+The proof is also recorded in the registry note above the new patches. Assignment: D END
+11, E DIV 12, F LAY 13, G RND 14, H STR 2. One dispatcher, `chop_knob` (a 16-byte id ->
+knob table; -1 for every other id, and ids above 15 never index it), serves the get,
+delta, text and lock gates.
+
+### Hi-res markers (D18, r5 encoder + display plans and their skeptic fixes)
+
+- `chop_marks` = 12 x `.word` 8.8 (0x0000..0x6e00 step 0x0a00); every load is a word
+  load with a *2 index (pad_on_gate twice, chop_value, chop_next_above, RND, LAY);
+  chop_set_sta and the step lock take V already in 8.8 (no `<< 8`).
+- **Encoder fields.** Stock STA is fine because of its RAM template, not a ROM flag: ids
+  43/44 boot with {2, 0x800, 8} from 0x401ba300, id 4 with {0x100, 0x800, 0} from
+  0x401ba38c (r5 enc-2, enc-10; skeptic P1). page_info_gate, on PAGE_CHOP, copies id 4's
+  RAM +4/+8/+0xc (0x416a6c08, the ctor's own address for it) from 0x401ba300 under
+  SAMPLE POS RES = HI and from 0x401ba38c under LO (`sample_pos_res` 0x400f3cfc). The
+  page view's slot 0x9c calls page_info on every encoder event before the handler reads
+  param_info(id)+4..+0xc (dis:75090-75099, 75150-75168; enc-12). It touches d0, a0 and
+  those 12 bytes - not a1 (r5 sk-encoder's a1 note).
+- **delta_gate STA.** No FUNC: V += the encoder's own 8.8 delta (HI: 2t x max(1,
+  |A|/2) with stock STA's acceleration; LO: 0x100 t - bit-for-bit stock except a pushed
+  knob with |t| >= 16 in one event, where id 4's 16-bit count truncates and stock's
+  43/44 path does not, r5 sk-encoder). FUNC (tested first, so a 0 delta steps up as
+  0x400f449a does): V = (V & ~0xff) +- 0x100 and `*ptr = 1` through %sp@(32) when it is
+  not null (apply_delta's 0x400a6976), so the encoder re-arms its 6-tick FUNC lockout and
+  redraws (skeptic P3). Then clamp 0..0x7800 and, under LO, floor (the writer's order:
+  clamp, then `andil #-256`, 0x400a71be).
+- **Text.** PAD and STA (and DIV) print through stock STA's own text routine
+  `sta_value_text` 0x400f4cbc with the 8.8 value: '%d.' with a fraction, '%d' without -
+  exactly stock STA's popup (r5 display D3/D5); `put_u3` is gone. The routine writes the
+  terminator (sprintf), so the gate goes straight to the epilogue.
+- **Dial (step 7, optional, fits and verified).** `dial_gate` at param_knob_draw's entry
+  0x400a587c stores 43 in the id slot for id 4, so the dial uses STA's dial functor
+  0x400f8a3a (0..0x7800 rescaled to the full sweep, the 16-step fraction glyph).
+  param_knob_draw reads that slot only for param_info and overwrites it before its
+  callback (dis:212548-212563). 28 B in cave2.
+- Not done (optional, moot): patching id 4's ROM max to 0x7800 (r5 sk-encoder: the 0x700
+  quirk it would avoid cannot fire with markers <= 0x7800; its dial effect is UNKNOWN).
+
+### END (D20, r5c features F1 + skeptic P1-P3)
+
+`chop_end` (the old spare byte). Turning D right: on; left: off - directional, so the
+number of detents does not matter (P1). With END on:
+- a pad hit with no held step: chop_set_sta(T, V), then `chop_end_hit`: END (id 44) =
+  `chop_next_above(k)` (the smallest marker strictly above marker k, else 0x7800),
+  through `chop_put` = param_set_value(set, 44, E, T, record 1, notify 1): STA first,
+  END second, as stock's only STA/END co-writer 0x4008b840 orders them;
+- held steps (the step lock): the functor grows to 20 B (+16 = E, or -1), and
+  `chop_lock_one` makes the second `set->vt[0x40](set, 44, E, step)` call after STA's -
+  only when id 44 is lockable now (param_info(44) & 0x100 == 0, slot 0x6c's test, P3);
+- END off / CHP off / CHP re-latching another track: `chop_end_restore` writes the chop
+  track's END = 0x7800 with record 0 (a base value, never a lock), so no later STA lands
+  above a stale slice end (P2). It acts only while CHOP and END are both on.
+With END off, every path makes exactly round 4's stock calls (proof below).
+
+### DIV (D20, F2)
+
+`chop_div` 1..12, default 12. A change re-chops all twelve markers: M[i] = ((i mod DIV) x
+0x7800) / DIV (`mulu.w` then `divu.w`; at most 11 x 0x7800 = 0x52800, every quotient below
+0x7800). DIV 12 reproduces the power-on markers; 1, 2, 3, 4, 5, 6, 8, 10, 12 are exact in
+8.8, 7, 9, 11 floor (under 1/256 of a step). `chop_rechop` does not look at SAMPLE POS
+RES, so under LO, DIV 7, 9 and 11 still store fractional markers: the STA knob shows e.g.
+`17.` (DIV 7: pad 2's marker M[1] = 0x1124) while the pad plays 17, because the STA/END writer
+floors 43/44 under LO (`andil #-256` at 0x400a71be, taken when 0x400f3cfc != 0 and the id
+is 43 or 44); the marker turns whole on its next STA turn. Pads above DIV repeat slices 0..DIV-1, so
+`chop_next_above` still finds each slice's end. RAM only; it overwrites hand-set markers;
+turning against an end (no change) leaves them alone. `divu` cannot trap: DIV is clamped
+1..12 and `chop_rechop` returns on 0.
+
+### LAY (D20, F3 + skeptic P4/P5/P10)
+
+Turning F right, `chop_lay` refuses, with no side effect, unless: CHOP on; T = chop_track
+<= 11; the selected track is T (`track_index_of(project_selection(project))` - the lock
+store writes the selected track's pattern); `tp = current_track_pattern(project)` is not
+null; `euclid_enabled_get(tp) != 1` (in euclid mode the grid remaps steps, dis:79239-79252);
+STA lockable. Then n = min(DIV, `pattern_length(tp)`), and for i = 0..n-1, s = i x length /
+n: if `step_flag_test(tp, s, 1)` is 0 (an EMPTY step - both stock trig tests 0x400bcfa6 /
+0x400bd036 read 0 exactly then, and the grid trig key creates only then, dis:79437-79453),
+`trig_create(tp, s, 1)` (the trig key's own call) and `chop_lock_one(s, set, M[i], E)`
+(E = the slice end with END on and lockable, else none). **A step that holds a trig is
+never touched** (D20). Last, `view_refresh_request(view)` (0x40076c4c), as the trig key
+after its create. Length 16, DIV 12: steps 0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14 (0-based).
+No undo; a second turn adds nothing to steps it filled. It works in any mode (stock's live
+REC also creates trigs outside GRID REC); use GRID REC to see the trig keys.
+
+### RND (D20, F4)
+
+Knob G does nothing on its own (delta path). With trig key(s) held the encoder calls slot
+0x7c (lock_gate), which sends id 14 to `chop_rnd_held`: while CHOP is on, the step lock
+(`chop_held_with`: the same six guards and stock's hold_set_edited / hold_each_step /
+hold_clear_actions sequence) with the invoker `chop_rnd_step`: i = (shared_rnd(&chop_rng,
+32767) + 32767) mod DIV (`divu.w`, remainder; bias under 1 in 5000), then
+`chop_lock_one(step, set, M[i], E_i)`. Each detent re-rolls every held step. It never
+writes a stock p-lock for id 14 and returns 0 like the other CHOP ids. 0001 now requires
+the shared runtime (`[requires] shared = true`, `.include "shared.inc"`) for shared_rnd
+only; its LCG word is its own (`chop_rng`, fixed seed: the same sequence after every
+power-on).
+
+### STR (D21) - EXPERIMENTAL
+
+Knob H: `chop_str` 0 = OFF, 1..7 = 1, 2, 4, 8, 16, 32, 64 steps. A change, and only while
+CHOP is on (with CHOP off the value is stored and nothing is written; r5c sk-stretch P6),
+writes the chop track's base values through `chop_put` = param_set_value(set_T, id, value,
+T, record 0, notify 1) - never a p-lock, never under live REC:
+
+| id | param | value | why |
+|---|---|---|---|
+| 67 | LFO DST | 0x1500 | STA's container index 21 << 8 (the encoding the UI validates, r5c S3) |
+| 68 | WAV | 0x0500 | RMP |
+| 70 | MOD | 0x0300 | ONE (one sweep per trig) |
+| 69 | SPH | 0 | start of the ramp |
+| 66 | FAD | 0x4000 | centre = no fade |
+| 64 | SPD | 0x6000 | 32 if the display is raw >> 8 - 64 (INFERRED from the default 0x7000 = 48) |
+| 65 | MUL | (7 - idx) << 8 | index 6..0 for 1..64 steps, from the first (assumed synced) half |
+| 71 | DEP | 0x7fff | full positive, constant (skeptic P7: never derived from a marker) |
+| 44 | END | 0x7800 | the whole sample |
+| 45 | LOP | 0 | loop off |
+
+OFF writes DST = 0 (none) and DEP = 0x4000 (zero depth). Every value is inside its ROM
+min..max (python, `corp/r6-builder` step 6). **The speed rule is NOT verified on this
+firmware**: steps per LFO cycle = 2048 / (SPD x MUL) is the Elektron convention (SPD 32,
+MUL 4 = 16 steps); the LFO runs on the DSP side and nothing offline shows its scaling,
+the RMP direction, the depth-to-STA scale or which MUL half is tempo-synced (r5c S4, S11).
+**No RETRIG is written** (skeptic P5: the flag setter's reset tail can rewrite an empty
+step): set retrig on the steps with stock's RETRIG menu, and LFO.T = ON on the TRIG page.
+With a trig held, H takes its own branch in lock_gate (`chop_str_held`): the same turn,
+base values only, and no stock p-lock for id 2 (P3). STR overwrites the kit's LFO, END
+and LOOP for the chop track with no undo. Each change sends up to ten parameter
+changes out over MIDI (notify 1). The native, sample-accurate stretch (r5c "B") is not
+built.
+
+**Turn STR OFF before CHP OFF and before CHP re-latches another track.** STR writes only
+while CHOP is on (`chop_str_turn`: `tst.b chop_on; beq` - the value is stored, nothing is
+written; r5c sk-stretch P6), and CHP OFF (delta_gate's CHP-left branch:
+`chop_end_restore`, `clr.b chop_on`) and a re-latch never touch the LFO. So after CHP OFF
+the old chop track keeps sweeping STA, and turning H - OFF included - only changes the
+number shown; after a power cycle H shows OFF whatever the kit holds. To take a sweep off
+later: select that track, CHP ON, turn H to OFF (if H already shows OFF: one detent right,
+then back - each change writes, the detent right writes the ten sweep values first), or
+reload the kit.
+
+**Keep END OFF while you use STR.** With END on, every pad hit writes END = the slice end
+after STA (`chop_end_hit`, record 1) and every held-step lock adds an END lock, so the
+sweep stops at that slice's end instead of STR's END 120. Turning END OFF while CHOP is
+on writes END = 120 back (`chop_end_restore`).
+
+### Space (D22)
+
+cave: 1216 of 1232 B (16 free; the state at its end, 48 B). cave2: 0001 1461 of its 1464
+B claim (3 free) + 0000-shared 234 B; 0x402a2e24..0x402a3000 (476 B, 0003's space) stays
+free and unclaimed by 0001. cave3: unused. cave4..6: not claimed. Proven by layout + build
++ verify in the guest and by `prove.py` (below). **Image B will not fit as is**: SMP CUT
+(about 2 KB with its tables) needs `cave` and cave3, and both images use ids 1..2; image
+B needs a re-plan (D22's drop order: STR first).
+
+### Proof on the built image (host, read-only objdump / nm / python; D23)
+
+Image A: `build/mainos_0000_0001.bin` sha256 e9eb0eef...3d76, `AR1_OS1.73_0000_0001.syx`
+sha256 734607ae8a213a328a46c474abd2d4b55853172761e753af34e921f41b9d14dc; copies, the ELF,
+`nm`, the labelled disassembly (`stub_final.dis`) and every check below are in
+`corp/r6-builder/s7/`. The round-4 reference is the hardware image a96657b4...caf6
+(`baseline-r4/`, MAIN OS aac51f43...1931; `stub_r4.dis`). `compare.py` decodes one routine
+in both images and names every address inside either stub, so relocation is not a
+difference (`s7/compare_r4.txt`).
+
+**(a) CHOP off behaves exactly as round 4 (same stock calls).**
+- pad_off_gate, sample_key_gate, chop_fn_mgr, clamp: IDENTICAL instruction for
+  instruction after naming.
+- pad_on_gate: the k > 11 test, the CHOP-off branch (`tstb chop_on` / `moveq #-1` /
+  `moveb %d1,%a0@` / `bras`) and the re-emit `pea 0x80; moveq #126,%d3; jmp 0x400a1ee8`
+  are unchanged; the only differences are inside the CHOP-on branch.
+- get / delta / text / lock gates, any id that is not CHOP's: `chop_knob` (d0/d1/a0
+  only; d3, d4, a3 kept) returns -1, then the same displaced instructions and the same
+  rejoin as round 4. a0 is the one register round 4 did not clobber there; it is dead at
+  every rejoin: get and lock are function entries (scratch by the ABI; stock writes a0 or
+  calls before reading it: 0x400381a8.., 0x40038208, 0x4003833e.. 0x4003834a), delta's
+  rejoin calls track_index_of then writes a0 at 0x400376f0, text's calls param_info (d0/d1
+  only, dis:322109-322117) then writes a0 at 0x400a5922 or returns at 0x400a597e. page_info
+  for other pages: unchanged (d0, d1, the rejoin). dial_gate for other ids: `moveq #4,%d0`
+  / `cmpl` / `bnes`, the re-emitted `lea %sp@(-24),%sp; moveml %d2-%d6/%a2,%sp@`, `jmp
+  0x400a5884` (d0 only, at the function entry).
+
+**(b) Round-4 behaviours, each changed site (the diffs in `s7/compare_r4.txt`):**
+- pad path, CHOP on: the two marker loads `moveq #0,%d1; moveb %a0@(0,%d0:l),%d1` became
+  `mvzw %a0@(0,%d0:l:2),%d1` (8.8 word), and `bsrw chop_end_hit` follows `bsrw
+  chop_set_sta`. chop_end_hit's first instructions are `tstb chop_end; beqs -> rts`, so with
+  END off (the power-on state) it calls nothing.
+- live-REC lock: chop_set_sta is round 4's minus one instruction, `lsll #8,%d3` (V
+  arrives in 8.8): the same `param_set_value(set, 0x2b, V, T, 1, 1)` after
+  project_singleton, project_kit, kit_track_param_set. With the power-on markers V =
+  0x0a00 x k, the value round 4 sent for marker 10k.
+- note-off pairing: pad_off_gate IDENTICAL.
+- step lock: chop_held_lock is now `lea chop_lock_step,%a1` falling into chop_held_with,
+  whose six guards and stock call sequence are round 4's (same order, same arguments);
+  the differences are the frame (28 -> 32 B), the invoker stored at fn+12 at entry instead
+  of before the call, `lsll #8,%d3` gone, and fn+16 = E: `moveq #-1,%d3; tstb chop_end;
+  beqs` - with END off no extra call. chop_lock_step now hands (step, set, V, E) to
+  chop_lock_one, whose first call is round 4's `set->vt[0x40](set, 0x2b, V, step)`; the END
+  call is skipped when E < 0 (`bmis`).
+- page cycle: sample_key_gate IDENTICAL; page_info_gate's other-page path unchanged; the
+  SAMP page list patch unchanged (now pointing at 0x402a1f7a = {4, 11}).
+- PAD and CHP knobs: the same logic behind the new dispatcher; CHP left/right gained only
+  `bsrw chop_end_restore`, which returns at once unless CHOP and END are both on.
+
+**(c) Every new branch** (`s7/stackcheck.txt`: every path of every code symbol walked, the
+stack offset tracked through every push, pop, `lea`/`addq` on %sp; bsr/jsr net 0):
+- every `rts` of a routine called by bsr/jsr is at offset 0; delta_gate's and
+  text_gate's handled exits pop the host's frame (12 and 20 B) with its own epilogue, as
+  round 4; every re-emit path leaves with exactly its re-emitted push/frame; no join
+  sees two different offsets; no unmodelled write to %sp.
+- callee-saved registers: every routine that writes d2-d7/a2-a6 saves and restores them
+  (movem frames: chop_held_with, chop_put, chop_lay, chop_str_apply, chop_set_sta; a push
+  at entry and a pop at exit: chop_next_above, chop_rechop, chop_rnd_step,
+  chop_str_turn), except where the host's frame owns them and restores them at the rts
+  (delta_gate and chop_delta_more: d2/d3 of param_apply_delta; text_gate: d2-d4/a2-a3 of
+  param_value_text) or where the register is the re-emitted stock instruction's (a3 in
+  sample_key_gate, d3 in pad_on_gate).
+- displacements: 204 branches/jumps decoded in the code; every one that lands in the stub
+  lands on an instruction start of the code, none in data (`s7/prove.txt`); the
+  out-of-range `.s` branches were all caught by the assembler while building (step 2:
+  `bra.s` -> `bra.w`).
+- guards: T <= 11 before any track write (chop_set_sta, chop_put, chop_held_with,
+  chop_lay); k <= 11 (unsigned) before both pad tables; id <= 15 before chop_ktab;
+  DIV != 0 before every `divu` (chop_rechop returns, chop_rnd_step uses 12, LAY's n);
+  STA lockable before any STA lock (held path, RND, LAY) and END lockable before any END
+  lock; CHOP on before LAY, RND and STR write anything; the selected track == T before any
+  lock (held path, RND, LAY); euclid off before LAY; clamps on PAD 0..11, STA 0..0x7800,
+  DIV 1..12, STR 0..7.
+
+**(d) Regions and space** (`s7/prove.txt`): 2663 bytes differ from stock in 384 runs;
+every one lies in a claim of 0000-shared or 0001-chop (0 unclaimed); **0 bytes differ in
+[0x4028c708, 0x402a1b24)**, and verify reports "embedded bootstrap image unchanged" and
+"null repack" ok; claims: cave 1232 B claimed / 1216 placed, cave2 1700 claimed (0001
+1464 + 0000 236) / 1695 placed, cave3 0, cave4..6 none.
+
 ## Hardware-only unknowns (the founder's test card)
 
-Nothing below can be proven offline. The round-3 build is reported working on the
-founder's MK1 (page, pads, live-REC locks; corp round-4 brief); the round-4 step lock
-(H6) has not run on hardware.
+Nothing below can be proven offline. H1-H6 passed on the founder's MK1 with the round-3
+and round-4 builds (the result line under H5). **Everything in H7-H14 is new in image A
+and has never run on hardware**; H13 re-runs H1-H6 on image A, because every routine
+moved and several changed (proof (b) above).
 
 ### Before you flash
 
@@ -554,6 +929,16 @@ founder's MK1 (page, pads, live-REC locks; corp round-4 brief); the round-4 step
    `9115c3888354bb388f90410e0445cd312bf020593ed99f768a99e475d1d6157c`, stock/SHA256SUMS),
    and a DIN MIDI interface: the recovery route is DIN only.
 3. Check each file's sha256 against the list below before you send it.
+4. Keep the round-4 file (a96657b4...caf6) as the known-good fallback: it is the image
+   H1-H6 passed on. It is `flash/2b_CHOP+STEPLOCK_AR1_OS1.73_0000_0001_0002_0003.syx` in
+   your flash folder (`/Users/creative/analog rytm firmware/flash/`, listed in its
+   SHA256SUMS); a second copy is
+   `corp/r6-builder/baseline-r4/AR1_OS1.73_0000_0001_0002_0003.syx`. It is **not**
+   `build/AR1_OS1.73_0000_0001_0002_0003.syx`: that name in `build/` was a Sample Focus
+   step-1 rebuild (sha256 4847571b...271f, 0000-shared's PROJ_KIT 232; not in the flash
+   folder and not tested on hardware), now
+   moved to `build/aside-20261006-step1-rebuild/`, and `make chop` is retired, so nothing
+   writes that name again.
 
 ### Flash order
 
@@ -565,25 +950,23 @@ inside MAIN OS). The embedded bootstrap [0x4028c708, 0x402a1b24) is byte-identic
 stock in every file below (verify "embedded bootstrap image unchanged", and a python
 byte compare: 0 differing bytes).
 
-1. **Control first:** `build/AR1_OS1.73_control.syx` - stock code, only repacked by our
-   tool (`make control`: PASS, 0 differing regions). Check it boots and plays a pattern.
-   This proves the packer and file format on this unit, so a later problem is a mod.
-2. **Then CHOP:** `build/AR1_OS1.73_0000_0001_0002_0003.syx` (`make chop`: CHOP with
-   0000 shared, 0002 euclid accents and 0003 velocity humanise). Check it boots and plays,
-   then run H1-H6 below (H6 is the round-4 step lock).
-3. Only if the CHOP build misbehaves: `build/AR1_OS1.73_0000_0001.syx` (`make chop-min`,
-   CHOP and 0000 only) to bisect. Fails the same way = CHOP (or 0000); works = 0002/0003
-   next to CHOP.
+1. **Control first (optional now):** `build/AR1_OS1.73_control.syx` - stock code, only
+   repacked by our tool (`make control`: PASS, 0 differing regions; unchanged since
+   round 2). It already proved the packer on this unit before round 3.
+2. **Sample Focus image A:** `build/AR1_OS1.73_0000_0001.syx` (`make samplefocus`: CHOP
+   with 0000 shared only - no euclid accents, no velocity humanise, no SMP CUT). Check it
+   boots and plays, run H13 (the round-4 regression) first, then H7-H12 and H14.
+3. If image A misbehaves in H13: go back to the round-4 file,
+   `flash/2b_CHOP+STEPLOCK_AR1_OS1.73_0000_0001_0002_0003.syx` (a96657b4...caf6; Before you
+   flash, item 4), and report which row failed.
 
 If Transfer refuses a file as the same version, nothing has been written: either stop, or
 send that file through the recovery route below (FUNC at power-on, TRIG 4, LEGACY OS
 UPGRADE over DIN).
 
 **Never flash the upstream SMP CUT (`..._0008.syx`) or RANDOM (`..._0004.syx`) builds** from
-this tree: 0000-shared's `PROJ_KIT = 352` (the MKII kit offset) is used only by 0008 and
-0004 (grep of mods/: 0000-shared, 0004, 0008), and stock 1.73 MK1's kit is at project + 232
-(sk-sta S1). The CHOP build does not contain 0004 or 0008, and 0002/0003 call only
-shared_rnd / shared_func_held / shared_fmt_u8.
+this tree. 0000-shared's PROJ_KIT is fixed (232) as of Sample Focus step 1, but 0008's own
+`SOUND0 = 352+60` is not (image B), and neither image has run on an MK1.
 
 ### If it does not boot, or to go back to stock
 
@@ -598,16 +981,25 @@ shared_rnd / shared_func_held / shared_fmt_u8.
   builds carry version 1.73, the same as stock, so this is a same-version reinstall; the
   device refuses downgrades, and a same-version reinstall over these builds has not been
   tried (H5). If it is refused, use the recovery route.
-- Nothing CHOP does is saved: power-cycling ends CHOP and resets the markers. STA p-locks
-  recorded with CHOP are ordinary p-locks and stay in the pattern (stock plays them).
+- Nothing CHOP keeps is saved: power-cycling ends CHOP and resets the markers and the
+  knobs. What CHOP wrote into patterns and kits (STA/END p-locks, LAY's trigs, base
+  STA/END/LFO values) is ordinary stock data and stays (stock plays it).
 
-Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`,
-`make chop-min`, `make control`, all PASS), sha256:
+Files verified on 2026-10-06 after Sample Focus step 7 (guest VM, `make samplefocus`,
+`make chop-min`, `make control`, `make verify`, `make random`, all PASS; rebuilt again
+by the r6 integrator after its text-only corrections, the same bytes, logs in
+`corp/r6-integrator/build/`), sha256:
 `AR1_OS1.73_control.syx` 3407638c3f450daba0faedbddc0d4f08b154925a3ba162172346f51ef9ed6a8d,
-`AR1_OS1.73_0000_0001_0002_0003.syx` a96657b49e70b42fc20b9d744a0f10ceceb0f065c0aac7201be88866ac15caf6,
-`AR1_OS1.73_0000_0001.syx` 86c543c94eeea3820f1d7e9184c14d1a13483ddc80bab809ff2a2dc2b95c988a.
-(The round-3 CHOP files 3ea80d31… and 3c77f43b… have no step lock; the round-2 files
-5614a93e… and e19703af… do not pair note-offs. Control is unchanged.)
+`AR1_OS1.73_0000_0001.syx` (image A) 734607ae8a213a328a46c474abd2d4b55853172761e753af34e921f41b9d14dc
+(MAIN OS e9eb0eef5843a803c39da7fe7019d1af9e1c28a1f2832aa61c8398534a333d76).
+Round 4 (fallback, commit ee8665e, built as `AR1_OS1.73_0000_0001_0002_0003.syx`):
+`flash/2b_CHOP+STEPLOCK_AR1_OS1.73_0000_0001_0002_0003.syx`
+a96657b49e70b42fc20b9d744a0f10ceceb0f065c0aac7201be88866ac15caf6. (Not the step-1
+rebuild 4847571b92a036ca03cb50adcef3c200180b59dc4da4d7ee53bc755bc829271f, now in
+`build/aside-20261006-step1-rebuild/`: not tested on hardware. The round-4
+`AR1_OS1.73_0000_0001.syx` 86c543c9... is superseded by image A under the same name; the
+round-3 files 3ea80d31... and 3c77f43b... have no step lock; the round-2 files 5614a93e...
+and e19703af... do not pair note-offs.)
 
 ### The unknowns (test in the normal pad mode, D14)
 
@@ -618,8 +1010,10 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
 - **H2** Under live REC, does the STA p-lock land on the same step as the pad's recorded
   trig (quantize, late hits)? The lock goes on 0x40035208's current step for the track.
 - **H3** Does the CHOP page draw and cycle correctly: SAMPLE -> SAMP; press, let go,
-  pause, SAMPLE again -> CHOP; again (after a pause) -> SAMP; knob labels PAD/STA/CHP;
-  values and popups; a long hold of SAMPLE behaves as stock. (Needs the SAMPLE release
+  pause, SAMPLE again -> CHOP; again (after a pause) -> SAMP; the eight knob labels,
+  A..H: PAD STA CHP END DIV LAY RND STR; each knob's popup with its name (Chop Pad, Pad
+  Start, Chop Mode, Slice End, Divide, Lay Out, Shuffle, Stretch; group CHOP) and value;
+  a long hold of SAMPLE behaves as stock. (Needs the SAMPLE release
   to carry bit4.) The double-tap, which is stock and kept:
   (a) from another screen, SAMPLE twice quickly: the sample list opens (stock), no CHOP;
   (b) on the SAMPLE view, SAMPLE twice quickly: the page switches once and the sample
@@ -631,7 +1025,7 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
   CHOP (the page index is kept in the view; no reset on entry was found for a normal
   track - UNKNOWN);
   (f) do not use FUNC + SAMPLE (page copy / paste / clear) while the CHOP page is shown:
-  untraced for ids 3..5.
+  untraced for CHOP's ids (2..5, 11..14).
 - **H4** No crash and no hung or stuck voice, in the normal pad mode:
   (a) repeated hits on one pad, fast rolls across all twelve pads, two pads held at once;
   (b) note-off pairing (D8a): hold a pad with CHOP on, turn CHP OFF, let go - the chop
@@ -700,25 +1094,124 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
   (j) Unknown: whether a MIDI note arriving through UI-loop case 3 while a trig is held
   also writes the lock (r4 skeptic). Avoid external MIDI notes into the Rytm while testing.
   Stop at the first deviation; the round-3 file (no step lock) is the fallback.
+- **H7 Hi-res markers (D18).** Global setting SAMPLE POS RES = HI first. On the CHOP page:
+  (a) turn STA slowly: fine steps, the popup shows `40.` when there is a fraction and
+  `40` without, as the SAMP page's STA does; turn it fast: it accelerates like stock STA;
+  press and turn: big steps. Compare side by side with the SAMP page's STA knob.
+  (b) FUNC + turn STA: one whole step per detent (a fractional marker first rounds down),
+  at stock's pace (the FUNC lockout).
+  (c) SAMPLE POS RES = LO: whole steps; a marker with a fraction floors on its next turn.
+  (d) the STA dial (step 7): the needle reaches the end at 120 and the fraction glyph
+  moves with fine turns, as on the SAMP page. UNKNOWN (r5 sk-display P7): the label row
+  and the dial-vs-bitmap choice read id 4's own RAM flags (bits 18/19), not id 43's - note
+  anything that looks different from the SAMP page's STA.
+  (e) set a marker to a fractional value, CHOP on, hit its pad: the SAMP page's STA shows
+  the same value (`40.`); the pad plays from it (H1).
+  (f) live REC / step lock with a fractional marker: the recorded STA lock shows the
+  fraction too (INFERRED from id 43's ROM +0x14 = 1, r5 sk-encoder enc-2; UNKNOWN).
+- **H8 END (D20).** CHOP on for T, END right (ON):
+  (a) hit pad k: the SAMP page shows STA = marker k and END = the next marker above it
+  (pad 1 with DIV 12: STA 0, END 10; the top marker: END 120);
+  (b) END left (OFF): T's END = 120; turn END ON again, hit a pad, then CHP OFF: T's END =
+  120. The re-latch case (CHP turned right while CHOP is on and another sound track U is
+  selected: T's END = 120, U becomes the chop track) needs a way to select U that is not
+  a pad press - as in H6 (f), record it as not reachable if there is none ([FX] selects
+  the FX track, which CHP never latches and which restores nothing);
+  (c) live REC: one pad hit records a trig with an STA lock AND an END lock - check both
+  land on the same step (two calls; UNKNOWN if the sequencer can step in between);
+  (d) **GRID REC precondition** (trig keys hold steps only there): hold trig(s) of T and
+  hit pad k: each held step gets STA = marker k and END = its slice end; base STA/END
+  unchanged;
+  (e) a marker at 120 with END on, or (LO) two markers less than 1.0 apart: STA = END, a
+  zero-length slice - note what it sounds like (UNKNOWN);
+  (f) END on while a voice already sounds: does a retrigger click (STA new / END old
+  for an instant; UNKNOWN).
+- **H9 DIV (D20).** SAMPLE POS RES = HI. Turn E: DIV 4 -> PAD 1..4 read STA 0, 30, 60, 90
+  and pads 5..8 repeat them; DIV 12 -> 0, 10 ... 110 again (any hand-set marker is
+  overwritten); DIV 7 -> markers with fractions (`17.`, `34.` ...). At 1 or 12, turning
+  further changes nothing. With END on, each pad's END is its slice end (DIV 4: pad 1 END
+  30). Then SAMPLE POS RES = LO, DIV 7 (turn E away and back to 7 to re-chop): PAD 2's
+  STA knob still shows `17.` while pad 2 plays 17 (the SAMP page's STA reads 17; the
+  writer floors under LO, see DIV above) - expected, not a fault; one STA turn makes the
+  marker whole.
+- **H10 LAY (D20).** Preconditions: CHOP ON for T, **T selected**, euclid OFF on T, STA
+  not locked out; use **GRID REC** to see the trig keys (LAY itself works in any mode).
+  (a) empty pattern of length 16, DIV 12, turn F right once: trigs on steps 1, 2, 3, 5, 6,
+  7, 9, 10, 11, 13, 14, 15 (1-based), each with an STA lock = slice 0..11 in order (with
+  END on, an END lock too); the trig keys show them (do they light at once, or only after
+  a redraw? the refresh is stock's trig-key call, UNKNOWN);
+  (b) put your own trig on step 1 first, then LAY: step 1 keeps its own trig and gets no
+  lock; the other steps as in (a);
+  (c) turn F right again: nothing changes; turn F left: nothing;
+  (d) euclid ON for T: LAY does nothing; another track selected: nothing;
+  (e) length 64 / DIV 12: steps 1, 6, 11, 17, 22, 27, 33, 38, 43, 49, 54, 59; length 8 /
+  DIV 12: all eight steps get slices 0..7;
+  (f) change DIV after a LAY: the earlier trigs and locks stay (stale, by design);
+  (g) while the sequencer plays: no crash, the new trigs play;
+  (h) the pattern's lock capacity: LAY can add up to 24 locks (12 STA + 12 END); is there
+  a cap (UNKNOWN, as for stock's knob locks)?
+- **H11 RND (D20).** Precondition: **GRID REC**, CHOP ON for T, T selected. Hold one or
+  more trig keys of T and turn G: each held step gets the STA lock of a random slice
+  0..DIV-1 (with END on, its END too); each detent re-rolls; the trigs are not toggled on
+  release; no other step changes. Without a held trig, G does nothing; with CHOP OFF,
+  nothing. After a power cycle the same sequence of random slices comes back (fixed
+  seed). It never writes a lock for the RND knob itself.
+- **H12 STR - EXPERIMENTAL (D21).** Preconditions: CHOP ON for T; **END OFF (knob D
+  left)** - with END on each pad hit sets END to the slice end and cuts the sweep; set
+  RETRIG on the steps you want stretched with stock's RETRIG menu (CHOP writes no retrig);
+  TRIG page LFO.T = ON on those trigs. Turn H to 16: T's LFO page reads DST STA, WAV RMP, MOD ONE, SPH 0,
+  FAD 0, SPD 32 (?), MUL 4 (?), DEP max; SAMP: END 120, LOP OFF. Then:
+  (a) does each retrig restart the LFO (if it does, the sweep collapses - the trick
+  fails)?
+  (b) is one sweep 16 steps long at 16, 1 step at 1, 64 at 64 (the unverified rule
+  2048 / (SPD x MUL); which MUL half is tempo-synced is UNKNOWN)?
+  (c) does RMP sweep STA up or down? (d) how far does STA move at DEP max? (e) is the SPD
+  display 32 (raw >> 8 - 64)?
+  (f) STR with CHOP OFF, in this order: H at 16, CHP left (OFF): T's LFO page still
+  reads the sweep (CHP OFF does not stop it); turn H, to OFF included: only the number
+  changes, T's LFO page is unchanged and the sweep goes on. Then select T, CHP ON, and
+  turn H to OFF (from OFF: one detent right, then back): DST none, DEP 0. **So turn STR
+  OFF before CHP OFF and before a re-latch;**
+  (g) hold a trig and turn H: the same base writes, no p-lock for STR;
+  (h) LFO.T OFF: no sweep; (i) the click level of 1/64 retrigs with stock AMP;
+  (j) turning H while the sequencer plays: no crash; each change sends parameter
+  changes on MIDI out (notify 1); (k) H to OFF (CHOP ON): DST none, DEP 0 - the sample
+  plays unmodulated again; (l) END ON with H at 16, then hit a pad: END = that pad's slice
+  end (the sweep stops there); END OFF: END = 120 again. STR overwrites T's LFO/END/LOOP:
+  reload the kit to restore them.
+- **H13 Round-4 regression on image A.** Run H1, H3, H4 and H6 (a)-(e), (g), (i) again
+  with END OFF, DIV 12, STR OFF (the power-on state): every result as with the round-4
+  image. Then H4 (b)/(c) and H6 (a)/(b) once more with END ON (END follows each pad and
+  each held step) and once with a fractional marker (H7).
+  Stop at the first deviation; the round-4 file is the fallback.
+- **H14 Knobs A..F with a trig held (D19, lock_gate).** Precondition: **GRID REC**, CHOP
+  ON for T, T selected, the CHOP page shown. Note the values of PAD, STA, CHP, END, DIV and
+  the held step's STA/END (SAMP page while holding). Hold one trig key of T and turn each
+  of A..F a few detents both ways: nothing changes - the knob values stay, CHP stays ON,
+  END and DIV stay, LAY adds no trig, no STA/END p-lock appears on the held step, and no
+  other step changes (with a trig held the encoder calls lock_gate instead of the delta
+  path, and lock_gate returns 0 for ids 3, 4, 5, 11, 12, 13). Release the trig key and
+  note what it does (stock after a hold with no edit). Repeat once with CHOP OFF: the
+  same. G (RND) and H (STR) with a trig held are H11 and H12 (g).
 
-Also unknown, low priority: whether external MIDI CC reaches ids 3..5 through PARAM_ROM
-+0x18 (their stock values read as CC 6/38, 7, 10; lead F14) - with container index 0 a
-stray write would land in the sound's free word 0, which no mod in the CHOP image uses but
-0008 reads as its cut settings in the default image; and whether the knob graphic is drawn
-for ids 3..5 (RAM param_info(id)+48).
+Also unknown, low priority: whether external MIDI CC reaches CHOP's ids through PARAM_ROM
++0x18 (ids 3..5: CC 6/38, 7, 10; 11..14: CC 99/98, 120, 121, 123; 2: CC 2/34; lead F14) -
+the boot maps skip them (type ffffffff), but another MIDI-in path is not excluded; with
+container index 0 a stray write would land in the sound's free word 0, which nothing in
+image A uses but 0008 reads as its cut settings in image B. FUNC + SAMPLE (page copy /
+paste / clear) on the CHOP page is untraced (H3 (f)).
 
-Side note from the STA skeptic, outside this mod: 0000-shared's `PROJ_KIT = 352` and
-0008's `SOUND0 = 352+60` disagree with stock 1.73's kit at project + 232 and
-kit_track_sound's 0x60 displacement (sk-sta S1). CHOP does not use either. It should be
-checked before any 0008 image is flashed.
+## Next steps (out of scope for image A)
 
-## Next steps (out of scope for v1, D13)
-
+- Image B (0000 + 0001 + 0008 SMP CUT): re-allocate the knob ids (both mods use id 2;
+  ids 1..5 and 11..14 are the dead records), re-plan space (CHOP fills cave and its cave2
+  claim; SMP CUT needs about 2 KB plus cave3), fix 0008's `SOUND0` (232+96), and give the
+  shared page hosts a chaining tool (r5b skeptics). D22's drop order there: STR first.
 - A pad press selects the PAD knob on screen (redraw the CHOP page when a pad sets
   chop_pad; today it shows at the next redraw).
-- END per slice (next marker, or the track's END).
-- More than 12 markers (pages of markers).
-- Saving the markers (today RAM only, by design).
-- Hi-res marker values (the 8.8 fraction under SAMPLE POS RES = HI).
+- More than 12 markers (pages of markers); saving the markers (RAM only by design).
+- STR: once H12 settles the speed rule, the depth scale and the RMP direction, fix SPD /
+  MUL / DEP from the measurements; a native, sample-accurate stretch (r5c "B") stays
+  research (the retrig re-fire site and its context are INFERRED).
 - Optional: restore the chop track's base STA when CHOP ends (sta lane: param_set_value
   with record 0, notify 1).

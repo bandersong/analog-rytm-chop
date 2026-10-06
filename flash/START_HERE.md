@@ -13,6 +13,28 @@ Nothing here has run on a Rytm yet. Every check that can be done on a computer p
 
 If Transfer refuses a file as "same version", nothing was written. Stop, or use the recovery route.
 
+## NEWEST: Sample Focus (`4_SAMPLE-FOCUS_…syx`) — not yet tested on hardware
+Everything from the step-lock build, minus euclid accents and velocity humanise, plus a full 8-knob CHOP page:
+
+| Knob | Does |
+|---|---|
+| A **PAD** | which marker you're editing (1–12) |
+| B **STA** | that marker, now **hi-res**: slow turn = decimals (`40.`), FUNC + turn = whole steps — same as stock STA |
+| C **CHP** | CHOP on/off |
+| D **END** | right = ON: each pad also sets END to the next marker (plays just its slice). Left = OFF (END back to 120) |
+| E **DIV** | re-chop into 1–12 equal slices (overwrites hand-set markers) |
+| F **LAY** | turn right once: puts slice 1…N on the **empty** steps of the pattern (never touches your trigs) |
+| G **RND** | GRID REC: hold steps, turn G → each held step gets a random slice |
+| H **STR** | **experimental** time-stretch setup: sets the track's LFO to sweep STA over 1–64 steps. Keep END OFF, set RETRIG on the steps yourself (stock RETRIG menu), LFO.T on |
+
+Before you try it:
+- Set **SETTINGS > CONTROLS > SEQUENCER CONFIG > SAMPLE POS RES = HI** for decimals.
+- **Turn STR OFF before CHP OFF** — after CHP OFF the STR knob can't undo the LFO (reload the kit to restore).
+- **LAY has no undo** — try it on a copy of a pattern.
+- Fallback if anything's off: `2b_CHOP+STEPLOCK_…` (the version that works today).
+
+What to check (full list: design.md H7–H14): slow STA gives decimals and the pad plays that exact spot; END plays only the slice; DIV 4 gives 0/30/60/90; LAY fills only empty steps; RND re-rolls held steps; everything from before (pads, live REC, step-lock) still works; STR: does each retrig restart the sweep, and is 16 really 16 steps?
+
 ## NEW: step-lock build (`2b_CHOP+STEPLOCK_…syx`)
 Same as CHOP, plus: **in GRID RECORDING, hold one or more steps and hit a pad → each held step gets an STA p-lock = that pad's marker.** Confirmed working on the MK1 (2026-10-06). Flash it like the CHOP file; if anything is off, flash `2_CHOP_…` again (the version that works today).
 

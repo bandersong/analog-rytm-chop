@@ -3,50 +3,58 @@ id      = "0001-chop"
 title   = "CHOP: a second SAMPLE page that turns the twelve pads into sample-start markers"
 
 # Off in the default build, which carries 0008 SMP CUT instead. The CHOP build is
-# `make chop` (0000 0001 0002 0003); `make chop-min` (0000 0001) is the bisection
-# build. The id 0001 once belonged to a retracted MKII mod, 0001-microtiming-fine,
-# which 0002 still excludes by that full id; it does not exist in this tree and the
-# id strings differ, so nothing conflicts (see design.md).
+# `make samplefocus` (Sample Focus image A: 0000 0001); `make chop-min` is the same
+# composition. The round-4 `make chop` (0000 0001 0002 0003) is retired: CHOP's
+# code now also lives in the part of cave2 that 0002 uses. The id 0001 once
+# belonged to a retracted MKII mod, 0001-microtiming-fine, which 0002 still
+# excludes by that full id; it does not exist in this tree and the id strings
+# differ, so nothing conflicts (see design.md).
 enabled = false
 
 # CHOP detours the same four page hosts as 0008 SMP CUT and 0004 LFO RND
 # (page_info, page_get_value, param_apply_delta, param_value_text) and takes the
-# same `cave` claim, so it can never be in one image with either.
-excludes = ["0004-lfo-rnd", "0008-sample-cut"]
+# same `cave` claim, so it can never be in one image with either. Since Sample
+# Focus it also claims 0002's part of cave2, so it can never be in one image with
+# 0002 either.
+excludes = ["0002-euclid-accents", "0004-lfo-rnd", "0008-sample-cut"]
 
 # re-only | built | hardware-verified | retracted
 status  = "built"
 
 summary = """
-On the SAMPLE view, press SAMPLE (let go, pause, press again; not a quick
-double-tap, which is stock 1.73's sample-list shortcut and stays stock) for the
-CHOP page: PAD (1..12, the marker being edited), STA (0..120, that marker: a
-sample start on stock's STA scale) and CHP (OFF/ON). Turning CHP right switches
-CHOP on for the track that is selected at that moment; left switches it off. The
-twelve markers start at 0, 10, 20 ... 110.
+Sample Focus (image A, `make samplefocus`). On the SAMPLE view, press SAMPLE (let
+go, pause, press again; not a quick double-tap, which is stock 1.73's sample-list
+shortcut and stays stock) for the CHOP page: A PAD (1..12, the marker being
+edited), B STA (0..120 with stock STA's resolution: fine steps under SAMPLE POS
+RES = HI), C CHP (OFF/ON: right switches CHOP on for the track selected at that
+moment), D END (a pad also sets the slice end), E DIV (1..12 equal slices), F LAY
+(turn right: the slices go onto the EMPTY steps of the chop track's pattern), G RND
+(turned while trig keys are held: each held step gets a random slice) and H STR
+(EXPERIMENTAL: the chop track's LFO sweeps STA over 1..64 steps; the speed rule is
+unverified). The twelve markers start at 0, 10, 20 ... 110.
 
 While CHOP is on, pad k sets the chop track's STA to marker k through the same
 call a STA knob turn ends in - so under live REC stock records a normal trig with
 a normal STA p-lock - and then plays the chop track as a normal pad hit would.
-Pads do not switch track in CHOP. Hold a pad and turn STA to move its marker.
-Hold trig key(s) of the chop track and hit pad k: each held step gets an STA p-lock
-= marker k, as holding those trigs and turning STA would (stock's own held-trig
-path); the base STA is then left alone.
+Pads do not switch track in CHOP. Hold trig key(s) of the chop track and hit pad
+k: each held step gets an STA p-lock = marker k (stock's own held-trig path); the
+base STA is then left alone.
 
-The markers live in RAM only: a power cycle resets them and ends CHOP. Nothing new
-is saved anywhere; recorded chops are ordinary STA p-locks and play back on stock
-firmware. Like a STA knob turn, every pad hit also changes the chop track's base
-STA (the kit is edited), except a hit that locked held steps. The step lock has
-never run on hardware: see design.md for the test card (H6).
+Everything CHOP keeps lives in RAM only: a power cycle resets it and ends CHOP.
+What it writes (STA/END p-locks, LAY's trigs, base STA/END/LFO values) is ordinary
+stock data that plays on stock firmware. The round-4 page, pads, live-REC locks,
+note-off pairing and step lock are confirmed on hardware (build a96657b4); nothing
+added in Sample Focus has run on hardware: see design.md (H7-H14).
 """
 
 [sources]
 stub = "stub.s"
 
 [requires]
-# CHOP calls nothing in 0000-shared (and must not use its sound helpers: STA is
-# written through the active kit at project + 232, not PROJ_KIT = 352).
-shared = false
+# CHOP calls shared_rnd (RND, knob G) and nothing else in 0000-shared; its sound
+# writes go through the active kit at project + 232 (project_kit), never through
+# 0000-shared's sound helpers.
+shared = true
 symbols = [
   "page_info_resume",
   "page_get_value_body",
@@ -78,4 +86,18 @@ symbols = [
   "hold_clear_actions",
   "project_selection",
   "param_info",
+  "sample_pos_res",
+  "sta_value_text",
+  "param_tmpl_sta",
+  "param_tmpl_default",
+  "PARAM_INFO_BASE",
+  "PARAM_INFO_STRIDE",
+  "PARAM_ID_END",
+  "shared_rnd",
+  "current_track_pattern",
+  "euclid_enabled_get",
+  "pattern_length",
+  "step_flag_test",
+  "trig_create",
+  "view_refresh_request",
 ]

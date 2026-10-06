@@ -4,19 +4,46 @@
         | On the SAMPLE view, a press of SAMPLE switches SAMP <-> CHOP (on its
         | release). Not a quick double-tap: a second press inside stock's
         | double-tap window is stock's sample-list shortcut and stays stock, so
-        | press, let go, pause, press again. Knobs A..C (D..H are blank):
-        |   PAD  1..12    the marker being edited (a pad hit in CHOP also sets it)
-        |   STA  0..120   that marker: a sample start on stock's STA scale
-        |   CHP  OFF/ON   turning it right switches CHOP on for the track that is
-        |                 selected at that moment (the chop track); left, off
+        | press, let go, pause, press again. Knobs (id in brackets):
+        |   A PAD (3)  1..12    the marker being edited (a pad hit in CHOP sets it)
+        |   B STA (4)  0..120   that marker: a sample start on stock's STA scale,
+        |                       with stock STA's resolution (8.8: fine steps under
+        |                       SAMPLE POS RES = HI, whole steps under LO, FUNC =
+        |                       one whole step)
+        |   C CHP (5)  OFF/ON   right: CHOP on for the track selected at that
+        |                       moment (the chop track); left: off
+        |   D END (11) OFF/ON   right: a pad also sets the chop track's END to the
+        |                       next marker above its own (else 120); left: off,
+        |                       and the chop track's END goes back to 120
+        |   E DIV (12) 1..12    re-chop: marker i = ((i mod DIV) * 120) / DIV
+        |   F LAY (13) -        turned right, with CHOP on and the chop track
+        |                       selected (euclid off): n = min(DIV, length)
+        |                       slices go onto steps s_i = i*length/n; only an
+        |                       EMPTY step gets a trig plus its STA (and END)
+        |                       p-lock; a step with a trig is left alone
+        |   G RND (14) -        turned while trig key(s) of the chop track are
+        |                       held: each held step gets the STA (and, END on,
+        |                       END) of a random marker 0..DIV-1; each detent
+        |                       re-rolls. Without a held trig it does nothing.
+        |   H STR (2)  OFF, 1, 2, 4 ... 64 steps   EXPERIMENTAL (D21): with CHOP
+        |                       on, a change sets the chop track's LFO to sweep
+        |                       STA once over that many steps (DST STA, WAV RMP,
+        |                       MOD ONE, SPH 0, FAD 0, SPD 32, MUL by steps, DEP
+        |                       full) plus END 120 and LOP OFF, base values with
+        |                       record 0; OFF sets DST to none and DEP to 0. The
+        |                       speed rule (steps = 2048 / (SPD * MUL)) is
+        |                       Elektron convention, NOT verified on this
+        |                       firmware. No RETRIG is written: set it on the
+        |                       steps with stock's RETRIG menu.
         |
         | While CHOP is on, pad k (0..11) does three things, in the UI task, before
         | stock sees the pad: chop_pad = k; the chop track's STA is set to marker k
-        | through the call a STA knob turn ends in, param_set_value(set, 43, V<<8, T,
-        | 1, 1), so under live REC stock writes a normal STA p-lock; and the pad's id
-        | in the UI message is rewritten to the chop track, so stock plays (and
-        | records) the chop track exactly as if its own pad had been hit. Pads never
-        | switch the selected track away from it, and no fire call is hand-built.
+        | through the call a STA knob turn ends in, param_set_value(set, 43, V, T,
+        | 1, 1) with V the 8.8 marker, so under live REC stock writes a normal STA
+        | p-lock; and the pad's id in the UI message is rewritten to the chop track,
+        | so stock plays (and records) the chop track exactly as if its own pad had
+        | been hit. Pads never switch the selected track away from it, and no fire
+        | call is hand-built.
         | With trig key(s) of the chop track held (D15), the STA call is replaced
         | by what stock's hold-trig + turn-STA does: an STA p-lock = marker k on
         | every held step (chop_held_lock); the base STA is then left alone.
@@ -26,32 +53,64 @@
         | that is not 0xFF, which then goes back to 0xFF - whatever chop_on is at
         | the release. Pad ids outside 0..11 touch no table: stock, byte for byte.
         |
-        | State is RAM only (the 28 bytes at the end of this block; the image bytes
-        | are the power-on defaults). Nothing is saved. CHOP mode is the flag chop_on,
-        | not "the CHOP page is on screen", so no view pointer is ever kept.
+        | State is RAM only (the block at the end of .text, in `cave`; the image
+        | bytes are the power-on defaults). Nothing is saved. CHOP mode is the flag
+        | chop_on, not "the CHOP page is on screen", so no view pointer is ever kept.
+        |
+        | Sections: .text in `cave` (the gates, the pad gates, chop_set_sta, the
+        | page data, the strings and the state, last); .cave2 in `cave2` (the step
+        | lock and everything added after round 4 that does not have to sit on the
+        | hot path). cave2 is within bsr.w range of cave.
         |
         | Every gate below that 0008 also has (page_info / get / delta / text) keeps
         | 0008's entry frame, displaced instructions, rejoin label and epilogue
         | verbatim (mods/0008-sample-cut/stub.s). Addresses and receipts: design.md.
 
         .include "symbols.inc"
+        .include "shared.inc"                     | shared_rnd (0000-shared)
 
         .equ    PAGE_SAMP,      4
         .equ    PAGE_CHOP,      11                | MK1 pages are 0..10 (page_info's moveq #10)
         .equ    ID_PAD,         3                 | dead Error records 3..5
         .equ    ID_STA,         4
         .equ    ID_CHP,         5
+        .equ    ID_STR,         2                 | dead Error record 2 (id 7 is not dead)
+        .equ    ID_END,         11                | dead Error records 11..14 (D19)
+        .equ    ID_DIV,         12
+        .equ    ID_LAY,         13
+        .equ    ID_RND,         14
+        | the CHOP knobs, as chop_knob numbers them
+        .equ    K_PAD,          0
+        .equ    K_STA,          1
+        .equ    K_CHP,          2
+        .equ    K_END,          3
+        .equ    K_DIV,          4
+        .equ    K_LAY,          5
+        .equ    K_RND,          6
+        .equ    K_STR,          7
         .equ    PADS,           12
-        .equ    STA_MAX,        120
+        .equ    STA_MAX,        0x7800            | stock STA's ROM max (id 43): 120.0 in 8.8
         .equ    SAMP_KEY,       50                | the SAMPLE key's code (0x400ce2e0 moveq #50)
         .equ    VIEW_KEY,       136               | view +136: the view's own page key
         .equ    VIEW_SEL,       116               | view +116: the track selection (= project + 48)
         .equ    VIEW_POPUP,     512               | SAMP view +512: weak pointer to its list popup
+        | id 4's RAM record +4/+8/+0xc: the encoder's per-tick step, pushed step and
+        | acceleration for the CHOP STA knob (the static ctor's own address for it,
+        | dis:480494 'pea 0x416a6c08')
+        .equ    REC4_STEP,      PARAM_INFO_BASE + ID_STA * PARAM_INFO_STRIDE + 4
 
         .text
 
         | ------------------------------------------------------------------
-        | page_info, answering PAGE_CHOP. 0008's gate verbatim.
+        | page_info, answering PAGE_CHOP. 0008's gate, plus one thing: id 4 (the
+        | CHOP STA knob) gets stock STA's encoder step fields in its RAM record -
+        | {2, 0x800, 8} from STA's own template under SAMPLE POS RES = HI, id 4's
+        | boot value {0x100, 0x800, 0} under LO (what the encoder forces on 43/44
+        | in LO). The page view's knob-to-id slot 0x9c calls page_info on every
+        | encoder event before the handler reads param_info(id)+4..+0xc
+        | (dis:75090-75099, then 75150-75168), so the knob always turns with the
+        | current mode's fields. Touches d0, a0 and those 12 bytes (stock page_info
+        | touches d0/d1/a0).
         | Entered by a jmp at the entry: (%sp) return, 4(%sp) the page id.
         | ------------------------------------------------------------------
         .align  2
@@ -59,6 +118,14 @@ page_info_gate:
         moveq   #PAGE_CHOP,%d0
         cmp.l   4(%sp),%d0
         bne.s   1f
+        jsr     sample_pos_res                    | d0.b = 0 HI, else LO (d0 only)
+        lea     param_tmpl_sta,%a0                | HI: STA's {2, 0x800, 8}
+        tst.b   %d0
+        beq.s   2f
+        lea     param_tmpl_default,%a0            | LO: {0x100, 0x800, 0}
+2:      move.l  (%a0)+,REC4_STEP
+        move.l  (%a0)+,REC4_STEP+4
+        move.l  (%a0),REC4_STEP+8
         lea     page_chop,%a0
         move.l  %a0,%d0
         rts
@@ -67,66 +134,105 @@ page_info_gate:
         jmp     page_info_resume
 
         | ------------------------------------------------------------------
-        | page_get_value for ids 3..5: the dials, value << 8.
+        | page_get_value for CHOP's ids: the dials, 8.8 (chop_value).
         | Entered by a jmp at the entry: (%sp) return, 4 view, 8 id, 12 lock.
         | ------------------------------------------------------------------
         .align  2
 get_gate:
         move.l  8(%sp),%d0
-        subq.l  #ID_PAD,%d0
-        moveq   #2,%d1
-        cmp.l   %d1,%d0
-        bhi.s   9f
-        bsr.w   chop_value                        | d0 = 0..2 -> shown value
-        lsl.l   #8,%d0
-        rts
+        bsr.w   chop_knob                         | d0 = the knob, or -1
+        tst.l   %d0
+        bmi.s   9f
+        bra.w   chop_value                        | d0 = the shown value, 8.8; its rts
 9:      lea     %sp@(-12),%sp                     | displaced
         moveml  %d2-%d3/%a2,%sp@                  | displaced
         jmp     page_get_value_body
 
         | ------------------------------------------------------------------
-        | param_apply_delta for ids 3..5: the knobs, RAM only.
+        | param_apply_delta for CHOP's ids: the knobs, RAM only.
         |
         | Reached by a jmp over `mvzb %d3,%d3; movel %a2@(116),%sp@-`, past the
-        | prologue (and past 0003's gate, which rejoins here): %sp@(0..11) holds
-        | d2/d3/a2, a2 is the view, %sp@(20) the id, %sp@(24) the delta in 8.8.
-        | Handling the id and returning means stock never writes a sound or a
-        | p-lock for it.
+        | prologue: %sp@(0..11) holds d2/d3/a2, a2 is the view, %sp@(20) the id,
+        | %sp@(24) the delta in 8.8 as the encoder made it (FUNC not applied),
+        | %sp@(28) FUNC held (0/1, its byte at %sp@(31)), %sp@(32) the apply
+        | pointer. Handling the id and returning means stock never writes a sound
+        | or a p-lock for it.
+        |
+        | PAD and CHP: whole steps (delta asr 8; their template is the default
+        | 0x100 per tick). STA (D18): the marker is 8.8, 0..0x7800, and moves as
+        | stock STA does - no FUNC: V += the delta (fine and accelerated in HI,
+        | whole steps in LO, from the fields page_info_gate gave id 4); FUNC: STA's
+        | functor 0x400f448c, V = floor(V) +- 0x100 (a delta of 0 counts as up),
+        | and *ptr = 1 as apply_delta 0x400a6976 does, so the encoder re-arms its
+        | FUNC lockout and redraws; then clamp 0..0x7800 and, under LO, floor, as
+        | the STA writer does after its clamp (0x400a71be).
+        |
+        | CHP left, and CHP right latching another track, first give the chop
+        | track's END back (chop_end_restore: only while CHOP and END are on).
+        | The knobs D..H go to chop_delta_more (cave2) with whole steps.
+        | chop_knob keeps d3, which the stock path needs (`mvzb %d3,%d3`).
         | ------------------------------------------------------------------
         .align  2
 delta_gate:
         move.l  %sp@(20),%d0
-        subq.l  #ID_PAD,%d0
-        moveq   #2,%d1
-        cmp.l   %d1,%d0
-        bhi.w   9f
-        move.l  %sp@(24),%d2
-        asr.l   #8,%d2                            | whole steps, sign preserved
+        bsr.w   chop_knob                         | d0 = the knob, or -1; keeps d3
+        tst.l   %d0
+        bmi.w   9f
+        move.l  %sp@(24),%d2                      | the delta, 8.8
+        move.l  %d0,%d3                           | the knob
+        subq.l  #1,%d0
+        beq.s   1f                                | STA: 8.8
+        asr.l   #8,%d2                            | the others: whole steps, sign kept
         beq.w   7f
-        move.l  %d0,%d3                           | 0 PAD, 1 STA, 2 CHP
-        bne.s   2f
-        moveq   #0,%d0                            | PAD: 0..11 (shown 1..12)
+        tst.l   %d3
+        beq.s   10f                               | PAD
+        moveq   #K_CHP,%d1
+        cmp.l   %d1,%d3
+        beq.w   3f                                | CHP
+        bsr.w   chop_delta_more                   | D..H: d2 steps, d3 knob, a2 view
+        bra.w   6f
+10:     moveq   #0,%d0                            | PAD: 0..11 (shown 1..12)
         move.b  chop_pad,%d0
         add.l   %d2,%d0
         moveq   #PADS-1,%d1
         bsr.w   clamp
         move.b  %d0,chop_pad
-        bra.s   6f
-2:      subq.l  #1,%d3
-        bne.s   3f
-        moveq   #0,%d1                            | STA: marker[chop_pad], 0..120
+        bra.w   6f
+1:      moveq   #0,%d1                            | STA: marker[chop_pad], 8.8
         move.b  chop_pad,%d1
+        add.l   %d1,%d1
         lea     chop_marks,%a0
-        adda.l  %d1,%a0
-        moveq   #0,%d0
-        move.b  (%a0),%d0
+        adda.l  %d1,%a0                           | a0 = &chop_marks[chop_pad]
+        mvz.w   (%a0),%d0
+        tst.b   %sp@(31)                          | FUNC held
+        beq.s   2f
+        clr.b   %d0                               | FUNC: floor, then one whole step
+        move.l  #0x100,%d1
+        tst.l   %d2
+        bpl.s   11f                               | 0 counts as up, as 0x400f449a..e
+        neg.l   %d1
+11:     add.l   %d1,%d0
+        move.l  %sp@(32),%d1                      | *ptr = 1, as 0x400a6976
+        beq.s   4f
+        move.l  %d1,%a1
+        moveq   #1,%d1
+        move.b  %d1,(%a1)
+        bra.s   4f
+2:      tst.l   %d2                               | no FUNC: the encoder's own delta
+        beq.w   7f
         add.l   %d2,%d0
-        moveq   #STA_MAX,%d1
-        bsr.w   clamp                             | keeps a0
-        move.b  %d0,(%a0)
+4:      move.l  #STA_MAX,%d1
+        bsr.w   clamp                             | 0..0x7800; keeps a0
+        move.l  %d0,%d2
+        jsr     sample_pos_res                    | d0 only; a0 kept
+        tst.b   %d0
+        beq.s   5f
+        clr.b   %d2                               | LO: whole steps, as 0x400a71be
+5:      move.w  %d2,(%a0)
         bra.s   6f
 3:      tst.l   %d2                               | CHP
         bgt.s   4f
+        bsr.w   chop_end_restore                  | END on: the chop track's END = 120
         clr.b   chop_on                           | left: off
         bra.s   6f
 4:      move.l  VIEW_SEL(%a2),-(%sp)              | right: on, for the selected track
@@ -135,7 +241,13 @@ delta_gate:
         moveq   #PADS-1,%d1
         cmp.l   %d1,%d0
         bhi.s   6f                                | FX (12) or worse: never latched
-        move.b  %d0,chop_track
+        move.l  %d0,%d2                           | the new chop track
+        moveq   #0,%d1
+        move.b  chop_track,%d1
+        cmp.l   %d1,%d0
+        beq.s   12f
+        bsr.w   chop_end_restore                  | another track: the old one's END = 120
+12:     move.b  %d2,chop_track
         moveq   #1,%d0
         move.b  %d0,chop_on
 6:      move.l  %a2,-(%sp)                        | the view
@@ -149,35 +261,56 @@ delta_gate:
         jmp     param_apply_delta_track
 
         | ------------------------------------------------------------------
-        | param_value_text for ids 3..5: the popup, a number or OFF/ON.
+        | param_value_text for CHOP's ids: the popup.
         |
         | Reached by a jmp over `movel %sp@(32),%d2; movel %sp@(36),%d3`, past the
-        | prologue (and past 0002's and 0003's text gates): %sp@(0..19) holds
-        | d2-d4/a2-a3, d4 is the id, %sp@(36) the output buffer.
+        | prologue: %sp@(0..19) holds d2-d4/a2-a3, d4 is the id, a3 the set (both
+        | live on the stock path, which chop_knob keeps), %sp@(36) the output
+        | buffer; d2/d3/a2 are free here (stock loads them after this point, and
+        | the epilogue restores them). chop_tkind says how each knob prints:
+        | 0 a number, through stock STA's own text routine (sta_value_text, '%d.'
+        | with a fraction, else '%d'), so the STA marker reads exactly as stock
+        | STA does and (k+1)<<8 reads 1..12 - it writes the terminator (sprintf);
+        | 1 OFF/ON; 2 a dash (an action knob); 3 OFF for 0, else a number.
         | ------------------------------------------------------------------
         .align  2
 text_gate:
         move.l  %d4,%d0
-        subq.l  #ID_PAD,%d0
-        moveq   #2,%d1
-        cmp.l   %d1,%d0
-        bhi.w   9f
-        move.l  %sp@(36),%a1
-        cmp.l   %d1,%d0
+        bsr.w   chop_knob                         | keeps d4/a3
+        tst.l   %d0
+        bmi.w   9f
+        move.l  %d0,%d2                           | the knob
+        bsr.w   chop_value                        | d0 = the value, 8.8
+        move.l  %sp@(36),%a1                      | the output buffer
+        lea     chop_tkind,%a0
+        moveq   #0,%d1
+        move.b  0(%a0,%d2.l),%d1                  | how this knob prints
+        beq.s   4f                                | 0: a number
+        moveq   #2,%d3
+        cmp.l   %d3,%d1
+        beq.s   3f                                | 2: a dash
+        bhi.s   1f                                | 3: OFF, or a number
+        tst.l   %d0                               | 1: OFF / ON
         beq.s   2f
-        bsr.w   chop_value                        | keeps a1
-        bsr.w   put_u3
-        bra.s   5f
-2:      tst.b   chop_on
-        beq.s   3f
         move.b  #0x4f,(%a1)+                      | ON
         move.b  #0x4e,(%a1)+
         bra.s   5f
-3:      move.b  #0x4f,(%a1)+                      | OFF
+1:      tst.l   %d0
+        bne.s   4f
+2:      move.b  #0x4f,(%a1)+                      | OFF
         move.b  #0x46,(%a1)+
         move.b  #0x46,(%a1)+
+        bra.s   5f
+3:      move.b  #0x2d,(%a1)+                      | -
+        bra.s   5f
+4:      move.l  %a1,-(%sp)                        | buf
+        move.l  %d0,-(%sp)                        | value, 8.8
+        clr.l   -(%sp)                            | the functor slot (never read)
+        jsr     sta_value_text
+        lea     12(%sp),%sp
+        bra.s   6f
 5:      clr.b   (%a1)
-        movem.l (%sp),%d2-%d4/%a2-%a3             | param_value_text's epilogue
+6:      movem.l (%sp),%d2-%d4/%a2-%a3             | param_value_text's epilogue
         lea     20(%sp),%sp
         rts
 9:      movel   %sp@(32),%d2                      | displaced
@@ -274,8 +407,10 @@ sample_key_gate:
         | track (the stock held-trig knob path); then chop_set_sta is SKIPPED,
         | so the base STA is untouched and no live-REC lock lands on the
         | playing step. It returns 0 (nothing done) otherwise, and the hit goes
-        | on exactly as before: chop_set_sta(T, V), record 1. Either way the
-        | rewrite and the stock continuation follow.
+        | on exactly as before: chop_set_sta(T, V), record 1, then (END on only)
+        | chop_end_hit: END = the slice end, record 1. Either way the rewrite and
+        | the stock continuation follow. V is the 8.8 marker. With END on, the
+        | step lock also locks END on each held step (chop_held_lock).
         | ------------------------------------------------------------------
         .align  2
 pad_on_gate:
@@ -295,8 +430,7 @@ pad_on_gate:
         move.b  %d1,(%a0)                         | chop_route[k] = T: its note-off follows
         move.b  %d0,chop_pad
         lea     chop_marks,%a0
-        moveq   #0,%d1
-        move.b  0(%a0,%d0.l),%d1                  | V = marker k
+        mvz.w   0(%a0,%d0.l*2),%d1                | V = marker k, 8.8
         moveq   #0,%d0
         move.b  chop_track,%d0                    | T
         bsr.w   chop_held_lock                    | d0 = 1: held steps locked
@@ -305,11 +439,11 @@ pad_on_gate:
         moveq   #0,%d0                            | reload: the helper clobbers
         move.b  chop_pad,%d0                      | d0/d1/a0/a1
         lea     chop_marks,%a0
-        moveq   #0,%d1
-        move.b  0(%a0,%d0.l),%d1                  | V = marker k (k = chop_pad)
+        mvz.w   0(%a0,%d0.l*2),%d1                | V = marker k (k = chop_pad), 8.8
         moveq   #0,%d0
         move.b  chop_track,%d0                    | T
         bsr.w   chop_set_sta
+        bsr.w   chop_end_hit                      | END on: the slice's END, after STA
 2:      moveq   #0,%d0
         move.b  chop_track,%d0
         move.l  %d0,4(%a2)                        | the hit now names the chop track
@@ -347,18 +481,27 @@ pad_off_gate:
         | ------------------------------------------------------------------
         | lock_gate: the page view's held-trig / lock-source knob path (vtable
         | slot 0x7c, 0x40038336), which the encoder handler calls INSTEAD of
-        | param_apply_delta when a trig is held (0x4003a024). For ids 3..5 it
+        | param_apply_delta when a trig is held (0x4003a024). For CHOP's ids it
         | returns 0 - what stock returns when slot 0x6c says the id cannot be
-        | locked - so a CHOP knob never writes a p-lock. Every other id: stock.
+        | locked - so a CHOP knob never writes a stock p-lock. RND (knob G) is
+        | the one that does something here: chop_rnd_held, the step lock with
+        | random markers, which also returns 0. STR (knob H) turns as it does
+        | without a held trig (chop_str_held: base values only, never a lock)
+        | and returns 0. Every other id: stock.
         | Entered by a jmp at the entry: (%sp) return, 4 view, 8 id, 12 delta.
         | ------------------------------------------------------------------
         .align  2
 lock_gate:
         move.l  8(%sp),%d0
-        subq.l  #ID_PAD,%d0
-        moveq   #2,%d1
+        bsr.w   chop_knob
+        tst.l   %d0
+        bmi.s   9f
+        moveq   #K_RND,%d1
         cmp.l   %d1,%d0
-        bhi.s   9f
+        beq.w   chop_rnd_held                     | its rts returns to the encoder
+        moveq   #K_STR,%d1
+        cmp.l   %d1,%d0
+        beq.w   chop_str_held                     | its rts returns to the encoder
         moveq   #0,%d0
         rts
 9:      lea     -48(%sp),%sp                      | displaced
@@ -366,10 +509,11 @@ lock_gate:
         jmp     lock_delta_body
 
         | ------------------------------------------------------------------
-        | chop_set_sta(d0 = track T, d1 = marker V 0..120): what a STA knob turn
-        | ends in, for track T: set = kit_track_param_set(project_kit(project), T),
-        | then param_set_value(set, 43, V << 8, T, 1 record, 1 notify) - the same
-        | call stock makes at 0x4008ba12..0x4008ba54 (with id 0x29 there). T > 11
+        | chop_set_sta(d0 = track T, d1 = marker V, 8.8 0..0x7800): what a STA
+        | knob turn ends in, for track T: set = kit_track_param_set(project_kit(
+        | project), T), then param_set_value(set, 43, V, T, 1 record, 1 notify) -
+        | the same call stock makes at 0x4008ba12..0x4008ba54 (with id 0x29
+        | there). Under LO the writer floors V itself (0x400a71be). T > 11
         | returns without writing: 0x400a39fa maps 12 and up to the FX set.
         | UI task only. Clobbers d0/d1/a0/a1, keeps everything else.
         | ------------------------------------------------------------------
@@ -380,7 +524,7 @@ chop_set_sta:
         lea     -8(%sp),%sp
         movem.l %d2-%d3,(%sp)
         move.l  %d0,%d2                           | T
-        move.l  %d1,%d3                           | V
+        move.l  %d1,%d3                           | V, 8.8
         jsr     project_singleton
         move.l  %d0,-(%sp)
         jsr     project_kit                       | project + 232, the active kit
@@ -392,7 +536,6 @@ chop_set_sta:
         pea     1                                 | notify
         pea     1                                 | record: a p-lock under live REC
         move.l  %d2,-(%sp)                        | T
-        lsl.l   #8,%d3
         move.l  %d3,-(%sp)                        | V, 8.8
         pea     PARAM_ID_STA                      | 43
         move.l  %d0,-(%sp)                        | set
@@ -403,7 +546,127 @@ chop_set_sta:
 9:      rts
 
         | ------------------------------------------------------------------
-        | chop_held_lock(d0 = T, d1 = V 0..120) -> d0 = 1 locked / 0 nothing.
+        | chop_knob(d0 = param id) -> d0 = the CHOP knob (K_PAD..), or -1 for
+        | every id that is not CHOP's (and for ids above 15 or negative).
+        | Clobbers d0/d1/a0; keeps everything else.
+        | ------------------------------------------------------------------
+        .align  2
+chop_knob:
+        moveq   #15,%d1
+        cmp.l   %d1,%d0
+        bhi.s   1f                                | unsigned: > 15, or negative
+        lea     chop_ktab,%a0
+        mvs.b   0(%a0,%d0.l),%d0
+        rts
+1:      moveq   #-1,%d0
+        rts
+
+        | ------------------------------------------------------------------
+        | chop_value(d0 = knob) -> d0 = what the knob shows, 8.8: PAD (k+1)<<8,
+        | the STA marker as it is, CHP / END 0 or 0x100, DIV 1..12 << 8, STR
+        | 0 (OFF) or its steps 1..64 << 8, the action knobs 0. Clobbers d0/d1/a0;
+        | keeps a1.
+        | ------------------------------------------------------------------
+        .align  2
+chop_value:
+        tst.l   %d0
+        bne.s   1f
+        moveq   #0,%d0
+        move.b  chop_pad,%d0
+        addq.l  #1,%d0                            | PAD 1..12
+        bra.s   8f
+1:      subq.l  #1,%d0
+        bne.s   2f
+        moveq   #0,%d1
+        move.b  chop_pad,%d1
+        lea     chop_marks,%a0
+        mvz.w   0(%a0,%d1.l*2),%d0               | STA 0..0x7800
+        rts
+2:      subq.l  #1,%d0
+        bne.s   3f
+        moveq   #0,%d0
+        move.b  chop_on,%d0                       | CHP 0/1
+        bra.s   8f
+3:      subq.l  #1,%d0
+        bne.s   4f
+        moveq   #0,%d0
+        move.b  chop_end,%d0                      | END 0/1
+        bra.s   8f
+4:      subq.l  #1,%d0
+        bne.s   5f
+        moveq   #0,%d0
+        move.b  chop_div,%d0                      | DIV 1..12
+        bra.s   8f
+5:      subq.l  #3,%d0
+        bne.s   6f
+        moveq   #0,%d0                            | STR: 0 = OFF
+        moveq   #0,%d1
+        move.b  chop_str,%d1                      | 0..7
+        beq.s   8f
+        subq.l  #1,%d1
+        moveq   #1,%d0
+        lsl.l   %d1,%d0                           | 1, 2, 4 ... 64 steps
+        bra.s   8f
+6:      moveq   #0,%d0                            | LAY, RND: action knobs
+        rts
+8:      lsl.l   #8,%d0
+        rts
+
+        | clamp(d0, d1 = max) -> d0 in 0..max. Clobbers nothing else.
+        .align  2
+clamp:  tst.l   %d0
+        bpl.s   1f
+        clr.l   %d0
+1:      cmp.l   %d1,%d0
+        ble.s   2f
+        move.l  %d1,%d0
+2:      rts
+
+        | ------------------------------------------------------------------
+        | Data
+        | ------------------------------------------------------------------
+        | STR's {id, raw 8.8 value} rows (in cave with the hot path: cave2 is
+        | full). r5c-stretch S1/S3/S4/S11, ROM ranges checked:
+        | DST 67 = STA's container index 21 << 8; WAV 68 RMP 5; MOD 70 ONE 3; SPH
+        | 69 0; FAD 66 0x4000 (centre = no fade); SPD 64 0x6000 (shown 32 if the
+        | display is raw >> 8 - 64, INFERRED); MUL 65 by steps; DEP 71 0x7fff
+        | (full positive: the whole STA range, constant, skeptic P7 - its real
+        | scale and the RMP direction are hardware calibrations); END 44 0x7800;
+        | LOP 45 0 (off).
+        .align  2
+chop_str_on:
+        .word   67, 0x1500, 68, 0x0500, 70, 0x0300, 69, 0x0000
+        .word   66, 0x4000, 64, 0x6000, 65, 0xffff, 71, 0x7fff
+        .word   PARAM_ID_END, 0x7800, 45, 0x0000, 0
+chop_str_off:                                     | DST none (0), DEP 0x4000 (0)
+        .word   67, 0x0000, 71, 0x4000, 0
+
+        .align  2
+chop_pages:                                       | the SAMP view's pages
+        .long   PAGE_SAMP, PAGE_CHOP
+
+page_chop:                                        | {name, top row, bottom row}
+        .long   str_page
+        .long   ID_PAD, ID_STA, ID_CHP, ID_END
+        .long   ID_DIV, ID_LAY, ID_RND, ID_STR
+
+        | id -> CHOP knob (-1: not CHOP's), for ids 0..15
+chop_ktab:
+        .byte   -1, -1, K_STR, K_PAD, K_STA, K_CHP, -1, -1
+        .byte   -1, -1, -1, K_END, K_DIV, K_LAY, K_RND, -1
+        | CHOP knob -> how its popup prints (text_gate)
+chop_tkind:
+        .byte   0, 0, 1, 1, 0, 2, 2, 3          | PAD STA CHP END DIV LAY RND STR
+
+
+        | ==================================================================
+        | cave2: the step lock (round 4: V arrives as 8.8, END rides along) and
+        | the Sample Focus knobs
+        | ==================================================================
+        .section .cave2,"ax"
+
+        | ------------------------------------------------------------------
+        | chop_held_lock(d0 = T, d1 = V 8.8 0..0x7800) -> d0 = 1 locked / 0 nothing.
         |
         | The stock held-trig knob path (page-view slot 0x7c 0x40038482..e8,
         | and the UI loop's own copy at 0x4009f2ee..0x4009f352), for STA = V on
@@ -418,21 +681,31 @@ chop_set_sta:
         |                                             the SELECTED track)
         |   (*param_info(43) & 0x100) == 0           (slot 0x6c: lockable)
         | Then, as stock: hold_set_edited(S, 1) (the release will not toggle
-        | the trig); hold_each_step(S, &fn, 0) with a 16-byte stack functor
-        | {+0 V<<8, +4 set, +8 manager (non-null; never called), +12
-        | chop_lock_step}, set = kit_track_param_set(project_kit(project), T);
+        | the trig); hold_each_step(S, &fn, 0) with a 20-byte stack functor
+        | {+0 V, +4 set, +8 manager (non-null; never called), +12 the invoker,
+        | +16 E}, set = kit_track_param_set(project_kit(project), T);
         | hold_clear_actions(S); return 1. Stock's own functor is heap-backed
         | and destroyed by 0x40146854; this one holds its data inline, the
         | iterator never copies, destroys or calls the manager (0x40036888,
-        | 0x400368bc..0x400368dc), so nothing is allocated or freed.
+        | 0x400368bc..0x400368dc) and reads only +8 and +12 of it, so nothing
+        | is allocated or freed and the extra word is safe.
+        | E (D20) = the END lock: the slice end of chop_pad (chop_next_above)
+        | when END is on and id 44 is lockable now (slot 0x6c's test, as for
+        | 43), else -1 = no END lock.
+        | chop_held_lock: the invoker is chop_lock_step (the pad, V = marker k).
+        | chop_held_with(d0 = T, d1 = V, a1 = the invoker): the same, for
+        | another invoker (the knobs' own held-step writers).
         | UI task only. Clobbers d0/d1/a0/a1; keeps d2-d7/a2-a6.
         | ------------------------------------------------------------------
         .align  2
 chop_held_lock:
-        lea     -28(%sp),%sp                      | 12 saved + 16 functor at 12(%sp)
+        lea     chop_lock_step,%a1
+chop_held_with:
+        lea     -32(%sp),%sp                      | 12 saved + 20 functor at 12(%sp)
         movem.l %d2-%d3/%a2,(%sp)
+        move.l  %a1,24(%sp)                       | fn+12 invoker (our own frame)
         move.l  %d0,%d2                           | T
-        move.l  %d1,%d3                           | V
+        move.l  %d1,%d3                           | V, 8.8
         jsr     ui_states
         move.l  %d0,%a2                           | S
         move.l  %a2,-(%sp)
@@ -470,13 +743,25 @@ chop_held_lock:
         move.l  %d0,-(%sp)                        | kit
         jsr     kit_track_param_set               | track T's SoundParameterSet
         addq.l  #8,%sp
-        lsl.l   #8,%d3
-        move.l  %d3,12(%sp)                       | fn+0  V << 8 (8.8, as the knob)
+        move.l  %d3,12(%sp)                       | fn+0  V (8.8, as the knob)
         move.l  %d0,16(%sp)                       | fn+4  set
         lea     chop_fn_mgr,%a0
         move.l  %a0,20(%sp)                       | fn+8  manager: non-null
-        lea     chop_lock_step,%a0
-        move.l  %a0,24(%sp)                       | fn+12 invoker
+        moveq   #-1,%d3                           | fn+16 E: -1 = no END lock
+        tst.b   chop_end
+        beq.s   1f
+        pea     PARAM_ID_END
+        jsr     param_info                        | END's RAM record
+        addq.l  #4,%sp
+        move.l  %d0,%a0
+        move.l  (%a0),%d0
+        btst    #8,%d0
+        bne.s   1f                                | 0x100: END cannot be locked now
+        moveq   #0,%d0
+        move.b  chop_pad,%d0
+        bsr.w   chop_next_above
+        move.l  %d0,%d3                           | E, 8.8
+1:      move.l  %d3,28(%sp)                       | fn+16
         pea     1
         move.l  %a2,-(%sp)
         jsr     hold_set_edited                   | S+352 = 1, as stock 0x4003848a
@@ -494,26 +779,52 @@ chop_held_lock:
         bra.s   9f
 8:      moveq   #0,%d0
 9:      movem.l (%sp),%d2-%d3/%a2
-        lea     28(%sp),%sp
+        lea     32(%sp),%sp
         rts
 
-        | chop_lock_step(fn*, step, bool* stop): set->vt[0x40](set, 43, V<<8,
-        | step) = 0x400a6bd0, the writer stock's slot 0x74 tail-jumps to. *stop
-        | is left 0 (the iterator clears it once), so every held step is
-        | visited. Clobbers d0/d1/a0/a1 only.
+        | chop_lock_step(fn*, step, bool* stop): set->vt[0x40](set, 43, V,
+        | step) = 0x400a6bd0, the writer stock's slot 0x74 tail-jumps to, then
+        | (fn+16 >= 0 only) the same with 44 = E: STA first, END second, as
+        | stock orders them (0x4008b840). *stop is left 0 (the iterator clears
+        | it once), so every held step is visited. Clobbers d0/d1/a0/a1 only.
         .align  2
 chop_lock_step:
         move.l  4(%sp),%a0                        | fn
-        move.l  8(%sp),-(%sp)                     | step
-        move.l  (%a0),-(%sp)                      | V << 8
+        move.l  16(%a0),-(%sp)                    | E, or -1
+        move.l  (%a0),-(%sp)                      | V, 8.8
+        move.l  4(%a0),-(%sp)                     | set
+        move.l  20(%sp),-(%sp)                    | step
+        bsr.s   chop_lock_one
+        lea     16(%sp),%sp
+        rts
+
+        | chop_lock_one(step, set, V, E): set->vt[0x40](set, 43, V, step), then
+        | if E >= 0, set->vt[0x40](set, 44, E, step). 0x400a6bd0 writes the
+        | SELECTED track and floors 43/44 under LO itself (dis:214107-214114,
+        | 214142). Clobbers d0/d1/a0/a1.
+        .align  2
+chop_lock_one:
+        move.l  4(%sp),-(%sp)                     | step
+        move.l  16(%sp),-(%sp)                    | V
         pea     PARAM_ID_STA                      | 43
-        move.l  4(%a0),%a1
-        move.l  %a1,-(%sp)                        | set
+        move.l  20(%sp),%a1                       | set
+        move.l  %a1,-(%sp)
         move.l  (%a1),%a0
         move.l  0x40(%a0),%a0                     | SoundParameterSet vt[0x40]
         jsr     (%a0)
         lea     16(%sp),%sp
-        rts
+        move.l  16(%sp),%d0                       | E
+        bmi.s   9f
+        move.l  4(%sp),-(%sp)                     | step
+        move.l  %d0,-(%sp)                        | E
+        pea     PARAM_ID_END                      | 44
+        move.l  20(%sp),%a1                       | set
+        move.l  %a1,-(%sp)
+        move.l  (%a1),%a0
+        move.l  0x40(%a0),%a0
+        jsr     (%a0)
+        lea     16(%sp),%sp
+9:      rts
 
         | The functor's manager word. 0x4003683c only tests it for non-null;
         | nothing calls it (no copy, no destroy). Harmless if ever called.
@@ -523,100 +834,519 @@ chop_fn_mgr:
         rts
 
         | ------------------------------------------------------------------
-        | chop_value(d0 = 0 PAD, 1 STA, 2 CHP) -> d0 = what the knob shows.
-        | Clobbers d0/d1/a0.
+        | chop_put(d0 = T, d1 = V 8.8, a0 = param id, a1 = record 0/1):
+        | param_set_value(kit_track_param_set(project_kit(project), T), id, V,
+        | T, record, notify 1) - chop_set_sta's call, for any id and either
+        | record flag. T > 11 returns without writing (12+ is the FX set).
+        | UI task only. Clobbers d0/d1/a0/a1, keeps everything else.
         | ------------------------------------------------------------------
         .align  2
-chop_value:
-        tst.l   %d0
-        bne.s   1f
-        moveq   #0,%d0
-        move.b  chop_pad,%d0
-        addq.l  #1,%d0                            | 1..12
-        rts
-1:      subq.l  #1,%d0
-        bne.s   2f
-        moveq   #0,%d1
-        move.b  chop_pad,%d1
-        lea     chop_marks,%a0
-        move.b  0(%a0,%d1.l),%d0                  | 0..120 (d0 is 0 here)
-        rts
-2:      moveq   #0,%d0
-        move.b  chop_on,%d0                       | 0/1
-        rts
+chop_put:
+        cmpi.l  #PADS-1,%d0
+        bhi.s   9f
+        lea     -16(%sp),%sp
+        movem.l %d2-%d3/%a2-%a3,(%sp)
+        move.l  %d0,%d2                           | T
+        move.l  %d1,%d3                           | V
+        move.l  %a0,%a2                           | id
+        move.l  %a1,%a3                           | record
+        jsr     project_singleton
+        move.l  %d0,-(%sp)
+        jsr     project_kit                       | project + 232, the active kit
+        addq.l  #4,%sp
+        move.l  %d2,-(%sp)                        | T
+        move.l  %d0,-(%sp)                        | kit
+        jsr     kit_track_param_set               | d0 = track T's SoundParameterSet
+        addq.l  #8,%sp
+        pea     1                                 | notify
+        move.l  %a3,-(%sp)                        | record
+        move.l  %d2,-(%sp)                        | T
+        move.l  %d3,-(%sp)                        | V
+        move.l  %a2,-(%sp)                        | id
+        move.l  %d0,-(%sp)                        | set
+        jsr     param_set_value
+        lea     24(%sp),%sp
+        movem.l (%sp),%d2-%d3/%a2-%a3
+        lea     16(%sp),%sp
+9:      rts
 
-        | clamp(d0, d1 = max) -> d0 in 0..max. Clobbers nothing else.
+        | ------------------------------------------------------------------
+        | chop_next_above(d0 = k 0..11) -> d0 = E: the smallest marker strictly
+        | above marker k, or 0x7800 (the sample end) when none is. Clobbers
+        | d0/d1/a0/a1.
+        | ------------------------------------------------------------------
         .align  2
-clamp:  tst.l   %d0
-        bpl.s   1f
-        clr.l   %d0
-1:      cmp.l   %d1,%d0
-        ble.s   2f
-        move.l  %d1,%d0
-2:      rts
-
-        | put_u3(d0 = 0..999, a1 = out) - decimal, no leading zeros. Clobbers
-        | d0/d1, advances a1. 0008's helper verbatim.
-        .align  2
-put_u3:
+chop_next_above:
         move.l  %d2,-(%sp)
-        moveq   #0,%d2                            | a digit has been printed
-        divu.w  #100,%d0
-        mvzw    %d0,%d1                           | hundreds
-        beq.s   1f
-        add.l   #0x30,%d1
-        move.b  %d1,(%a1)+
-        moveq   #1,%d2
-1:      clr.w   %d0
-        swap    %d0
-        divu.w  #10,%d0
-        mvzw    %d0,%d1                           | tens
-        tst.l   %d2
-        bne.s   2f
-        tst.l   %d1
-        beq.s   3f
-2:      add.l   #0x30,%d1
-        move.b  %d1,(%a1)+
-3:      swap    %d0
-        mvzw    %d0,%d1                           | units
-        add.l   #0x30,%d1
-        move.b  %d1,(%a1)+
+        lea     chop_marks,%a0
+        mvz.w   0(%a0,%d0.l*2),%d1                | V = M[k]
+        move.l  #STA_MAX,%d0                      | none above: the sample end
+        lea     2*PADS(%a0),%a1
+1:      mvz.w   (%a0)+,%d2
+        cmp.l   %d1,%d2
+        bls.s   2f                                | M[j] <= V
+        cmp.l   %d0,%d2
+        bcc.s   2f                                | not closer
+        move.l  %d2,%d0
+2:      cmpa.l  %a1,%a0
+        bcs.s   1b
         move.l  (%sp)+,%d2
         rts
 
         | ------------------------------------------------------------------
-        | Data
+        | chop_end_hit: after a pad's chop_set_sta, with END on, the chop
+        | track's END = the slice end of chop_pad, record 1 (under live REC a
+        | p-lock, after STA's). END off: returns at once. Clobbers d0/d1/a0/a1.
         | ------------------------------------------------------------------
         .align  2
-chop_pages:                                       | the SAMP view's pages
-        .long   PAGE_SAMP, PAGE_CHOP
+chop_end_hit:
+        tst.b   chop_end
+        beq.s   9f
+        moveq   #0,%d0
+        move.b  chop_pad,%d0
+        bsr.s   chop_next_above
+        move.l  %d0,%d1                           | E
+        moveq   #0,%d0
+        move.b  chop_track,%d0                    | T
+        movea.w #PARAM_ID_END,%a0
+        movea.w #1,%a1                            | record
+        bra.w   chop_put
+9:      rts
 
-page_chop:                                        | {name, top row, bottom row}
-        .long   str_page
-        .long   ID_PAD, ID_STA, ID_CHP, 0
-        .long   0, 0, 0, 0
+        | ------------------------------------------------------------------
+        | chop_end_restore: while CHOP and END are both on, the chop track's END
+        | goes back to 0x7800 (120, the whole sample) with record 0 - a base
+        | value, never a p-lock (D20 / r5c skeptic P2: otherwise a later STA
+        | above the last slice end leaves STA > END). Otherwise nothing.
+        | Clobbers d0/d1/a0/a1.
+        | ------------------------------------------------------------------
+        .align  2
+chop_end_restore:
+        tst.b   chop_on
+        beq.s   9f
+        tst.b   chop_end
+        beq.s   9f
+        moveq   #0,%d0
+        move.b  chop_track,%d0                    | T
+        move.l  #STA_MAX,%d1                      | 0x7800: END's max and default
+        movea.w #PARAM_ID_END,%a0
+        suba.l  %a1,%a1                           | record 0
+        bra.w   chop_put
+9:      rts
 
-        | One label, two uses: the page's name and the parameters' group name.
+        | ------------------------------------------------------------------
+        | chop_delta_more(d2 = whole steps, non-zero; d3 = the knob, K_END..;
+        | a2 = the view): the knobs D..H with no trig held (delta_gate). d2/d3
+        | are param_apply_delta's to restore (its epilogue does), so they are
+        | free here. Clobbers d0/d1/a0/a1 too; keeps a2.
+        |   END: right on; left off, and while CHOP is on the chop track's END
+        |        goes back to 120 first (chop_end_restore).
+        |   DIV: 1..12; a change re-chops all twelve markers (chop_rechop); no
+        |        change (turned against an end) leaves them alone.
+        |   LAY: right: chop_lay; left: nothing.
+        |   RND: nothing here (it acts on held steps, through lock_gate).
+        |   STR: chop_str_turn.
+        | ------------------------------------------------------------------
+        .align  2
+chop_delta_more:
+        moveq   #K_END,%d0
+        cmp.l   %d0,%d3
+        bne.s   2f
+        tst.l   %d2                               | END
+        ble.s   1f
+        moveq   #1,%d0
+        move.b  %d0,chop_end                      | right: on
+        rts
+1:      bsr.s   chop_end_restore                  | left: off
+        clr.b   chop_end
+        rts
+2:      moveq   #K_LAY,%d0
+        cmp.l   %d0,%d3
+        beq.w   chop_lay                          | LAY: its rts returns to delta_gate
+        moveq   #K_STR,%d0
+        cmp.l   %d0,%d3
+        bne.s   3f
+        move.l  %d2,%d0                           | STR: whole steps
+        bra.w   chop_str_turn                     | its rts returns to delta_gate
+3:
+        moveq   #K_DIV,%d0
+        cmp.l   %d0,%d3
+        bne.s   9f
+        moveq   #0,%d0                            | DIV
+        move.b  chop_div,%d0
+        move.l  %d0,%d3                           | the old value
+        add.l   %d2,%d0
+        subq.l  #1,%d0
+        moveq   #PADS-1,%d1
+        bsr.w   clamp                             | 0..11
+        addq.l  #1,%d0                            | 1..12
+        cmp.l   %d3,%d0
+        beq.s   9f                                | unchanged: the markers stay
+        move.b  %d0,chop_div
+        bra.s   chop_rechop
+9:      rts
+
+        | ------------------------------------------------------------------
+        | chop_rechop: marker i = ((i mod DIV) * 0x7800) / DIV, i = 0..11, DIV =
+        | chop_div (1..12; a 0 would trap divu, so it returns). Pads above DIV
+        | repeat slices 0..DIV-1. DIV 12 gives the power-on 0, 10 ... 110; DIV
+        | 1, 2, 3, 4, 5, 6, 8, 10, 12 are exact in 8.8, 7, 9, 11 floor (less than
+        | 1/256 of a step). RAM only. Clobbers d0/d1/a0/a1.
+        | ------------------------------------------------------------------
+        .align  2
+chop_rechop:
+        moveq   #0,%d1
+        move.b  chop_div,%d1
+        tst.l   %d1
+        beq.s   9f
+        move.l  %d2,-(%sp)
+        lea     chop_marks,%a0
+        lea     2*PADS(%a0),%a1
+        moveq   #0,%d0                            | j = i mod DIV
+1:      move.l  %d0,%d2
+        mulu.w  #STA_MAX,%d2                      | <= 11 * 0x7800 = 0x52800
+        divu.w  %d1,%d2                           | quotient (< 0x7800) in the low word
+        move.w  %d2,(%a0)+
+        addq.l  #1,%d0
+        cmp.l   %d1,%d0
+        bcs.s   2f
+        moveq   #0,%d0
+2:      cmpa.l  %a1,%a0
+        bcs.s   1b
+        move.l  (%sp)+,%d2
+9:      rts
+
+        | ------------------------------------------------------------------
+        | chop_lay(d2 = whole steps; a2 = the view): knob F turned right (D20).
+        | Refuses, with no side effect, unless all hold (each test only reads):
+        |   d2 > 0 (right); chop_on; T = chop_track <= 11;
+        |   track_index_of(project_selection(project)) == T  (the lock store
+        |     writes the SELECTED track's pattern; current_track_pattern is it);
+        |   tp = current_track_pattern(project) != 0;
+        |   euclid_enabled_get(tp) != 1  (in euclid mode the grid remaps steps,
+        |     dis:79239-79252, and live REC creates no trig, dis:221955-221966);
+        |   (*param_info(43) & 0x100) == 0  (STA lockable, slot 0x6c's test).
+        | Then: set = kit_track_param_set(project_kit(project), T); E wanted =
+        | END on and id 44 lockable; len = pattern_length(tp); n = min(DIV, len);
+        | for i = 0..n-1: s = (i * len) / n; if step_flag_test(tp, s, 1) == 0
+        | (an EMPTY step - both stock trig tests 0x400bcfa6 / 0x400bd036 read 0
+        | exactly then): trig_create(tp, s, 1), as the grid trig key does, then
+        | chop_lock_one(s, set, M[i], E wanted ? slice end of i : -1). A step
+        | that holds a trig is never touched. Last, view_refresh_request(view),
+        | as the trig key after its create (dis:79538-79539); delta_gate then
+        | invalidates the view too. Runs in the UI task (the encoder handler).
+        | No undo: turning LAY again adds nothing on the steps it filled, but it
+        | does fill steps that are empty by then. Keeps a2; clobbers d0/d1/a0/a1
+        | (d2/d3 are restored by param_apply_delta's epilogue anyway).
+        | ------------------------------------------------------------------
+        .align  2
+chop_lay:
+        tst.l   %d2
+        ble.w   99f                               | left: nothing
+        tst.b   chop_on
+        beq.w   99f
+        lea     -32(%sp),%sp
+        movem.l %d2-%d7/%a3-%a4,(%sp)
+        moveq   #0,%d7
+        move.b  chop_track,%d7                    | T
+        moveq   #PADS-1,%d0
+        cmp.l   %d0,%d7
+        bhi.w   9f                                | 12+ is the FX set
+        jsr     project_singleton
+        move.l  %d0,%a4                           | P
+        move.l  %d0,-(%sp)
+        jsr     project_selection                 | P + 48
+        move.l  %d0,(%sp)
+        jsr     track_index_of                    | the selected track
+        addq.l  #4,%sp
+        cmp.l   %d7,%d0
+        bne.w   9f                                | not the chop track
+        move.l  %a4,-(%sp)
+        jsr     current_track_pattern             | its pattern track
+        addq.l  #4,%sp
+        move.l  %d0,%a3                           | tp
+        tst.l   %d0
+        beq.w   9f
+        move.l  %a3,-(%sp)
+        jsr     euclid_enabled_get
+        addq.l  #4,%sp
+        mvs.b   %d0,%d0
+        moveq   #1,%d1
+        cmp.l   %d1,%d0
+        beq.w   9f                                | euclid mode: steps are remapped
+        pea     PARAM_ID_STA
+        jsr     param_info
+        addq.l  #4,%sp
+        move.l  %d0,%a0
+        move.l  (%a0),%d0
+        btst    #8,%d0
+        bne.w   9f                                | 0x100: STA cannot be locked now
+        moveq   #-1,%d6                           | END wanted: -1 no, 0 yes
+        tst.b   chop_end
+        beq.s   1f
+        pea     PARAM_ID_END
+        jsr     param_info
+        addq.l  #4,%sp
+        move.l  %d0,%a0
+        move.l  (%a0),%d0
+        btst    #8,%d0
+        bne.s   1f                                | END cannot be locked now
+        moveq   #0,%d6
+1:      move.l  %a4,-(%sp)
+        jsr     project_kit                       | P + 232
+        move.l  %d7,(%sp)                         | T
+        move.l  %d0,-(%sp)                        | kit
+        jsr     kit_track_param_set
+        addq.l  #8,%sp
+        move.l  %d0,%a4                           | set
+        move.l  %a3,-(%sp)
+        jsr     pattern_length
+        addq.l  #4,%sp
+        move.l  %d0,%d5                           | len
+        ble.w   9f
+        moveq   #0,%d4
+        move.b  chop_div,%d4                      | DIV
+        cmp.l   %d5,%d4
+        bls.s   2f
+        move.l  %d5,%d4                           | n = min(DIV, len)
+2:      tst.l   %d4
+        beq.w   9f
+        moveq   #0,%d3                            | i
+3:      move.l  %d3,%d2
+        mulu.w  %d5,%d2                           | i * len (<= 11 * 64)
+        divu.w  %d4,%d2                           | / n
+        mvz.w   %d2,%d2                           | s = (i * len) / n, < len
+        pea     1
+        move.l  %d2,-(%sp)
+        move.l  %a3,-(%sp)
+        jsr     step_flag_test                    | flag 0x1: a trig is there
+        lea     12(%sp),%sp
+        tst.b   %d0
+        bne.s   5f                                | leave that step alone
+        pea     1
+        move.l  %d2,-(%sp)
+        move.l  %a3,-(%sp)
+        jsr     trig_create                       | as the grid trig key
+        lea     12(%sp),%sp
+        move.l  %d6,%d0                           | E: -1, or the slice end of i
+        bmi.s   4f
+        move.l  %d3,%d0
+        bsr.w   chop_next_above
+4:      move.l  %d0,-(%sp)                        | E
+        lea     chop_marks,%a0
+        mvz.w   0(%a0,%d3.l*2),%d0
+        move.l  %d0,-(%sp)                        | V = M[i]
+        move.l  %a4,-(%sp)                        | set
+        move.l  %d2,-(%sp)                        | step s
+        bsr.w   chop_lock_one
+        lea     16(%sp),%sp
+5:      addq.l  #1,%d3
+        cmp.l   %d4,%d3
+        bcs.s   3b
+        move.l  %a2,-(%sp)                        | the page view
+        jsr     view_refresh_request              | as the trig key, 0x4003d63a
+        addq.l  #4,%sp
+9:      movem.l (%sp),%d2-%d7/%a3-%a4
+        lea     32(%sp),%sp
+99:     rts
+
+        | ------------------------------------------------------------------
+        | chop_rnd_held: knob G turned with trig key(s) held (lock_gate). While
+        | CHOP is on: the step lock (chop_held_with, its six guards and stock's
+        | hold sequence) with chop_rnd_step as the invoker. Returns d0 = 0, as
+        | lock_gate does for CHOP's other knobs (the caller ignores it).
+        | ------------------------------------------------------------------
+        .align  2
+chop_rnd_held:
+        tst.b   chop_on
+        beq.s   9f
+        moveq   #0,%d0
+        move.b  chop_track,%d0                    | T
+        moveq   #0,%d1                            | V: chop_rnd_step picks its own
+        lea     chop_rnd_step,%a1
+        bsr.w   chop_held_with
+9:      moveq   #0,%d0
+        rts
+
+        | ------------------------------------------------------------------
+        | chop_rnd_step(fn*, step, bool* stop): the RND invoker. i = a random
+        | slice 0..DIV-1 (shared_rnd on CHOP's own LCG word, N = 32767, made
+        | 0..65534 and taken mod DIV: bias under 1 in 5000); then chop_lock_one
+        | (step, set, M[i], E) with E = the slice end of i when fn+16 >= 0 (END
+        | on and lockable, chop_held_with), else -1. *stop is left 0.
+        | Clobbers d0/d1/a0/a1; keeps d2.
+        | ------------------------------------------------------------------
+        .align  2
+chop_rnd_step:
+        move.l  %d2,-(%sp)                        | (sp) d2, 4 ret, 8 fn, 12 step
+        lea     chop_rng,%a0
+        move.l  #32767,%d1
+        jsr     shared_rnd                        | d0 = -32767..32767; d0/d1 only
+        add.l   #32767,%d0                        | 0..65534
+        moveq   #0,%d1
+        move.b  chop_div,%d1                      | 1..12
+        bne.s   1f
+        moveq   #PADS,%d1                         | (never 0; divu must not trap)
+1:      divu.w  %d1,%d0                           | remainder:quotient
+        swap    %d0
+        mvz.w   %d0,%d2                           | i = 0..DIV-1
+        moveq   #-1,%d0                           | E: none
+        move.l  8(%sp),%a0                        | fn
+        tst.l   16(%a0)
+        bmi.s   2f
+        move.l  %d2,%d0
+        bsr.w   chop_next_above                   | the slice end of i
+2:      move.l  %d0,-(%sp)                        | E
+        lea     chop_marks,%a0
+        mvz.w   0(%a0,%d2.l*2),%d0
+        move.l  %d0,-(%sp)                        | V = M[i]
+        move.l  16(%sp),%a0                       | fn
+        move.l  4(%a0),-(%sp)                     | set
+        move.l  24(%sp),-(%sp)                    | step
+        bsr.w   chop_lock_one
+        lea     16(%sp),%sp
+        move.l  (%sp)+,%d2
+        rts
+
+        | ------------------------------------------------------------------
+        | STR (D21), EXPERIMENTAL. chop_str = 0 OFF, 1..7 = 1, 2, 4 ... 64 steps.
+        |
+        | chop_str_held: knob H turned with a trig held or a lock source on
+        | (lock_gate, (%sp) return, 12(%sp) the 8.8 delta): the same turn as
+        | without (base values, record 0 - never a p-lock, so no stock lock for
+        | id 2 either, r5c skeptic P3); returns d0 = 0.
+        | chop_str_turn(d0 = whole steps, signed): chop_str = clamp(chop_str +
+        | steps, 0..7); on a change, and only while CHOP is on (skeptic P6: the
+        | chop track is stale otherwise), chop_str_apply. With CHOP off the
+        | value is stored and nothing is written.
+        | chop_str_apply(d0 = 0..7): param_set_value(set_T, id, value, T,
+        | record 0, notify 1) through chop_put for each row of chop_str_on
+        | (value 0xffff = MUL, (7 - idx) << 8, so N = 2^(idx-1) steps needs MUL
+        | 2^(6 - (idx-1)) under the unverified rule 2048 / (32 * MUL)), or of
+        | chop_str_off for 0. No RETRIG write (skeptic P5). T > 11: chop_put
+        | refuses. Clobbers d0/d1/a0/a1; keeps d2/a2.
+        | ------------------------------------------------------------------
+        .align  2
+chop_str_held:
+        move.l  12(%sp),%d0
+        asr.l   #8,%d0                            | whole steps, sign kept
+        beq.s   9f
+        bsr.s   chop_str_turn
+9:      moveq   #0,%d0
+        rts
+
+        .align  2
+chop_str_turn:
+        move.l  %d2,-(%sp)
+        moveq   #0,%d1
+        move.b  chop_str,%d1
+        move.l  %d1,%d2                           | the old value
+        add.l   %d1,%d0
+        moveq   #7,%d1
+        bsr.w   clamp                             | 0..7
+        cmp.l   %d2,%d0
+        beq.s   9f                                | no change: nothing written
+        move.b  %d0,chop_str
+        tst.b   chop_on
+        beq.s   9f                                | CHOP off: stored only
+        bsr.s   chop_str_apply
+9:      move.l  (%sp)+,%d2
+        rts
+
+        .align  2
+chop_str_apply:
+        lea     -8(%sp),%sp
+        movem.l %d2/%a2,(%sp)
+        moveq   #7,%d2
+        sub.l   %d0,%d2
+        lsl.l   #8,%d2                            | MUL raw = (7 - idx) << 8
+        lea     chop_str_on,%a2
+        tst.l   %d0
+        bne.s   1f
+        lea     chop_str_off,%a2
+1:      mvz.w   (%a2)+,%d0                        | the id; 0 ends the list
+        beq.s   9f
+        mvz.w   (%a2)+,%d1                        | the value
+        cmpi.l  #0xffff,%d1
+        bne.s   2f
+        move.l  %d2,%d1                           | MUL by steps
+2:      move.l  %d0,%a0                           | id
+        moveq   #0,%d0
+        move.b  chop_track,%d0                    | T
+        suba.l  %a1,%a1                           | record 0: base values only
+        bsr.w   chop_put
+        bra.s   1b
+9:      movem.l (%sp),%d2/%a2
+        lea     8(%sp),%sp
+        rts
+
+        | ------------------------------------------------------------------
+        | dial_gate (D18, optional): param_knob_draw's entry 0x400a587c, a
+        | SoundParameterSet vtable slot (4 vtable words point at the entry,
+        | nothing into +2..+7), called for every knob dial. For id 4 (the CHOP
+        | STA knob, CHOP's alone) it stores 43 into the id slot, so the dial is
+        | drawn with stock STA's dial functor (0x400f8a3a: 0..0x7800 rescaled to
+        | the full sweep, plus its 16-step fraction glyph). param_knob_draw reads
+        | that slot only for param_info and overwrites it itself before the
+        | callback (dis:212548-212563 'movel %sp@(32),%sp@- / jsr 0x400f8718 ...
+        | movel %d2,%sp@(32)'), so the change ends there. Every other id: the
+        | displaced instructions and the rejoin, d0 only clobbered (the entry).
+        | Entered by a jmp at the entry: (%sp) return, 4 set, 8 id, 12 value.
+        | ------------------------------------------------------------------
+        .align  2
+dial_gate:
+        moveq   #ID_STA,%d0
+        cmp.l   8(%sp),%d0
+        bne.s   1f
+        moveq   #PARAM_ID_STA,%d0
+        move.l  %d0,8(%sp)                        | id 4 draws as id 43
+1:      lea     %sp@(-24),%sp                     | displaced
+        moveml  %d2-%d6/%a2,%sp@                  | displaced
+        jmp     param_knob_draw_body
+
+        | ------------------------------------------------------------------
+        | Strings (constants, in cave2): the page's name, the parameters' group
+        | name and the knobs' long and short names, which the ROM records point
+        | at (registry from_symbol patches).
+        | ------------------------------------------------------------------
 str_page:
 str_group:      .asciz  "CHOP"
 str_pad_l:      .asciz  "Chop Pad"
 str_sta_l:      .asciz  "Pad Start"
 str_chp_l:      .asciz  "Chop Mode"
+str_end_l:      .asciz  "Slice End"
+str_div_l:      .asciz  "Divide"
+str_lay_l:      .asciz  "Lay Out"
+str_str_l:      .asciz  "Stretch"
+str_rnd_l:      .asciz  "Shuffle"
 str_pad:        .asciz  "PAD"
 str_sta:        .asciz  "STA"
 str_chp:        .asciz  "CHP"
+str_end:        .asciz  "END"
+str_div:        .asciz  "DIV"
+str_lay:        .asciz  "LAY"
+str_str:        .asciz  "STR"
+str_rnd:        .asciz  "RND"
 
         | ------------------------------------------------------------------
-        | Run-time state, RAM only, after every entry point (build.py refuses an
-        | odd entry). The image bytes are the power-on defaults; nothing is saved.
+        | Run-time state, RAM only, at the end of .text in `cave` (after every
+        | entry point: build.py refuses an odd entry). The image bytes are the
+        | power-on defaults; nothing is saved.
         | ------------------------------------------------------------------
+        .text
         .align  4
 chop_state:
 chop_on:        .byte   0                         | CHOP mode
 chop_track:     .byte   0                         | the chop track, 0..11
 chop_pad:       .byte   0                         | the marker PAD/STA edit, 0..11
-chop_rsv:       .byte   0
-chop_marks:     .byte   0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110
+chop_end:       .byte   0                         | END mode (knob D), 0/1
+chop_marks:                                       | 8.8, 0..0x7800: 0, 10, 20 ... 110
+        .word   0x0000, 0x0a00, 0x1400, 0x1e00, 0x2800, 0x3200
+        .word   0x3c00, 0x4600, 0x5000, 0x5a00, 0x6400, 0x6e00
 chop_route:                                       | per pad: where its note-on went
         .byte   0xff, 0xff, 0xff, 0xff, 0xff, 0xff | (the chop track), 0xFF = stock
         .byte   0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+chop_div:       .byte   12                        | DIV (knob E), 1..12
+chop_str:       .byte   0                         | STR (knob H), 0 OFF .. 7
+        .align  4
+chop_rng:       .long   0x5eed0001                | RND's own LCG word (shared_rnd)
