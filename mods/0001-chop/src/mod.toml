@@ -29,11 +29,15 @@ While CHOP is on, pad k sets the chop track's STA to marker k through the same
 call a STA knob turn ends in - so under live REC stock records a normal trig with
 a normal STA p-lock - and then plays the chop track as a normal pad hit would.
 Pads do not switch track in CHOP. Hold a pad and turn STA to move its marker.
+Hold trig key(s) of the chop track and hit pad k: each held step gets an STA p-lock
+= marker k, as holding those trigs and turning STA would (stock's own held-trig
+path); the base STA is then left alone.
 
 The markers live in RAM only: a power cycle resets them and ends CHOP. Nothing new
 is saved anywhere; recorded chops are ordinary STA p-locks and play back on stock
 firmware. Like a STA knob turn, every pad hit also changes the chop track's base
-STA (the kit is edited). Never run on hardware: see design.md for the test card.
+STA (the kit is edited), except a hit that locked held steps. The step lock has
+never run on hardware: see design.md for the test card (H6).
 """
 
 [sources]
@@ -66,4 +70,12 @@ symbols = [
   "ev_bit4",
   "weak_ptr_expired",
   "lock_delta_body",
+  "ui_states",
+  "hold_lock_source",
+  "hold_any_in_length",
+  "hold_set_edited",
+  "hold_each_step",
+  "hold_clear_actions",
+  "project_selection",
+  "param_info",
 ]

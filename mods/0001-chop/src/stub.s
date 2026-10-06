@@ -17,6 +17,9 @@
         | in the UI message is rewritten to the chop track, so stock plays (and
         | records) the chop track exactly as if its own pad had been hit. Pads never
         | switch the selected track away from it, and no fire call is hand-built.
+        | With trig key(s) of the chop track held (D15), the STA call is replaced
+        | by what stock's hold-trig + turn-STA does: an STA p-lock = marker k on
+        | every held step (chop_held_lock); the base STA is then left alone.
         | Note-offs follow their note-ons (D8a): the note-on records where pad k
         | went in chop_route[k] (the chop track, or 0xFF when it was not
         | rewritten), and the note-off of pad k is rewritten to chop_route[k] when
@@ -264,7 +267,15 @@ sample_key_gate:
         | k > 11 unsigned (or -1): stock, no table touched. k <= 11 with CHOP
         | off: chop_route[k] = 0xFF (this note-on was not rewritten), message
         | untouched. k <= 11 with CHOP on: chop_route[k] = chop_track, then the
-        | marker, the STA call and the rewrite.
+        | marker, the held-step lock or the STA call, and the rewrite.
+        |
+        | Step lock (D15-D15b): chop_held_lock(T, V) first. It returns 1 only
+        | when it wrote STA = V as a p-lock on every held step of the chop
+        | track (the stock held-trig knob path); then chop_set_sta is SKIPPED,
+        | so the base STA is untouched and no live-REC lock lands on the
+        | playing step. It returns 0 (nothing done) otherwise, and the hit goes
+        | on exactly as before: chop_set_sta(T, V), record 1. Either way the
+        | rewrite and the stock continuation follow.
         | ------------------------------------------------------------------
         .align  2
 pad_on_gate:
@@ -288,8 +299,18 @@ pad_on_gate:
         move.b  0(%a0,%d0.l),%d1                  | V = marker k
         moveq   #0,%d0
         move.b  chop_track,%d0                    | T
-        bsr.w   chop_set_sta
+        bsr.w   chop_held_lock                    | d0 = 1: held steps locked
+        tst.l   %d0
+        bne.s   2f                                | D15a: locked, no chop_set_sta
+        moveq   #0,%d0                            | reload: the helper clobbers
+        move.b  chop_pad,%d0                      | d0/d1/a0/a1
+        lea     chop_marks,%a0
+        moveq   #0,%d1
+        move.b  0(%a0,%d0.l),%d1                  | V = marker k (k = chop_pad)
         moveq   #0,%d0
+        move.b  chop_track,%d0                    | T
+        bsr.w   chop_set_sta
+2:      moveq   #0,%d0
         move.b  chop_track,%d0
         move.l  %d0,4(%a2)                        | the hit now names the chop track
 8:      pea     0x80                              | displaced
@@ -380,6 +401,126 @@ chop_set_sta:
         movem.l (%sp),%d2-%d3
         lea     8(%sp),%sp
 9:      rts
+
+        | ------------------------------------------------------------------
+        | chop_held_lock(d0 = T, d1 = V 0..120) -> d0 = 1 locked / 0 nothing.
+        |
+        | The stock held-trig knob path (page-view slot 0x7c 0x40038482..e8,
+        | and the UI loop's own copy at 0x4009f2ee..0x4009f352), for STA = V on
+        | track T, with no view. Returns 0 at the first guard that fails, with
+        | no side effect (every call before the last guard only reads):
+        |   S = ui_states()                          (UIStates, view+108)
+        |   hold_lock_source(S) == 0                 (no scene/perf locker)
+        |   hold_any_in_length(S) != 0               (a trig held, < length)
+        |   T <= 11                                  (12+ is the FX set)
+        |   track_index_of(project_selection(project)) == T
+        |                                            (the lock store writes
+        |                                             the SELECTED track)
+        |   (*param_info(43) & 0x100) == 0           (slot 0x6c: lockable)
+        | Then, as stock: hold_set_edited(S, 1) (the release will not toggle
+        | the trig); hold_each_step(S, &fn, 0) with a 16-byte stack functor
+        | {+0 V<<8, +4 set, +8 manager (non-null; never called), +12
+        | chop_lock_step}, set = kit_track_param_set(project_kit(project), T);
+        | hold_clear_actions(S); return 1. Stock's own functor is heap-backed
+        | and destroyed by 0x40146854; this one holds its data inline, the
+        | iterator never copies, destroys or calls the manager (0x40036888,
+        | 0x400368bc..0x400368dc), so nothing is allocated or freed.
+        | UI task only. Clobbers d0/d1/a0/a1; keeps d2-d7/a2-a6.
+        | ------------------------------------------------------------------
+        .align  2
+chop_held_lock:
+        lea     -28(%sp),%sp                      | 12 saved + 16 functor at 12(%sp)
+        movem.l %d2-%d3/%a2,(%sp)
+        move.l  %d0,%d2                           | T
+        move.l  %d1,%d3                           | V
+        jsr     ui_states
+        move.l  %d0,%a2                           | S
+        move.l  %a2,-(%sp)
+        jsr     hold_lock_source
+        addq.l  #4,%sp
+        tst.l   %d0
+        bne.w   8f                                | a scene/perf locker owns the knobs
+        move.l  %a2,-(%sp)
+        jsr     hold_any_in_length
+        addq.l  #4,%sp
+        tst.b   %d0
+        beq.w   8f                                | no trig held
+        moveq   #PADS-1,%d0
+        cmp.l   %d0,%d2
+        bhi.w   8f                                | T > 11 unsigned
+        jsr     project_singleton
+        move.l  %d0,-(%sp)
+        jsr     project_selection                 | project + 48
+        move.l  %d0,(%sp)
+        jsr     track_index_of                    | the selected track
+        addq.l  #4,%sp
+        cmp.l   %d2,%d0
+        bne.w   8f                                | not the chop track
+        pea     PARAM_ID_STA
+        jsr     param_info                        | STA's RAM record
+        addq.l  #4,%sp
+        move.l  %d0,%a0
+        move.l  (%a0),%d0
+        btst    #8,%d0
+        bne.w   8f                                | 0x100: STA cannot be locked now
+        jsr     project_singleton
+        move.l  %d0,-(%sp)
+        jsr     project_kit
+        move.l  %d2,(%sp)                         | T
+        move.l  %d0,-(%sp)                        | kit
+        jsr     kit_track_param_set               | track T's SoundParameterSet
+        addq.l  #8,%sp
+        lsl.l   #8,%d3
+        move.l  %d3,12(%sp)                       | fn+0  V << 8 (8.8, as the knob)
+        move.l  %d0,16(%sp)                       | fn+4  set
+        lea     chop_fn_mgr,%a0
+        move.l  %a0,20(%sp)                       | fn+8  manager: non-null
+        lea     chop_lock_step,%a0
+        move.l  %a0,24(%sp)                       | fn+12 invoker
+        pea     1
+        move.l  %a2,-(%sp)
+        jsr     hold_set_edited                   | S+352 = 1, as stock 0x4003848a
+        addq.l  #8,%sp
+        lea     12(%sp),%a0                       | &fn, taken before any push
+        clr.l   -(%sp)                            | 0: held steps below the length
+        move.l  %a0,-(%sp)                        | &fn
+        move.l  %a2,-(%sp)
+        jsr     hold_each_step                    | chop_lock_step per held step
+        lea     12(%sp),%sp
+        move.l  %a2,-(%sp)
+        jsr     hold_clear_actions                | as stock 0x400384e2
+        addq.l  #4,%sp
+        moveq   #1,%d0
+        bra.s   9f
+8:      moveq   #0,%d0
+9:      movem.l (%sp),%d2-%d3/%a2
+        lea     28(%sp),%sp
+        rts
+
+        | chop_lock_step(fn*, step, bool* stop): set->vt[0x40](set, 43, V<<8,
+        | step) = 0x400a6bd0, the writer stock's slot 0x74 tail-jumps to. *stop
+        | is left 0 (the iterator clears it once), so every held step is
+        | visited. Clobbers d0/d1/a0/a1 only.
+        .align  2
+chop_lock_step:
+        move.l  4(%sp),%a0                        | fn
+        move.l  8(%sp),-(%sp)                     | step
+        move.l  (%a0),-(%sp)                      | V << 8
+        pea     PARAM_ID_STA                      | 43
+        move.l  4(%a0),%a1
+        move.l  %a1,-(%sp)                        | set
+        move.l  (%a1),%a0
+        move.l  0x40(%a0),%a0                     | SoundParameterSet vt[0x40]
+        jsr     (%a0)
+        lea     16(%sp),%sp
+        rts
+
+        | The functor's manager word. 0x4003683c only tests it for non-null;
+        | nothing calls it (no copy, no destroy). Harmless if ever called.
+        .align  2
+chop_fn_mgr:
+        moveq   #0,%d0
+        rts
 
         | ------------------------------------------------------------------
         | chop_value(d0 = 0 PAD, 1 STA, 2 CHP) -> d0 = what the knob shows.

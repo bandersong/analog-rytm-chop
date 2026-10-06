@@ -13,6 +13,19 @@ Nothing here has run on a Rytm yet. Every check that can be done on a computer p
 
 If Transfer refuses a file as "same version", nothing was written. Stop, or use the recovery route.
 
+## NEW: step-lock build (`2b_CHOP+STEPLOCK_…syx`)
+Same as CHOP, plus: **in GRID RECORDING, hold one or more steps and hit a pad → each held step gets an STA p-lock = that pad's marker.** Not yet tested on hardware. Flash it like the CHOP file; if anything is off, flash `2_CHOP_…` again (the version that works today).
+
+How to test it:
+1. CHOP ON for your track (that track selected).
+2. Press **[REC]** with the sequencer stopped → GRID RECORDING (stock only holds steps for p-locks in grid mode).
+3. Hold a step's trig key, hit pad 5 → check the step's STA on the SAMPLE page (still holding) = 40. Let go: the trig must still be there.
+4. Hold several steps, hit a pad → all of them get that marker.
+5. Hold a step, hit pad 2 then pad 9 → the lock ends at 80.
+6. Afterwards, with no step held, the SAMPLE page's base STA should be unchanged.
+7. Note what the pad preview plays from while a step is held (the new marker, the step's old lock, or the base STA).
+8. Avoid sending MIDI notes into the Rytm while testing.
+
 ## Use it
 1. Pick the track with the sample you want to chop (normal pad mode, not chromatic).
 2. Press **SAMPLE**, let go, pause, press **SAMPLE** again → the **CHOP** page (knobs PAD / STA / CHP). A quick double-tap opens the sample list instead (that's stock).

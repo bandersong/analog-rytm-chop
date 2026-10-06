@@ -8,7 +8,8 @@ Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/
 |---|---|
 | MK1, OS 1.73 | ✅ Working on hardware |
 | MK2 | ❌ Not yet |
-| Builds reproducibly | ✅ Fresh clone + patch gives the same file, sha256 `3ea80d31…b00b` |
+| Builds reproducibly | ✅ Fresh clone + patch gives the same file, sha256 `a96657b4…caf6` |
+| Step-lock (GRID REC: hold steps + pad) | 🧪 Built and reviewed, not yet hardware-tested |
 | Recovery code untouched | ✅ Byte-for-byte identical to stock |
 
 ## How it works
@@ -26,6 +27,8 @@ Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/
 | PAD | which marker you're editing (1–12) |
 | STA | that marker's start point (0–120, same scale as the SAMPLE page) |
 | CHP | CHOP off / on |
+
+**Step-lock (new, not yet hardware-tested):** in GRID RECORDING, hold one or more steps and hit a pad. Each held step gets an STA p-lock set to that pad's marker, just like holding the step and turning STA. The trig stays on when you let go.
 
 **Tip:** make your loop 120 sixteenths long (7.5 bars). Then every STA value lands exactly on a 16th.
 
@@ -76,7 +79,7 @@ PASS
 Then check your build is the same file this repo was tested with:
 ```bash
 shasum -a 256 build/AR1_OS1.73_0000_0001_0002_0003.syx
-# 3ea80d31dba5a6ea3c937d6feb68026907759a68c7557e31373f4d7bd1a2b00b
+# a96657b49e70b42fc20b9d744a0f10ceceb0f065c0aac7201be88866ac15caf6
 ```
 
 ### 3. Flash (Transfer)

@@ -1,7 +1,7 @@
 From 12fbe449235e680196e9744c78c1481b5b48faa3 Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:01:29 -0400
-Subject: [PATCH 1/4] 0001 CHOP: a second SAMPLE page that turns the pads into
+Subject: [PATCH 1/7] 0001 CHOP: a second SAMPLE page that turns the pads into
  sample-start markers
 
 New mod mods/0001-chop (enabled = false; excludes 0004 and 0008) and the
@@ -1292,7 +1292,7 @@ index 4912597..87b6106 100644
 From ed4096658dffa7ab796838db092f6ce66e025dc1 Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:38:11 -0400
-Subject: [PATCH 2/4] 0001 CHOP: keep the sample list open on a SAMPLE
+Subject: [PATCH 2/7] 0001 CHOP: keep the sample list open on a SAMPLE
  double-tap; document the double-tap, note-off routing and first-flash order
 
 A quick second SAMPLE press is stock's double-tap (bit2) and opens the sample
@@ -1650,7 +1650,7 @@ index 28a9543..d13bf46 100644
 From 2b2a56bd2ad740759b524a04ae774371ecdd0407 Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:46:54 -0400
-Subject: [PATCH 3/4] 0001 CHOP: send each pad's note-off to the track its
+Subject: [PATCH 3/7] 0001 CHOP: send each pad's note-off to the track its
  note-on went to
 
 The note-on now records, per pad, whether it was rewritten to the chop
@@ -2168,7 +2168,7 @@ index 87b6106..86288b7 100644
 From 4bde508984ea04221b224ddc412b6491377e4068 Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 19:19:52 -0400
-Subject: [PATCH 4/4] 0001 CHOP: test card - final-gate P2 disclosures
+Subject: [PATCH 4/7] 0001 CHOP: test card - final-gate P2 disclosures
  (same-version refusal, modifier+pad, pressure, FUNC+SAMPLE, never flash
  0004/0008 builds)
 
@@ -2238,6 +2238,899 @@ index 04030ab..13866c4 100644
    Other pad modes (chromatic, scale, mutes ...): CHOP is not meant for them - turn CHP
    OFF first (D14). If you do try one with CHOP on, the behaviour is unverified; stop at
    the first hung voice.
+-- 
+2.47.1
+
+
+From 2b96812d5cd624bb6ffa442dd0c5b62954d258a3 Mon Sep 17 00:00:00 2001
+From: jaytriana <83611075+jaytriana@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 21:51:12 -0400
+Subject: [PATCH 5/7] 0001 CHOP: hold trig keys + pad = STA p-lock of that
+ pad's marker on every held step
+
+In CHOP, a pad hit with trig key(s) of the chop track held now does what stock
+does when you hold those trigs and turn STA: each held step gets an STA p-lock
+equal to the pad's marker (stock's own held-trig path: mark the hold edited so
+the release does not toggle, visit the held steps, write through the sound
+set's lock setter, clear the pending actions). The base STA is then left alone.
+Without a held trig, with CHOP off, or with a held trig on another track, the
+pad does exactly what it did before. Symbols for the stock routines added to
+re/symbols.toml; design.md gains the proof and test card H6. make chop,
+chop-min and control PASS in the guest; the stub is 1224 B of its 1232 B claim.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ mods/0001-chop/design.md            | 232 ++++++++++++++++++++++++----
+ mods/0001-chop/mod.toml             |  14 +-
+ mods/0001-chop/stub.s               | 145 ++++++++++++++++-
+ re/ghidra/scripts/ApplySymbols.java |   9 +-
+ re/symbols.toml                     |  39 +++++
+ 5 files changed, 409 insertions(+), 30 deletions(-)
+
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+index 13866c4..d2e45a6 100644
+--- a/mods/0001-chop/design.md
++++ b/mods/0001-chop/design.md
+@@ -1,8 +1,11 @@
+ # 0001 CHOP - design
+ 
+ Status: **built** (`make chop`, `make chop-min` and `make control` PASS verify in the
+-guest VM, 2026-10-05, after the round-3 change D8a below; `make random` and the default
+-`make` passed earlier the same day and do not contain 0001). **Never run on hardware.**
++guest VM, 2026-10-05, after the round-4 change D15 below - the step lock; `make random`
++and the default `make` passed earlier the same day and do not contain 0001). The round-3
++build (page, pads, live-REC locks) is reported working on the founder's MK1 (corp round-4
++brief; no hardware receipt in this file); **the round-4 step lock has never run on
++hardware.**
+ Local only: this tree has no license and is never pushed or published. Nothing here
+ flashes a device; the founder flashes.
+ 
+@@ -11,7 +14,10 @@ Line references `dis:N` are lines of
+ `build/stock_mainos.bin`, base 0x40000400). The RE behind every hook is corp round r2
+ (`/Users/creative/corp-audits/2026-10-05-rytm-chop/corp/`: `TRUTH.md` decisions D1-D14
+ and D8a, `r2-re/results.json`, `r2-re/skeptic_fixes.md`). Round 3 (D8a) pairs each pad's
+-note-off with its note-on; receipts in `corp/fixer-r3/`.
++note-off with its note-on; receipts in `corp/fixer-r3/`. Round 4 (D15-D15d) adds the step
++lock: trig key(s) held + pad = STA p-lock of that pad's marker on every held step; RE in
++`corp/r4-re/results.json` (seats r4-heldlock HL1-HL13 and r4-padheld F1-F10, and their
++skeptics' plan problems), build receipts in `corp/r4-builder/`.
+ 
+ ## What it does
+ 
+@@ -35,12 +41,16 @@ The twelve markers start at 0, 10, 20 ... 110.
+ While CHOP is on, a hit on pad k (k = 0..11):
+ 
+ 1. `chop_pad = k` (the PAD knob follows; it is redrawn at the next redraw);
+-2. the chop track's STA is set to marker k with
++2. **with trig key(s) of the chop track held (D15):** STA = marker k is written as a
++   p-lock on every held step, exactly what stock does when you hold those trigs and turn
++   the STA knob; the base STA is left alone, so step 3 below is skipped (see "The step
++   lock"). Otherwise:
++3. the chop track's STA is set to marker k with
+    `param_set_value(set, 43, marker << 8, T, record = 1, notify = 1)` on
+    `set = kit_track_param_set(project_kit(project_singleton()), T)` - the call a STA
+    knob turn ends in (dis:213877-213897 `braw 0x400a6316` with flags 1, 1), so under
+    live REC stock writes an ordinary STA p-lock on the chop track's current step;
+-3. the pad id in the UI message is rewritten to the chop track, and the message goes
++4. either way, the pad id in the UI message is rewritten to the chop track, and the message goes
+    on into stock. KeyboardView then plays (and live-records) the chop track exactly as
+    a hit on its own pad: no hand-built fire call, and no track switch away from it.
+ 
+@@ -60,7 +70,9 @@ A recorded chop is an ordinary STA p-lock and plays back on stock firmware.
+ 
+ Consequences to know (by design, from the STA lane):
+ - Like a STA knob turn, every pad hit in CHOP also changes the chop track's base STA
+-  and marks the kit edited (kit_param_changed). Leaving CHOP does not restore it.
++  and marks the kit edited (kit_param_changed). Leaving CHOP does not restore it. The one
++  exception is a pad hit that wrote held-step locks (D15a): like the stock STA knob on
++  held trigs, it leaves the base STA and the kit untouched.
+ - A repeated hit on the same marker still writes and still records (slot 0x24 is only a
+   range check, sta-14).
+ - **CHOP is for the normal pad mode (D14).** With chromatic, scale or any other pad mode
+@@ -111,20 +123,27 @@ and `0001-chop` never meet: layout reports `layout ok`, and `make chop` builds w
+ ## Placement
+ 
+ One claim, `cave` 0x402a1b30 + 0x4d0 (the pool 0008 and 0004 use), section `.text`;
+-the stub is 932 B (0x402a1b30..0x402a1ed3, `make chop` and `make chop-min` logs). Code,
+-the page list and descriptor, the strings and the 28 B of RAM state all fit there;
+-nothing goes in cave3 (whose `.tab` neighbour is unexplained, F15). The state sits at the
+-end, after every entry point (build.py refuses an odd entry); addresses from `m68k-elf-nm`
+-of the built `obj/0001-chop.elf`, the same in both CHOP images (stub bytes compared):
+-
+-| label | addr (built) | default |
++the stub is 1224 B (0x402a1b30..0x402a1ff7, `make chop` and `make chop-min` logs:
++"0001-chop: stub 0x402a1b30 (1224 B)"), so **8 bytes of the claim are left free**
++(0x402a1ff8..0x402a1fff, zero in the built image; stock UTF-16 data starts at
++0x402a2000, unchanged). Round 3 was 932 B; the step lock (D15) added 292 B. Code, the page
++list and descriptor, the strings and the 28 B of RAM state all fit there; nothing goes
++in cave3 (whose `.tab` neighbour is unexplained, F15), and no second claim was needed
++(D15c). The state sits at the end, after every entry point (build.py refuses an odd
++entry); addresses from `m68k-elf-nm` of the built `obj/0001-chop.elf`, the same in both
++CHOP images (nm of both ELFs compared, round 4):
++
++| label | addr (built, round 4) | default |
+ |---|---|---|
+-| `chop_on` | 0x402a1eb8 | 0 |
+-| `chop_track` | 0x402a1eb9 | 0 |
+-| `chop_pad` | 0x402a1eba | 0 |
+-| `chop_rsv` | 0x402a1ebb | 0 |
+-| `chop_marks[12]` | 0x402a1ebc | 0, 10, 20 ... 110 |
+-| `chop_route[12]` | 0x402a1ec8 | 0xFF x 12 (D8a: no note-on rewritten yet) |
++| `chop_on` | 0x402a1fdc | 0 |
++| `chop_track` | 0x402a1fdd | 0 |
++| `chop_pad` | 0x402a1fde | 0 |
++| `chop_rsv` | 0x402a1fdf | 0 |
++| `chop_marks[12]` | 0x402a1fe0 | 0, 10, 20 ... 110 |
++| `chop_route[12]` | 0x402a1fec | 0xFF x 12 (D8a: no note-on rewritten yet) |
++
++(Round 3 had them at 0x402a1eb8..0x402a1ed3; the step lock's code moved them up. Any
++round-3 address below that is labelled "round 3" refers to that build.)
+ 
+ Every field is a byte, so every store is one instruction. Nothing is written in the
+ embedded bootstrap [0x4028c708, 0x402a1b24): verify reports it unchanged, and a python
+@@ -239,7 +258,8 @@ message into a2 and switches on its first byte through the jump table at 0x400a1
+   `pad_on_gate` (D7 + D8a): k = msg+4; k > 11 unsigned (or -1): stock, no table
+   touched. k <= 11 and CHOP off: `chop_route[k] = 0xFF`, message untouched. k <= 11 and
+   CHOP on: `chop_route[k] = chop_track`, chop_pad = k,
+-  `chop_set_sta(chop_track, chop_marks[k])`, msg+4 := chop_track. Every path then runs
++  `chop_held_lock(chop_track, chop_marks[k])` and, unless it locked held steps (round 4,
++  "The step lock"), `chop_set_sta(chop_track, chop_marks[k])`; then msg+4 := chop_track. Every path then runs
+   the displaced `pea 0x80; moveq #126,%d3` and `jmp 0x400a1ee8`. It never jumps to
+   0x400a28ba (skeptic: that lands on an `addql #4,%sp` and corrupts the stack).
+ - Case 4, 0x400a1f26 (dis:207788-207801): `pea 0x80; jsr is_key_held` has no 6-byte
+@@ -293,8 +313,128 @@ point at it (base 0x4019a7ac+0x7c and SAMP 0x401b0a84+0x7c among them) and nothi
+ into its first 8 bytes past the entry. No stock page lists ids 3..5 (python read of all
+ eleven descriptors), so every other id goes down the stock path unchanged.
+ 
++### The step lock (D15-D15d, round 4)
++
++Stock 1.73 has a "hold trig + turn knob" path: page-view slot 0x7c (0x40038336) with no
++lock source runs `0x40036016(S, 1)`, then `getStepsHeldDown(S, fn, 0)` (0x4003683c) whose
++per-step invoker (0x40037c42) ends in `set->vt[0x40](set, id, value, step)` through slot
++0x74 (0x40037bdc), then `0x40036114(S)` (dis:73128-73152, 72377-72405). The UI loop runs
++the same skeleton on its own at 0x4009f2ee..0x4009f352 (dis:204400-204427). CHOP reuses
++that path, with a pad as the "knob" and marker k as the absolute value.
++
++`pad_on_gate`, CHOP on, k = 0..11: `chop_route[k] = chop_track`, `chop_pad = k`, then
++`chop_held_lock(T = chop_track, V = chop_marks[k])`. If it returns 1, `chop_set_sta` is
++skipped (D15a: the base STA and the kit are untouched and no live-REC lock is written on
++the playing step - exact stock held-knob semantics). If it returns 0, T and V are
++reloaded (from `chop_track`, and `chop_marks[chop_pad]`, which was just set to k; the
++helper clobbers d0/d1/a0/a1) and `chop_set_sta(T, V)` runs with record 1, as in round 3.
++Either way the `msg+4 := chop_track` rewrite and the stock continuation follow (D15b),
++and `chop_route` pairing is unchanged.
++
++`chop_held_lock(d0 = T, d1 = V)` returns 0, with no side effect, at the first guard that
++fails (every call before the last guard is a getter: they only read):
++
++| # | guard (D15) | code |
++|---|---|---|
++| 1 | S = UIStates | `jsr ui_states` (0x401573b6), kept in a2 |
++| 2 | no scene/perf locker | `hold_lock_source(S)` (0x40036512, S+440) == 0 |
++| 3 | a trig held | `hold_any_in_length(S)` (0x400366a2) != 0 |
++| 4 | T is a sound track | T <= 11 unsigned (0x400a39fa maps 12+ to the FX set at kit+4724, dis:209911; r4 skeptic F7: FxParameterSet's vt[0x40] is a different routine, 0x400a6d42) |
++| 5 | the selected track is T | `track_index_of(project_selection(project_singleton()))` (0x400b3a04(0x400ab6ce(...))) == T |
++| 6 | STA lockable (slot 0x6c) | `(*(long *)param_info(43)) & 0x100` == 0 (0x400f8718; slot 0x6c 0x40037728 is this test, dis:71991-71999) |
++
++Then, as stock: `set = kit_track_param_set(project_kit(project_singleton()), T)`; a
++16-byte functor on the helper's own stack frame, `{+0 V << 8, +4 set, +8 manager, +12
++chop_lock_step}`; `hold_set_edited(S, 1)` (S+352 = 1: the trig key's release then skips
++its pending toggle, dis:79485-79489); `hold_each_step(S, &fn, 0)`;
++`hold_clear_actions(S)` (clears the 64 pending release actions S+88..S+343); return 1.
++`chop_lock_step(fn*, step, bool* stop)` calls `set->vt[0x40](set, 43, V << 8, step)`
++(SoundParameterSet vtable 0x401aa6b4 + 0x40 = 0x400a6bd0 in the built image, read with
++python) and leaves `*stop` alone. The functor: `0x4003683c` returns at once if the word
++at fn+8 is 0 (0x40036888), calls fn+12 as `(fn*, step, &stop)` (0x400368c8-0x400368d2),
++stops when stop != 0 (0x400368d8), and never calls fn+8, copies or destroys fn (it calls
++0x401887cc only when fn+8 is 0, which it already returned on). Stock's own functor is a
++heap object freed by 0x40146854; CHOP's lives on the stack, holds its data inline, and
++is never freed - nothing is allocated. `chop_fn_mgr` (`moveq #0,%d0; rts`) is the
++non-null manager word; nothing calls it. The helper saves and restores d2/d3/a2 (frame:
++12 B of registers + the 16 B functor), so pad_on_gate's a2 (the message) and d2 (the
++NoteEvent buffer) survive.
++
++What the lock is and where it lands (the claims as the RE skeptics worded them):
++- **Same store as the stock knob:** `0x400a6bd0 -> 0x400bd5b4 -> 0x400a9984`, a dense RAM
++  table (track*2837 + step*44 + lockid words); an existing STA lock on a held step is
++  overwritten in place with V << 8. Any cap in the DataChangeInfo ->
++  `PatternParamLocks::updateMirror(patternParamLocksStorage_v0_t*)` storage mirror is
++  **UNKNOWN, and identical to stock's** (the knob path fires the same notify).
++- `0x400a6bd0` never reads its set argument: it writes the **selected** track
++  (project+48). Guard 5 is why the lock can only land on the chop track.
++- The held steps are the selected track's steps (the trig-key handler sets the mask from
++  view+116; `hold_each_step` with all = 0 visits held steps below
++  `pattern_length(current_track_pattern(project))`, as the stock knob path does).
++- No transport test anywhere on the route: it works stopped or playing, like the knob.
++- No value popup (stock's knob tail draws one, 0x40035ec4; the pad path does not).
++  Redraw comes from the hold object's notify (S+56 = 1, from 0x40036016 / 0x40036114) and
++  the lock store's DataChangeInfo; who consumes them is UNKNOWN.
++- Stock KeyboardView does consult the held trig on the pad hit that follows (0x400c3cac:
++  with a trig held it auditions with the first held step's lock row via 0x4024a504, and
++  while the sequencer runs - INFERRED - it skips the 0x40117348 block and the record
++  tail). The lock is written **before** the rewritten message reaches stock, so the
++  audition probably already plays the new STA lock (INFERRED; H6). The meanings of
++  0x40083b16 and 0x40117348 are UNKNOWN.
++- A held trig on another track than the chop track (e.g. CHOP latched on track B while
++  track A is selected): guard 5 fails, so no lock is written and the hit takes the
++  round-3 path (base STA of the chop track, record 1).
++
++New stock symbols (re/symbols.toml, with receipts): `ui_states` 0x401573b6,
++`hold_lock_source` 0x40036512, `hold_any_in_length` 0x400366a2, `hold_set_edited`
++0x40036016, `hold_each_step` 0x4003683c, `hold_clear_actions` 0x40036114,
++`project_selection` 0x400ab6ce. `param_info` (0x400f8718) already existed. No new detour
++or patch: the existing pad_on_gate detour carries it, so the registry is unchanged.
++
++#### Round-4 proof on the built image (host, read-only objdump / python)
++
++Files in `corp/r4-builder/` (copies of the guest's outputs): `baseline-head/` (HEAD
++4bde508's `make chop` image, rebuilt in the guest: identical to the pre-existing one) and
++`v2/` (this build); disassemblies `v2/HEAD_pad_on_gate_chop_set_sta.dis`,
++`v2/NEW_pad_on_gate_through_chop_fn_mgr.dis`, `v2/cave_code.dis`.
++
++- **CHOP off, and k > 11:** the instructions from pad_on_gate's entry to its `bras` to
++  the re-emit, and the re-emit `pea 0x80; moveq #126,%d3; jmp 0x400a1ee8`, are the same
++  as HEAD's, instruction for instruction once branch targets and pc-relative operands are
++  named (python over both disassemblies: equal). Only displacements differ.
++- **CHOP on, no trig held:** the helper returns 0 at guard 2 or 3 after three getters
++  (`ui_states`, `hold_lock_source`, `hold_any_in_length`; KeyboardView's own play
++  routine calls the last one on every pad hit, 0x400c3cac). Then the same
++  `chop_set_sta(T, V)` with the same T and V as HEAD (chop_pad = k was stored before the
++  call and the helper writes no CHOP state), whose 26 instructions are byte-identical to
++  HEAD's, then the same rewrite and re-emit. Same side-effecting call sequence as HEAD:
++  project_singleton, project_kit, kit_track_param_set, param_set_value(set, 43, V << 8,
++  T, 1, 1).
++- **chop_held_lock (0x402a1e02..0x402a1ee3):** every guard-fail branch (`bnew/beqw/bhiw
++  0x402a1ed8`) is taken with the stack at the frame base (each call's arguments popped
++  before the test); the success path pushes and pops 4, 4, 4, 4, 8, 8 and 12 bytes;
++  both exits restore d2/d3/a2 with `moveml %sp@` and pop the 28-byte frame. The functor
++  stores land at sp+12..sp+27, inside the frame; `&fn` is taken with `lea %sp@(12),%a0`
++  before any argument is pushed. `chop_lock_step` pushes 16 and pops 16 and touches only
++  a0/a1 (plus what the stock callee clobbers).
++- **Branches:** every branch in the stub resolves to an instruction start in the stub
++  (python over `cave_code.dis`: 0 bad). The far guards are `.w` (+102..+180); every
++  `.s` in the changed code (0x402a1ce6..0x402a1f09) is within +92.
++- **Unchanged callees:** each stock routine on the route (ui_states, hold_*,
++  project_selection, track_index_of, param_info, project_kit, kit_track_param_set,
++  0x400a6bd0, project_singleton, 0x40034464, 0x4013730c, 0x4013735c) is byte-identical to
++  stock in the built image (python).
++- **New vs HEAD image:** 89 differing regions, 77 inside the cave; the 12 outside are the
++  relocated jmp targets of the lock_gate and pad_off_gate detours, the chop_pages
++  pointer, and the nine string pointers in PARAM_ROM records 3..5.
++
+ ## Disassembly check of the built image
+ 
++(Round 3. In the round-4 build the stub labels moved: pad_on_gate 0x402a1ce6 (same),
++pad_off_gate 0x402a1d58, lock_gate 0x402a1d8c, chop_set_sta 0x402a1daa, chop_held_lock
++0x402a1e02, chop_lock_step 0x402a1ee4, chop_fn_mgr 0x402a1f06, chop_pages 0x402a1f82,
++strings 0x402a1fae..0x402a1fdb; the other five gates kept their addresses.)
++
+ `m68k-elf-objdump -D -b binary -m m68k:cfv4e --adjust-vma=0x40000400` on
+ `build/mainos_0000_0001_0002_0003.bin` (host, read-only):
+ 
+@@ -378,9 +518,20 @@ registry claims of the mods in that build only:
+ - `make control`: 0 regions.
+ - All three: 0 differing bytes in [0x4028c708, 0x402a1b24).
+ 
++Round 4 (`corp/r4-builder/regions.py` on the copies in `corp/r4-builder/v2/`, output
++`v2/regions.out`; same method):
++- `make chop`: 314 regions, 2733 bytes, 0 uncovered; CHOP's cave bytes differ from stock
++  from 0x402a1b30 to 0x402a1ff7 (the claim ends at 0x402a2000).
++- `make chop-min`: 168 regions, 1355 bytes, 0 uncovered.
++- `make control`: 0 regions.
++- All three: 0 differing bytes in [0x4028c708, 0x402a1b24); verify.py also reports
++  "embedded bootstrap image unchanged" and "null repack" ok.
++
+ ## Hardware-only unknowns (the founder's test card)
+ 
+-Nothing below can be proven offline. Nothing from this pipeline has run on an MK1 yet.
++Nothing below can be proven offline. The round-3 build is reported working on the
++founder's MK1 (page, pads, live-REC locks; corp round-4 brief); the round-4 step lock
++(H6) has not run on hardware.
+ 
+ ### Before you flash
+ 
+@@ -405,7 +556,7 @@ byte compare: 0 differing bytes).
+    This proves the packer and file format on this unit, so a later problem is a mod.
+ 2. **Then CHOP:** `build/AR1_OS1.73_0000_0001_0002_0003.syx` (`make chop`: CHOP with
+    0000 shared, 0002 euclid accents and 0003 velocity humanise). Check it boots and plays,
+-   then run H1-H5 below.
++   then run H1-H6 below (H6 is the round-4 step lock).
+ 3. Only if the CHOP build misbehaves: `build/AR1_OS1.73_0000_0001.syx` (`make chop-min`,
+    CHOP and 0000 only) to bisect. Fails the same way = CHOP (or 0000); works = 0002/0003
+    next to CHOP.
+@@ -436,12 +587,13 @@ shared_rnd / shared_func_held / shared_fmt_u8.
+ - Nothing CHOP does is saved: power-cycling ends CHOP and resets the markers. STA p-locks
+   recorded with CHOP are ordinary p-locks and stay in the pattern (stock plays them).
+ 
+-Files verified on 2026-10-05 after the round-3 change (guest VM, `make chop`,
++Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`,
+ `make chop-min`, `make control`, all PASS), sha256:
+ `AR1_OS1.73_control.syx` 3407638c3f450daba0faedbddc0d4f08b154925a3ba162172346f51ef9ed6a8d,
+-`AR1_OS1.73_0000_0001_0002_0003.syx` 3ea80d31dba5a6ea3c937d6feb68026907759a68c7557e31373f4d7bd1a2b00b,
+-`AR1_OS1.73_0000_0001.syx` 3c77f43b566fab6c6b178bae3e515d468fb298d560da083c5f71686e31b31066.
+-(The round-2 files 5614a93e… and e19703af… are superseded: they do not pair note-offs.)
++`AR1_OS1.73_0000_0001_0002_0003.syx` a96657b49e70b42fc20b9d744a0f10ceceb0f065c0aac7201be88866ac15caf6,
++`AR1_OS1.73_0000_0001.syx` 86c543c94eeea3820f1d7e9184c14d1a13483ddc80bab809ff2a2dc2b95c988a.
++(The round-3 CHOP files 3ea80d31… and 3c77f43b… have no step lock; the round-2 files
++5614a93e… and e19703af… do not pair note-offs. Control is unchanged.)
+ 
+ ### The unknowns (test in the normal pad mode, D14)
+ 
+@@ -485,6 +637,34 @@ Files verified on 2026-10-05 after the round-3 change (guest VM, `make chop`,
+ - **H5** Recovery: a same-version reinstall of stock 1.73 over a CHOP build (normal
+   route), and if that is refused, the DIN recovery route above (untested by the
+   upstream author too).
++- **H6 Step lock (round 4, D15).** CHOP ON for track T, track T selected, normal pad
++  mode. Note the chop track's base STA (SAMP page) before you start. Each row: once with
++  the sequencer **stopped**, once **playing**.
++  (a) Hold one trig key of T (an existing trig) and hit pad k: that step gets an STA
++  p-lock = marker k (check on the SAMP page while holding the trig); the pad preview
++  plays (from marker k, or from the step's old lock row - note which); release the trig
++  key: **the trig is still there** (not toggled off).
++  (b) Hold several trig keys at once (existing trigs) and hit pad k: each held step gets
++  STA = marker k; no other step gets a lock; all trigs still there after release.
++  (c) Hold a trig key on an **empty** step and hit pad k: note whether a trig appears
++  (stock's press adds one at once) and that the lock is on it; nothing toggles on release.
++  (d) Hold a trig, hit pad k, then pad j (still holding): the step's lock ends at marker j.
++  (e) **Base STA unchanged:** after any of (a)-(d), with no trig held, the SAMP page's
++  STA shows the value you noted (the held-step hits did not move it). Then a plain pad
++  hit (no trig held) moves it to that marker, as in round 3.
++  (f) **Another track:** CHOP ON for track T, then select track U (U != T), hold a trig
++  of U and hit a pad: **no lock on U or T** at that step (the hit is the round-3 path:
++  T's base STA = marker, preview of T). Look also for a stock track switch to T (the
++  rewritten pad can schedule one) and, if it happens while the trig key is still held,
++  whether the next pad writes locks into T's steps at the held positions (r4 skeptic R1;
++  stock's knob path does the same after a switch).
++  (g) Live REC on, playing, a trig held + pad: the held step gets the lock; note whether
++  anything is also recorded on the playing step (CHOP itself writes nothing there in
++  this case; stock suppresses its record while a trig is held - INFERRED).
++  (h) Scene or performance lock editing active (a scene/perf pad held) + pad: no lock
++  written (guard 2); the hit is the round-3 path.
++  (i) No crash, no hung voice across all rows; repeat (a) fast 20 times.
++  Stop at the first deviation; the round-3 file (no step lock) is the fallback.
+ 
+ Also unknown, low priority: whether external MIDI CC reaches ids 3..5 through PARAM_ROM
+ +0x18 (their stock values read as CC 6/38, 7, 10; lead F14) - with container index 0 a
+diff --git a/mods/0001-chop/mod.toml b/mods/0001-chop/mod.toml
+index 11c99a7..4754aeb 100644
+--- a/mods/0001-chop/mod.toml
++++ b/mods/0001-chop/mod.toml
+@@ -29,11 +29,15 @@ While CHOP is on, pad k sets the chop track's STA to marker k through the same
+ call a STA knob turn ends in - so under live REC stock records a normal trig with
+ a normal STA p-lock - and then plays the chop track as a normal pad hit would.
+ Pads do not switch track in CHOP. Hold a pad and turn STA to move its marker.
++Hold trig key(s) of the chop track and hit pad k: each held step gets an STA p-lock
++= marker k, as holding those trigs and turning STA would (stock's own held-trig
++path); the base STA is then left alone.
+ 
+ The markers live in RAM only: a power cycle resets them and ends CHOP. Nothing new
+ is saved anywhere; recorded chops are ordinary STA p-locks and play back on stock
+ firmware. Like a STA knob turn, every pad hit also changes the chop track's base
+-STA (the kit is edited). Never run on hardware: see design.md for the test card.
++STA (the kit is edited), except a hit that locked held steps. The step lock has
++never run on hardware: see design.md for the test card (H6).
+ """
+ 
+ [sources]
+@@ -66,4 +70,12 @@ symbols = [
+   "ev_bit4",
+   "weak_ptr_expired",
+   "lock_delta_body",
++  "ui_states",
++  "hold_lock_source",
++  "hold_any_in_length",
++  "hold_set_edited",
++  "hold_each_step",
++  "hold_clear_actions",
++  "project_selection",
++  "param_info",
+ ]
+diff --git a/mods/0001-chop/stub.s b/mods/0001-chop/stub.s
+index 0a5d70a..2ed52f4 100644
+--- a/mods/0001-chop/stub.s
++++ b/mods/0001-chop/stub.s
+@@ -17,6 +17,9 @@
+         | in the UI message is rewritten to the chop track, so stock plays (and
+         | records) the chop track exactly as if its own pad had been hit. Pads never
+         | switch the selected track away from it, and no fire call is hand-built.
++        | With trig key(s) of the chop track held (D15), the STA call is replaced
++        | by what stock's hold-trig + turn-STA does: an STA p-lock = marker k on
++        | every held step (chop_held_lock); the base STA is then left alone.
+         | Note-offs follow their note-ons (D8a): the note-on records where pad k
+         | went in chop_route[k] (the chop track, or 0xFF when it was not
+         | rewritten), and the note-off of pad k is rewritten to chop_route[k] when
+@@ -264,7 +267,15 @@ sample_key_gate:
+         | k > 11 unsigned (or -1): stock, no table touched. k <= 11 with CHOP
+         | off: chop_route[k] = 0xFF (this note-on was not rewritten), message
+         | untouched. k <= 11 with CHOP on: chop_route[k] = chop_track, then the
+-        | marker, the STA call and the rewrite.
++        | marker, the held-step lock or the STA call, and the rewrite.
++        |
++        | Step lock (D15-D15b): chop_held_lock(T, V) first. It returns 1 only
++        | when it wrote STA = V as a p-lock on every held step of the chop
++        | track (the stock held-trig knob path); then chop_set_sta is SKIPPED,
++        | so the base STA is untouched and no live-REC lock lands on the
++        | playing step. It returns 0 (nothing done) otherwise, and the hit goes
++        | on exactly as before: chop_set_sta(T, V), record 1. Either way the
++        | rewrite and the stock continuation follow.
+         | ------------------------------------------------------------------
+         .align  2
+ pad_on_gate:
+@@ -288,8 +299,18 @@ pad_on_gate:
+         move.b  0(%a0,%d0.l),%d1                  | V = marker k
+         moveq   #0,%d0
+         move.b  chop_track,%d0                    | T
+-        bsr.w   chop_set_sta
++        bsr.w   chop_held_lock                    | d0 = 1: held steps locked
++        tst.l   %d0
++        bne.s   2f                                | D15a: locked, no chop_set_sta
++        moveq   #0,%d0                            | reload: the helper clobbers
++        move.b  chop_pad,%d0                      | d0/d1/a0/a1
++        lea     chop_marks,%a0
++        moveq   #0,%d1
++        move.b  0(%a0,%d0.l),%d1                  | V = marker k (k = chop_pad)
+         moveq   #0,%d0
++        move.b  chop_track,%d0                    | T
++        bsr.w   chop_set_sta
++2:      moveq   #0,%d0
+         move.b  chop_track,%d0
+         move.l  %d0,4(%a2)                        | the hit now names the chop track
+ 8:      pea     0x80                              | displaced
+@@ -381,6 +402,126 @@ chop_set_sta:
+         lea     8(%sp),%sp
+ 9:      rts
+ 
++        | ------------------------------------------------------------------
++        | chop_held_lock(d0 = T, d1 = V 0..120) -> d0 = 1 locked / 0 nothing.
++        |
++        | The stock held-trig knob path (page-view slot 0x7c 0x40038482..e8,
++        | and the UI loop's own copy at 0x4009f2ee..0x4009f352), for STA = V on
++        | track T, with no view. Returns 0 at the first guard that fails, with
++        | no side effect (every call before the last guard only reads):
++        |   S = ui_states()                          (UIStates, view+108)
++        |   hold_lock_source(S) == 0                 (no scene/perf locker)
++        |   hold_any_in_length(S) != 0               (a trig held, < length)
++        |   T <= 11                                  (12+ is the FX set)
++        |   track_index_of(project_selection(project)) == T
++        |                                            (the lock store writes
++        |                                             the SELECTED track)
++        |   (*param_info(43) & 0x100) == 0           (slot 0x6c: lockable)
++        | Then, as stock: hold_set_edited(S, 1) (the release will not toggle
++        | the trig); hold_each_step(S, &fn, 0) with a 16-byte stack functor
++        | {+0 V<<8, +4 set, +8 manager (non-null; never called), +12
++        | chop_lock_step}, set = kit_track_param_set(project_kit(project), T);
++        | hold_clear_actions(S); return 1. Stock's own functor is heap-backed
++        | and destroyed by 0x40146854; this one holds its data inline, the
++        | iterator never copies, destroys or calls the manager (0x40036888,
++        | 0x400368bc..0x400368dc), so nothing is allocated or freed.
++        | UI task only. Clobbers d0/d1/a0/a1; keeps d2-d7/a2-a6.
++        | ------------------------------------------------------------------
++        .align  2
++chop_held_lock:
++        lea     -28(%sp),%sp                      | 12 saved + 16 functor at 12(%sp)
++        movem.l %d2-%d3/%a2,(%sp)
++        move.l  %d0,%d2                           | T
++        move.l  %d1,%d3                           | V
++        jsr     ui_states
++        move.l  %d0,%a2                           | S
++        move.l  %a2,-(%sp)
++        jsr     hold_lock_source
++        addq.l  #4,%sp
++        tst.l   %d0
++        bne.w   8f                                | a scene/perf locker owns the knobs
++        move.l  %a2,-(%sp)
++        jsr     hold_any_in_length
++        addq.l  #4,%sp
++        tst.b   %d0
++        beq.w   8f                                | no trig held
++        moveq   #PADS-1,%d0
++        cmp.l   %d0,%d2
++        bhi.w   8f                                | T > 11 unsigned
++        jsr     project_singleton
++        move.l  %d0,-(%sp)
++        jsr     project_selection                 | project + 48
++        move.l  %d0,(%sp)
++        jsr     track_index_of                    | the selected track
++        addq.l  #4,%sp
++        cmp.l   %d2,%d0
++        bne.w   8f                                | not the chop track
++        pea     PARAM_ID_STA
++        jsr     param_info                        | STA's RAM record
++        addq.l  #4,%sp
++        move.l  %d0,%a0
++        move.l  (%a0),%d0
++        btst    #8,%d0
++        bne.w   8f                                | 0x100: STA cannot be locked now
++        jsr     project_singleton
++        move.l  %d0,-(%sp)
++        jsr     project_kit
++        move.l  %d2,(%sp)                         | T
++        move.l  %d0,-(%sp)                        | kit
++        jsr     kit_track_param_set               | track T's SoundParameterSet
++        addq.l  #8,%sp
++        lsl.l   #8,%d3
++        move.l  %d3,12(%sp)                       | fn+0  V << 8 (8.8, as the knob)
++        move.l  %d0,16(%sp)                       | fn+4  set
++        lea     chop_fn_mgr,%a0
++        move.l  %a0,20(%sp)                       | fn+8  manager: non-null
++        lea     chop_lock_step,%a0
++        move.l  %a0,24(%sp)                       | fn+12 invoker
++        pea     1
++        move.l  %a2,-(%sp)
++        jsr     hold_set_edited                   | S+352 = 1, as stock 0x4003848a
++        addq.l  #8,%sp
++        lea     12(%sp),%a0                       | &fn, taken before any push
++        clr.l   -(%sp)                            | 0: held steps below the length
++        move.l  %a0,-(%sp)                        | &fn
++        move.l  %a2,-(%sp)
++        jsr     hold_each_step                    | chop_lock_step per held step
++        lea     12(%sp),%sp
++        move.l  %a2,-(%sp)
++        jsr     hold_clear_actions                | as stock 0x400384e2
++        addq.l  #4,%sp
++        moveq   #1,%d0
++        bra.s   9f
++8:      moveq   #0,%d0
++9:      movem.l (%sp),%d2-%d3/%a2
++        lea     28(%sp),%sp
++        rts
++
++        | chop_lock_step(fn*, step, bool* stop): set->vt[0x40](set, 43, V<<8,
++        | step) = 0x400a6bd0, the writer stock's slot 0x74 tail-jumps to. *stop
++        | is left 0 (the iterator clears it once), so every held step is
++        | visited. Clobbers d0/d1/a0/a1 only.
++        .align  2
++chop_lock_step:
++        move.l  4(%sp),%a0                        | fn
++        move.l  8(%sp),-(%sp)                     | step
++        move.l  (%a0),-(%sp)                      | V << 8
++        pea     PARAM_ID_STA                      | 43
++        move.l  4(%a0),%a1
++        move.l  %a1,-(%sp)                        | set
++        move.l  (%a1),%a0
++        move.l  0x40(%a0),%a0                     | SoundParameterSet vt[0x40]
++        jsr     (%a0)
++        lea     16(%sp),%sp
++        rts
++
++        | The functor's manager word. 0x4003683c only tests it for non-null;
++        | nothing calls it (no copy, no destroy). Harmless if ever called.
++        .align  2
++chop_fn_mgr:
++        moveq   #0,%d0
++        rts
++
+         | ------------------------------------------------------------------
+         | chop_value(d0 = 0 PAD, 1 STA, 2 CHP) -> d0 = what the knob shows.
+         | Clobbers d0/d1/a0.
+diff --git a/re/ghidra/scripts/ApplySymbols.java b/re/ghidra/scripts/ApplySymbols.java
+index 4f20c1d..ab53a46 100644
+--- a/re/ghidra/scripts/ApplySymbols.java
++++ b/re/ghidra/scripts/ApplySymbols.java
+@@ -25,6 +25,11 @@ public class ApplySymbols extends GhidraScript {
+         name(0x40008ca8L, "pattern_track_save", true);
+         name(0x40008e48L, "pattern_track_save_euclid_resume", false);
+         name(0x40033438L, "kit_param_changed", true);
++        name(0x40036016L, "hold_set_edited", true);
++        name(0x40036114L, "hold_clear_actions", true);
++        name(0x40036512L, "hold_lock_source", true);
++        name(0x400366a2L, "hold_any_in_length", true);
++        name(0x4003683cL, "hold_each_step", true);
+         name(0x400376d4L, "param_apply_delta", true);
+         name(0x400376dcL, "param_apply_delta_resume", false);
+         name(0x400376e4L, "param_apply_delta_body", false);
+@@ -68,6 +73,7 @@ public class ApplySymbols extends GhidraScript {
+         name(0x400a631eL, "param_set_value_body", false);
+         name(0x400a6fc0L, "setbyid_boolop_jsr", false);
+         name(0x400a752aL, "dest_list_build", true);
++        name(0x400ab6ceL, "project_selection", true);
+         name(0x400ab706L, "project_kit", true);
+         name(0x400ac2e8L, "current_track_pattern", true);
+         name(0x400b3a04L, "track_index_of", true);
+@@ -106,6 +112,7 @@ public class ApplySymbols extends GhidraScript {
+         name(0x4011cbe2L, "boolop_iconset_jsr", false);
+         name(0x4013d9d8L, "param_text_format", true);
+         name(0x401556ccL, "project_singleton", true);
++        name(0x401573b6L, "ui_states", true);
+         name(0x401737a2L, "sound_get", true);
+         name(0x40178ed8L, "weak_ptr_expired", true);
+         name(0x40186632L, "bitmap_set_make", true);
+@@ -123,6 +130,6 @@ public class ApplySymbols extends GhidraScript {
+         name(0x416c70c0L, "project_instance", false);
+         name(0x800062c0L, "PARAMS_EFF", false);
+         name(0x8000a9e8L, "TRIG_FLAGS", false);
+-        println("applied 106 symbols");
++        println("applied 113 symbols");
+     }
+ }
+diff --git a/re/symbols.toml b/re/symbols.toml
+index 2250266..0bd9c66 100644
+--- a/re/symbols.toml
++++ b/re/symbols.toml
+@@ -686,3 +686,42 @@ evidence = "Page-view vtable slot 0x7c (base 0x4019a7ac+0x7c and SAMP 0x401b0a84
+ addr = 0x4003833e
+ status = "verified"
+ evidence = "dis:73008 'moveal %sp@(52),%a3', right after view_lock_delta's 'lea %sp@(-48),%sp / moveml %d2-%d7/%a2-%a3,%sp@' (4fef ffd0 48d7 0cfc)."
++
++# ---- 0001-chop round 4 (D15, step lock): the held-trig ("UIStates") routines the
++# stock knob path uses. RE: corp r4-re (r4-heldlock HL1-HL13, r4-padheld F1-F10 and
++# their skeptics), re-read in the dis by the r4 builder.
++
++[fn.ui_states]
++addr = 0x401573b6
++status = "verified"
++evidence = "StaticSingleton<UIStates> getter: dis:435459-435498 'tstl 0x416c70f0 / bnes / pea 0x1d0 ... movel %d0,0x416c70f0 ... movel 0x416c70f0,%d0' (creates on first use, else returns it). Every page view stores it at +108 (base ctor dis:74620-74621 'jsr 0x401573b6 / movel %d0,%a2@(108)'), KeyboardView at +140 (dis:254642-254643). Sp_counted vtable 0x4019a480 -> typeinfo 'St15_Sp_counted_ptrIP8UIStates...' (python, r4-padheld F2)."
++
++[fn.hold_lock_source]
++addr = 0x40036512
++status = "verified"
++evidence = "(S) -> S+440: dis:70579-70581 'moveal %sp@(4),%a0 / movel %a0@(440),%d0 / rts'. Non-null = a scene/performance locker owns the knobs (setter 0x400364f2, 2 callers dis:263799, 266132); the encoder handler sends the knob to slot 0x7c when it is non-null (dis:75274-75281) and slot 0x7c then skips the held steps (dis:73019-73024)."
++
++[fn.hold_any_in_length]
++addr = 0x400366a2
++status = "verified"
++evidence = "(S) -> byte != 0 when the held-step mask S+344 (hi) : S+348 (lo) has a bit below pattern_length(current_track_pattern(project)): dis:70695-70717 'jsr 0x401556cc / jsr 0x400ac2e8 / jsr 0x400bd54c / ... jsr 0x4013735c / subql #1,%d1 / subxl %d2,%d0 / andl %a2@(344),%d0 / andl %a2@(348),%d1 / orl %d1,%d0 / sne %d0'. Read only. The encoder's held-trig gate (dis:75278)."
++
++[fn.hold_set_edited]
++addr = 0x40036016
++status = "verified"
++evidence = "(S, b): b != 0 -> S+352 = b, then the notify 0x40034464 (S+56 = 1): dis:70177-70199 'tstb %d2 / bnes 0x40036052 ... 40036052 moveb %d2,%a2@(352) ... jmp 0x40034464'. A trig key's release skips its pending toggle when S+352 != 0 (dis:79485-79489 'jsr 0x4003600c / tstb / bnes 0x4003d61a'). Stock calls it with 1 before every held-step edit (dis:73128-73130, 204400-204404)."
++
++[fn.hold_each_step]
++addr = 0x4003683c
++status = "verified"
++evidence = "getStepsHeldDown(S, fn*, all): dis:70826-70880. all = 0: len = pattern_length(current_track_pattern(project)), returns unless 0x400366a2(S); returns if fn+8 == 0 ('tstl %a2@(8) / beqs'); clears one stop byte (sp+35, 'clrb %fp@-') once; for step 0..len-1 with the step's bit set (0x4013730c(+344, +348, step), bit 0 of d1) calls fn+12 as (fn*, step, &stop) ('movel %fp,%sp@- / movel %d4,%sp@- / movel %a2,%sp@- / moveal %a2@(12),%a0 / jsr %a0@ / lea %sp@(12),%sp') and stops when stop != 0. Never calls fn+8 (0x401887cc only when fn+8 == 0, unreachable after the first test), never copies or frees fn. Saves d2-d5/a2-a4/fp."
++
++[fn.hold_clear_actions]
++addr = 0x40036114
++status = "verified"
++evidence = "(S): clears the 64 pending per-step release actions S+88..S+343, then the notify: dis:70259-70269 'addil #344,%d1 / lea %a0@(88),%a0 / ... clrl %a0@+ ... jmp 0x40034464'. Stock calls it after every held-step edit (dis:73151-73152 0x400384e2, dis:204426-204427 0x4009f34c)."
++
++[fn.project_selection]
++addr = 0x400ab6ce
++status = "verified"
++evidence = "(project) -> project + 48, the track selection track_index_of reads: dis:220401-220403 'movel %sp@(4),%d0 / addil #48,%d0 / rts'. SoundParameterSet::setLock 0x400a6bd0 writes the lock into track_index_of(0x400ab6ce(project)) (dis:214119-214124), not the set's own track."
+-- 
+2.47.1
+
+
+From c7780f9b5a13fe433e6c11425f088adf338f0d64 Mon Sep 17 00:00:00 2001
+From: jaytriana <83611075+jaytriana@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 22:15:57 -0400
+Subject: [PATCH 6/7] 0001 CHOP: round-4 panel corrections to design.md and the
+ registry cave note (text only)
+
+- design.md: the success-path stack tally of chop_held_lock now includes the
+  hold_clear_actions push/pop (4, 4, 4, 4, 8, 8, 12 and 4 bytes, re-counted on
+  the built image).
+- design.md: KeyboardView calls hold_any_in_length on the pad hits it plays, not
+  on every hit (r4 skeptic F10: key 0x45 + 0x4003624c, note-off, pad above 12);
+  the encoder handler and the UI loop's held-trig routine call it too.
+- Test card H6(f): with CHP ON the pads cannot select another track, so guard 5
+  is defensive; run (f) only with a non-pad way to change the selected track,
+  else record it as not reachable. The proof text says the same. H4(b) now turns
+  CHP OFF before selecting track B.
+- H6(h): do not run (scene/perf pad modes are out of scope under D14; guard 2 is
+  defensive).
+- H6(a): the preview has three possible sources (marker k, the step's previous
+  lock, the base STA); the base-STA result means the D15a skip costs the
+  audition, and the record = 0 alternative is the founder's call.
+- registry/allocations.toml: the 0001-chop cave note lists chop_held_lock,
+  chop_lock_step and chop_fn_mgr (r4 skeptic P5).
+
+make chop, chop-min and control rebuilt in the guest: PASS, and every .bin,
+.syx and manifest compares equal to the round-4 build.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ mods/0001-chop/design.md  | 69 +++++++++++++++++++++++++++------------
+ registry/allocations.toml |  2 +-
+ 2 files changed, 50 insertions(+), 21 deletions(-)
+
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+index d2e45a6..fb33755 100644
+--- a/mods/0001-chop/design.md
++++ b/mods/0001-chop/design.md
+@@ -381,9 +381,13 @@ What the lock is and where it lands (the claims as the RE skeptics worded them):
+   tail). The lock is written **before** the rewritten message reaches stock, so the
+   audition probably already plays the new STA lock (INFERRED; H6). The meanings of
+   0x40083b16 and 0x40117348 are UNKNOWN.
+-- A held trig on another track than the chop track (e.g. CHOP latched on track B while
++- A held trig on another track than the chop track (CHOP latched on track B while
+   track A is selected): guard 5 fails, so no lock is written and the hit takes the
+-  round-3 path (base STA of the chop track, record 1).
++  round-3 path (base STA of the chop track, record 1). The pads cannot set this up:
++  with CHP ON every pad press, TRK + pad included, goes to B, and turning CHP right
++  again re-latches the chop track to whatever is selected (delta_gate). It needs a way
++  to change the selected track that is not a pad press; whether one exists is UNKNOWN
++  (H6 (f)). Guard 5 is defensive in normal use.
+ 
+ New stock symbols (re/symbols.toml, with receipts): `ui_states` 0x401573b6,
+ `hold_lock_source` 0x40036512, `hold_any_in_length` 0x400366a2, `hold_set_edited`
+@@ -396,15 +400,24 @@ or patch: the existing pad_on_gate detour carries it, so the registry is unchang
+ Files in `corp/r4-builder/` (copies of the guest's outputs): `baseline-head/` (HEAD
+ 4bde508's `make chop` image, rebuilt in the guest: identical to the pre-existing one) and
+ `v2/` (this build); disassemblies `v2/HEAD_pad_on_gate_chop_set_sta.dis`,
+-`v2/NEW_pad_on_gate_through_chop_fn_mgr.dis`, `v2/cave_code.dis`.
++`v2/NEW_pad_on_gate_through_chop_fn_mgr.dis`, `v2/cave_code.dis`. The r4 integrator's
++corrections (`corp/r4-integrator/`) are text only, in this file and in the registry's
++cave note: `make chop`, `make chop-min` and `make control` were rebuilt in the guest
++(PASS), and every output (.bin, .syx, manifest) compares equal to the round-4 build.
+ 
+ - **CHOP off, and k > 11:** the instructions from pad_on_gate's entry to its `bras` to
+   the re-emit, and the re-emit `pea 0x80; moveq #126,%d3; jmp 0x400a1ee8`, are the same
+   as HEAD's, instruction for instruction once branch targets and pc-relative operands are
+   named (python over both disassemblies: equal). Only displacements differ.
+ - **CHOP on, no trig held:** the helper returns 0 at guard 2 or 3 after three getters
+-  (`ui_states`, `hold_lock_source`, `hold_any_in_length`; KeyboardView's own play
+-  routine calls the last one on every pad hit, 0x400c3cac). Then the same
++  (`ui_states`, `hold_lock_source`, `hold_any_in_length`). Stock calls the last one in
++  the UI task as well: KeyboardView's play routine 0x400c3c80 calls it (0x400c3cac) on
++  the pad hits it plays. Not on every hit: consumeNoteEvent (0x400c4628) skips the play
++  call 0x400c4784 on a note-off (0x400c4732), for a pad above 12 (0x400c473a) and when
++  key 0x45 is held and 0x4003624c(S) is true (0x400c46e0-0x400c46f0; r4 skeptic F10),
++  among other early exits, and 0x400c3c80 itself skips it for a pad above 12
++  (0x400c3ca2-0x400c3ca4). The encoder handler (0x40039f5e) and the routine the UI loop
++  calls at 0x400a22da (0x4009f046: 0x4009f0bc, 0x4009f162) call it too. Then the same
+   `chop_set_sta(T, V)` with the same T and V as HEAD (chop_pad = k was stored before the
+   call and the helper writes no CHOP state), whose 26 instructions are byte-identical to
+   HEAD's, then the same rewrite and re-emit. Same side-effecting call sequence as HEAD:
+@@ -412,9 +425,10 @@ Files in `corp/r4-builder/` (copies of the guest's outputs): `baseline-head/` (H
+   T, 1, 1).
+ - **chop_held_lock (0x402a1e02..0x402a1ee3):** every guard-fail branch (`bnew/beqw/bhiw
+   0x402a1ed8`) is taken with the stack at the frame base (each call's arguments popped
+-  before the test); the success path pushes and pops 4, 4, 4, 4, 8, 8 and 12 bytes;
+-  both exits restore d2/d3/a2 with `moveml %sp@` and pop the 28-byte frame. The functor
+-  stores land at sp+12..sp+27, inside the frame; `&fn` is taken with `lea %sp@(12),%a0`
++  before the test); the success path pushes and pops 4, 4, 4, 4, 8, 8, 12 and 4 bytes
++  (the last is hold_clear_actions, 0x402a1eca-0x402a1ed2; re-counted by the r4
++  integrator); both exits restore d2/d3/a2 with `moveml %sp@` and pop the 28-byte
++  frame. The functor stores land at sp+12..sp+27, inside the frame; `&fn` is taken with `lea %sp@(12),%a0`
+   before any argument is pushed. `chop_lock_step` pushes 16 and pops 16 and touches only
+   a0/a1 (plus what the stock callee clobbers).
+ - **Branches:** every branch in the stub resolves to an instruction start in the stub
+@@ -623,8 +637,8 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
+   (b) note-off pairing (D8a): hold a pad with CHOP on, turn CHP OFF, let go - the chop
+   track must not hang, and the pad's own track must get no stray note; then hold a pad
+   with CHOP off, turn CHP ON, let go - the pad's own track behaves as stock; then hold
+-  a pad with CHOP on for track A, select track B and turn CHP ON again, let go - track A
+-  must not hang;
++  a pad with CHOP on for track A, turn CHP OFF, select track B (TRK + pad: with CHP ON the
++  pads cannot select another track), turn CHP ON again, let go - track A must not hang;
+   (c) the chop track's own pad, hit and held in CHOP: plays and releases as stock;
+   (d) with the FX track selected, turning CHP right must leave it OFF (no latch);
+   (e) CHOP left ON while you leave the CHOP page and play pads elsewhere: the chop track
+@@ -642,8 +656,14 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
+   the sequencer **stopped**, once **playing**.
+   (a) Hold one trig key of T (an existing trig) and hit pad k: that step gets an STA
+   p-lock = marker k (check on the SAMP page while holding the trig); the pad preview
+-  plays (from marker k, or from the step's old lock row - note which); release the trig
+-  key: **the trig is still there** (not toggled off).
++  plays - note which of three it plays from: (1) marker k (expected: stock auditions
++  with the held step's lock row, via 0x4024a504, and the lock is written before the
++  message reaches stock - INFERRED); (2) the step's previous STA lock; (3) the base STA
++  you noted above. Result (3) means the D15a skip costs the audition (round 3 set the
++  base to the marker, so its preview played marker k); also setting the base with
++  record = 0 is the alternative the r4 skeptics named (r4-sk-padheld P3, r4-sk-heldlock
++  P6) - the founder's call. Release the trig key: **the trig is still there** (not
++  toggled off).
+   (b) Hold several trig keys at once (existing trigs) and hit pad k: each held step gets
+   STA = marker k; no other step gets a lock; all trigs still there after release.
+   (c) Hold a trig key on an **empty** step and hit pad k: note whether a trig appears
+@@ -652,17 +672,26 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
+   (e) **Base STA unchanged:** after any of (a)-(d), with no trig held, the SAMP page's
+   STA shows the value you noted (the held-step hits did not move it). Then a plain pad
+   hit (no trig held) moves it to that marker, as in round 3.
+-  (f) **Another track:** CHOP ON for track T, then select track U (U != T), hold a trig
+-  of U and hit a pad: **no lock on U or T** at that step (the hit is the round-3 path:
+-  T's base STA = marker, preview of T). Look also for a stock track switch to T (the
+-  rewritten pad can schedule one) and, if it happens while the trig key is still held,
+-  whether the next pad writes locks into T's steps at the held positions (r4 skeptic R1;
+-  stock's knob path does the same after a switch).
++  (f) **Another track (guard 5) - probably not reachable.** With CHP ON every pad press,
++  TRK + pad included, goes to the chop track, so the pads cannot select another track
++  while CHOP stays on, and turning CHP right again re-latches the chop track to the
++  selected one (delta_gate); guard 5 is defensive in normal use. Run (f) only if you
++  know a way to select a track U (U != T) that is not a pad press, with CHP left ON for
++  T: hold a trig of U and hit a pad: **no lock on U or T** at that step (the hit is the
++  round-3 path: T's base STA = marker, preview of T). Look also for a stock track switch
++  to T (the rewritten pad can schedule one) and, if it happens while the trig key is
++  still held, whether the next pad writes locks into T's steps at the held positions
++  (r4 skeptic R1, which only arises if such a way exists; stock's knob path does the
++  same after a switch). Otherwise record (f) as "not reachable".
+   (g) Live REC on, playing, a trig held + pad: the held step gets the lock; note whether
+   anything is also recorded on the playing step (CHOP itself writes nothing there in
+   this case; stock suppresses its record while a trig is held - INFERRED).
+-  (h) Scene or performance lock editing active (a scene/perf pad held) + pad: no lock
+-  written (guard 2); the hit is the round-3 path.
++  (h) **Do not run** (out of scope, D14). Guard 2 (`hold_lock_source(S)` != 0) is
++  defensive: the setter of S+440, 0x400364f2, has two callers (0x400cb49a,
++  0x400cd24c), INFERRED to be the scene and performance locker views (r4 skeptic HL12;
++  other writes of offset 440, at 0x4010ea86, 0x4010ec5a and 0x40116652, are on objects
++  not identified). Those are pad modes where the pads do not play their own track, so
++  turn CHP OFF there first.
+   (i) No crash, no hung voice across all rows; repeat (a) fast 20 times.
+   Stop at the first deviation; the round-3 file (no step lock) is the fallback.
+ 
+diff --git a/registry/allocations.toml b/registry/allocations.toml
+index 86288b7..e4da1df 100644
+--- a/registry/allocations.toml
++++ b/registry/allocations.toml
+@@ -822,7 +822,7 @@ owner   = "0001-chop"
+ addr    = 0x402a1b30
+ size    = 0x4d0
+ section = ".text"
+-note    = "The page_info / get / delta / text gates, the SAMPLE key gate, the pad note-on and note-off gates, the held-trig lock gate, chop_set_sta, the SAMP view's page list and the CHOP descriptor, the strings, and the RAM state (chop_on, chop_track, chop_pad, a spare byte, twelve markers, twelve note-off routes) after every entry point."
++note    = "The page_info / get / delta / text gates, the SAMPLE key gate, the pad note-on and note-off gates, the held-trig lock gate, chop_set_sta, the step lock (chop_held_lock, chop_lock_step, chop_fn_mgr), the SAMP view's page list and the CHOP descriptor, the strings, and the RAM state (chop_on, chop_track, chop_pad, a spare byte, twelve markers, twelve note-off routes) after every entry point."
+ 
+ # The SAMP view's page list: {4} becomes {4, 11}. Pressing SAMPLE again then
+ # cycles to page 11 (with sample_key_gate below).
+-- 
+2.47.1
+
+
+From 1d39dd3b4a64ba589b3ac6e2c180fc6bf975b36b Mon Sep 17 00:00:00 2001
+From: jaytriana <83611075+jaytriana@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 22:36:50 -0400
+Subject: [PATCH 7/7] 0001 CHOP: test card H6 - GRID REC precondition, FX-key
+ reachability, live-REC row fixed, MIDI-note unknown (final-gate P1/P2)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ mods/0001-chop/design.md | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
+
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+index fb33755..a8e37bb 100644
+--- a/mods/0001-chop/design.md
++++ b/mods/0001-chop/design.md
+@@ -651,9 +651,12 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
+ - **H5** Recovery: a same-version reinstall of stock 1.73 over a CHOP build (normal
+   route), and if that is refused, the DIN recovery route above (untested by the
+   upstream author too).
+-- **H6 Step lock (round 4, D15).** CHOP ON for track T, track T selected, normal pad
+-  mode. Note the chop track's base STA (SAMP page) before you start. Each row: once with
+-  the sequencer **stopped**, once **playing**.
++- **H6 Step lock (round 4, D15).** **Precondition: GRID RECORDING mode** (press [REC]
++  with the sequencer stopped, the trig keys show the steps). Stock only holds trig keys
++  for p-locks in GRID REC; outside it a trig key does not hold a step, and no step lock
++  happens (the pad hit is the normal round-3 path). CHOP ON for track T, track T
++  selected, normal pad mode. Note the chop track's base STA (SAMP page) before you start.
++  Each row: once with the sequencer **stopped**, once **playing** (still in GRID REC).
+   (a) Hold one trig key of T (an existing trig) and hit pad k: that step gets an STA
+   p-lock = marker k (check on the SAMP page while holding the trig); the pad preview
+   plays - note which of three it plays from: (1) marker k (expected: stock auditions
+@@ -672,7 +675,8 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
+   (e) **Base STA unchanged:** after any of (a)-(d), with no trig held, the SAMP page's
+   STA shows the value you noted (the held-step hits did not move it). Then a plain pad
+   hit (no trig held) moves it to that marker, as in round 3.
+-  (f) **Another track (guard 5) - probably not reachable.** With CHP ON every pad press,
++  (f) **Another track (guard 5) - reachable with the [FX] key** (it selects the FX track
++  without a pad press; with T = 0..11 and FX selected, guard 5 must refuse). With CHP ON every pad press,
+   TRK + pad included, goes to the chop track, so the pads cannot select another track
+   while CHOP stays on, and turning CHP right again re-latches the chop track to the
+   selected one (delta_gate); guard 5 is defensive in normal use. Run (f) only if you
+@@ -683,9 +687,8 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
+   still held, whether the next pad writes locks into T's steps at the held positions
+   (r4 skeptic R1, which only arises if such a way exists; stock's knob path does the
+   same after a switch). Otherwise record (f) as "not reachable".
+-  (g) Live REC on, playing, a trig held + pad: the held step gets the lock; note whether
+-  anything is also recorded on the playing step (CHOP itself writes nothing there in
+-  this case; stock suppresses its record while a trig is held - INFERRED).
++  (g) Live REC: trig keys do not hold steps there in stock 1.73, so there is no step lock
++  in LIVE REC; a pad hit records as round 3 (trig + STA lock on the playing step).
+   (h) **Do not run** (out of scope, D14). Guard 2 (`hold_lock_source(S)` != 0) is
+   defensive: the setter of S+440, 0x400364f2, has two callers (0x400cb49a,
+   0x400cd24c), INFERRED to be the scene and performance locker views (r4 skeptic HL12;
+@@ -693,6 +696,8 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
+   not identified). Those are pad modes where the pads do not play their own track, so
+   turn CHP OFF there first.
+   (i) No crash, no hung voice across all rows; repeat (a) fast 20 times.
++  (j) Unknown: whether a MIDI note arriving through UI-loop case 3 while a trig is held
++  also writes the lock (r4 skeptic). Avoid external MIDI notes into the Rytm while testing.
+   Stop at the first deviation; the round-3 file (no step lock) is the fallback.
+ 
+ Also unknown, low priority: whether external MIDI CC reaches ids 3..5 through PARAM_ROM
 -- 
 2.47.1
 
