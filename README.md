@@ -1,17 +1,121 @@
-# analog rytm firmware — sample chop mode
+# CHOP for the Elektron Analog Rytm
 
-Goal: a chop mode on the Analog Rytm. Pick one track; the 12 pads fire its sample from 12 stored start positions (STA 0–120). MK1 first, MKII the target.
+**Turn the 12 pads into sample-start markers.** Pick a track, open the CHOP page, and every pad plays that track's sample from its own start point. Record it live and each hit becomes an ordinary STA p-lock, so your patterns play back on stock firmware too.
 
-Start with [REPORT.md](REPORT.md) (who has reverse engineered what, risks, plan) and [docs/DESIGN.md](docs/DESIGN.md).
+Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/rytm1_mods](https://github.com/gdeo607/rytm1_mods). Not affiliated with or endorsed by Elektron. **Flashing modified firmware is at your own risk.**
 
-| path | what |
+| Status | |
 |---|---|
-| `REPORT.md` | research and recommendation, 2026-10-05 |
-| `docs/DESIGN.md` | the chop mode spec and the three phases |
-| `docs/HAZARDS.md` | brick risk and the rules before any flash |
-| `proto/` | phase 1: host-side prototype through the bridge, no firmware |
-| `mods/0001-chop/` | phase 2: the firmware mod, laid out like rytm1_mods' `mods/NNNN-slug/` |
-| `upstream/` | how to fetch the third-party projects (not vendored, see licenses) |
-| `stock/` | your own stock `.syx` files; never committed, never written to |
+| MK1, OS 1.73 | ✅ Working on hardware |
+| MK2 | ❌ Not yet |
+| Builds reproducibly | ✅ Fresh clone + patch gives the same file, sha256 `3ea80d31…b00b` |
+| Recovery code untouched | ✅ Byte-for-byte identical to stock |
 
-Nothing here has been built or flashed.
+## How it works
+
+1. Select the track with the sample you want to chop. Use the normal pad mode, not chromatic or scale.
+2. Press **SAMPLE**, let go, pause, then press **SAMPLE** again to open the **CHOP** page.
+3. Turn **CHP** right to switch it ON. The selected track becomes the chop track.
+4. Hit pads 1–12. The sample plays from markers 0, 10, 20 … 110.
+5. To move a marker, hit its pad (or turn **PAD**), then turn **STA** (0–120).
+6. Press **REC + PLAY** and play the pads. Each hit records a trig with an STA p-lock.
+7. Turn **CHP** left to switch it OFF, and the pads are stock again.
+
+| Knob | Does |
+|---|---|
+| PAD | which marker you're editing (1–12) |
+| STA | that marker's start point (0–120, same scale as the SAMPLE page) |
+| CHP | CHOP off / on |
+
+**Tip:** make your loop 120 sixteenths long (7.5 bars). Then every STA value lands exactly on a 16th.
+
+**Good to know:**
+- **Markers reset on power-off.** They live in RAM, so re-chop after a restart. Recorded p-locks stay in your pattern.
+- **Pads all go to the chop track while CHP is ON**, including TRK + pad. Turn CHP OFF to select other tracks with the pads.
+- **Pad pressure (aftertouch) still goes to the pad's own track.**
+- **A quick double-tap of SAMPLE opens the stock sample list.** Pause between presses to get CHOP.
+- **The build includes rytm1_mods' euclid accents and velocity humanise, but not SMP CUT.** SMP CUT clashes with CHOP.
+
+## Install
+
+You build the firmware yourself from Elektron's own OS file. This repo never ships Elektron's code.
+
+### You need
+- An Analog Rytm **MK1 on OS 1.73**. The Rytm can't go back to an older OS, so update with Elektron's official 1.73 first.
+- A Mac or Linux machine with `git`, `make`, a C compiler and **Python 3.11+**.
+- **m68k binutils**: `brew install m68k-elf-binutils` (macOS) or `sudo apt install binutils-m68k-linux-gnu` (Debian/Ubuntu).
+- Elektron Transfer (free, from elektron.se) for flashing.
+- **A DIN MIDI interface.** Recovery works over DIN only, so have one before you flash.
+
+### 1. Get the stock OS
+Download Elektron's official MK1 OS 1.73 (`Analog-Rytm_OS1.73_dist.zip`) and unzip it. Check the `.syx`:
+```bash
+shasum -a 256 Analog-Rytm_OS1.73.syx
+# 9115c3888354bb388f90410e0445cd312bf020593ed99f768a99e475d1d6157c
+```
+
+### 2. Build
+```bash
+git clone https://github.com/gdeo607/rytm1_mods
+cd rytm1_mods
+git checkout 2fae7ce
+git am /path/to/this-repo/mods/0001-chop/rytm1_mods-chop.patch
+cp /path/to/Analog-Rytm_OS1.73.syx stock/Analog-Rytm_OS1.73.syx
+make setup          # fetches and builds the firmware container tool
+make chop           # builds + verifies; must end with PASS
+make control        # stock code repacked, for your first flash
+```
+On macOS, if `python3` is older than 3.11, add `PY=python3.12` to each `make` command.
+
+The end of `make chop`'s output must show all three of these:
+```
+ok   null repack: stock .syx rebuilds byte-identically
+ok   embedded bootstrap image unchanged (87,068 B) - recovery path intact
+PASS
+```
+Then check your build is the same file this repo was tested with:
+```bash
+shasum -a 256 build/AR1_OS1.73_0000_0001_0002_0003.syx
+# 3ea80d31dba5a6ea3c937d6feb68026907759a68c7557e31373f4d7bd1a2b00b
+```
+
+### 3. Flash (Transfer)
+1. Back up your projects and +Drive in Transfer.
+2. Connect USB, power on, and in Transfer > CONNECTION set MIDI IN and OUT to the Analog Rytm.
+3. **Control build first:** drag `build/AR1_OS1.73_control.syx` onto Transfer > DROP and press **YES** on the Rytm. Check it boots and plays normally. This proves the toolchain on your unit.
+4. **Then CHOP:** do the same with `build/AR1_OS1.73_0000_0001_0002_0003.syx`.
+5. Don't power off during an update or during the first boot after it.
+
+If Transfer refuses a file as "same version", nothing was written. Use the recovery route below to send it.
+
+### If it won't boot: recovery
+1. Hold **FUNC** while powering on.
+2. Press **TRIG 4** (OS UPGRADE).
+3. In Transfer > CONNECTION, choose **LEGACY OS UPGRADE**, and send the **stock** `Analog-Rytm_OS1.73.syx` over **DIN MIDI** (not USB).
+
+This route runs from the Rytm's recovery code in flash, which CHOP never touches.
+
+**Do not flash rytm1_mods' SMP CUT or RANDOM builds on an MK1.** They use an MK2 memory offset that is wrong for the MK1.
+
+## Tested on hardware (MK1, OS 1.73)
+- ✅ A pad hit plays from its marker on the first hit.
+- ✅ Under live REC, the STA p-lock lands on the trig's step.
+- ✅ The CHOP page draws and switches back to the sample page.
+- ⏳ Stress test (fast rolls, two pads held, holding a pad while toggling CHP): in progress.
+- ⏳ Reinstalling stock 1.73 over CHOP: not yet tried.
+
+## What's in this repo
+| Path | What |
+|---|---|
+| `mods/0001-chop/rytm1_mods-chop.patch` | the mod, as a patch for rytm1_mods @ `2fae7ce` |
+| `mods/0001-chop/src/` | the mod source (`stub.s`, `mod.toml`, and `design.md` with every hook, address and the full test card) |
+| `proto/chop/` | a Mac-side prototype (Rust, MIDI only, no firmware): pads → CC 28 → trigger. Works on MK1 and MK2 |
+| `REPORT.md` | research: who has reverse-engineered the Rytm, and the risks |
+| `docs/` | design notes and hazards |
+
+## Credits
+- **[gdeo607/rytm1_mods](https://github.com/gdeo607/rytm1_mods)**: the MK1 mod framework, symbol map and build/verify tooling that CHOP is built on.
+- **[mischa85/elektron-firmware-tool](https://github.com/mischa85/elektron-firmware-tool)** (MIT): Elektron OS container tool.
+- **[irpina/elekloader](https://github.com/irpina/elekloader)**: mod loader.
+
+Elektron, Analog Rytm and Overbridge are trademarks of Elektron Music Machines. This project contains no Elektron firmware.

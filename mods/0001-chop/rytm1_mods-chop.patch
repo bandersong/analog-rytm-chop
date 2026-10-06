@@ -1,0 +1,2243 @@
+From 12fbe449235e680196e9744c78c1481b5b48faa3 Mon Sep 17 00:00:00 2001
+From: jaytriana <83611075+jaytriana@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 18:01:29 -0400
+Subject: [PATCH 1/4] 0001 CHOP: a second SAMPLE page that turns the pads into
+ sample-start markers
+
+New mod mods/0001-chop (enabled = false; excludes 0004 and 0008) and the
+`make chop` (0000 0001 0002 0003) and `make chop-min` (0000 0001) targets.
+
+Press SAMPLE twice for the CHOP page: PAD 1..12, STA 0..120 (that pad's
+marker), CHP OFF/ON (ON latches the selected track, never the FX track).
+While CHOP is on, pad k sets the chop track's STA to marker k through
+param_set_value(set, 43, V<<8, T, 1, 1) - the call a STA knob turn ends in,
+so live REC makes a stock STA p-lock - then the pad id in the UI message is
+rewritten to the chop track and stock plays it as a normal pad hit. Note-offs
+get the same rewrite. RAM-only state at the end of the `cave` claim.
+
+Hooks: 0008's four page gates, a SAMPLE key gate (the SAMP view never hands a
+plain press/release to the base page cycle), UI-loop cases 3 and 4, and a
+held-trig lock-path guard so CHOP knobs never write a p-lock. Expect bytes
+re-read from build/stock_mainos.bin. Both builds PASS verify in the guest
+(bootstrap unchanged, null repack). Never run on hardware: test card in
+design.md.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ Makefile                            |  15 +-
+ mods/0001-chop/design.md            | 270 +++++++++++++++++
+ mods/0001-chop/mod.toml             |  67 +++++
+ mods/0001-chop/stub.s               | 440 ++++++++++++++++++++++++++++
+ re/ghidra/scripts/ApplySymbols.java |  21 +-
+ re/symbols.toml                     | 105 +++++++
+ registry/allocations.toml           | 217 ++++++++++++++
+ 7 files changed, 1133 insertions(+), 2 deletions(-)
+ create mode 100644 mods/0001-chop/design.md
+ create mode 100644 mods/0001-chop/mod.toml
+ create mode 100644 mods/0001-chop/stub.s
+
+diff --git a/Makefile b/Makefile
+index 5eb179f..3c61d88 100644
+--- a/Makefile
++++ b/Makefile
+@@ -2,7 +2,7 @@
+ # Build and verify use only the Python standard library; python3 >= 3.11.
+ PY := python3
+ 
+-.PHONY: all setup symbols layout build verify random elemod elemod-check control disasm clean
++.PHONY: all setup symbols layout build verify random chop chop-min elemod elemod-check control disasm clean
+ 
+ all: verify
+ 
+@@ -42,6 +42,19 @@ random: symbols layout
+ 	$(PY) tools/build.py --mods $(RANDOM_MODS) --tag 0000_0002_0003_0004
+ 	$(PY) tools/verify.py --tag 0000_0002_0003_0004
+ 
++# The CHOP build: 0001 CHOP in place of 0008 SMP CUT (the two detour the same four
++# page hosts and share the `cave` claim, so they are never in one image).
++CHOP_MODS := 0000-shared 0001-chop 0002-euclid-accents 0003-velocity-humanise
++chop: symbols layout
++	$(PY) tools/build.py --mods $(CHOP_MODS) --tag 0000_0001_0002_0003
++	$(PY) tools/verify.py --tag 0000_0001_0002_0003
++
++# The CHOP bisection build: the shared runtime and CHOP alone.
++CHOP_MIN_MODS := 0000-shared 0001-chop
++chop-min: symbols layout
++	$(PY) tools/build.py --mods $(CHOP_MIN_MODS) --tag 0000_0001
++	$(PY) tools/verify.py --tag 0000_0001
++
+ # The mods as elekloader .elemod files (build/elemod/), one per mod, from the two
+ # verified builds. elemod-check proves that elekloader, given them, builds the same
+ # MAIN OS as build.py for every valid combination (and refuses every invalid one);
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+new file mode 100644
+index 0000000..7557bae
+--- /dev/null
++++ b/mods/0001-chop/design.md
+@@ -0,0 +1,270 @@
++# 0001 CHOP - design
++
++Status: **built** (`make chop` and `make chop-min` PASS verify in the guest VM,
++2026-10-05). **Never run on hardware.** Local only: this tree has no license and is
++never pushed or published. Nothing here flashes a device; the founder flashes.
++
++Line references `dis:N` are lines of
++`/Users/creative/analog rytm firmware/build/mainos_1.73_emac.dis` (objdump of
++`build/stock_mainos.bin`, base 0x40000400). The RE behind every hook is corp round r2
++(`/Users/creative/corp-audits/2026-10-05-rytm-chop/corp/`: `TRUTH.md` decisions D1-D13,
++`r2-re/results.json`, `r2-re/skeptic_fixes.md`).
++
++## What it does
++
++Press **SAMPLE** a second time on the SAMPLE page: the **CHOP** page (page id 11).
++
++| knob | id | shows | turning it |
++|---|---|---|---|
++| A `PAD` | 3 | 1..12 | which marker PAD/STA edit (a pad hit in CHOP also sets it) |
++| B `STA` | 4 | 0..120 | that marker: a sample start on stock's STA scale (id 43, max 0x7800) |
++| C `CHP` | 5 | OFF / ON | right: CHOP on, for the track selected at that moment (the *chop track*); left: off |
++| D..H | 0 | blank | - |
++
++The twelve markers start at 0, 10, 20 ... 110.
++
++While CHOP is on, a hit on pad k (k = 0..11):
++
++1. `chop_pad = k` (the PAD knob follows; it is redrawn at the next redraw);
++2. the chop track's STA is set to marker k with
++   `param_set_value(set, 43, marker << 8, T, record = 1, notify = 1)` on
++   `set = kit_track_param_set(project_kit(project_singleton()), T)` - the call a STA
++   knob turn ends in (dis:213877-213897 `braw 0x400a6316` with flags 1, 1), so under
++   live REC stock writes an ordinary STA p-lock on the chop track's current step;
++3. the pad id in the UI message is rewritten to the chop track, and the message goes
++   on into stock. KeyboardView then plays (and live-records) the chop track exactly as
++   a hit on its own pad: no hand-built fire call, and no track switch away from it.
++
++Note-offs get the same id rewrite. With CHOP off, or a pad id outside 0..11, every
++hook is the stock path byte for byte.
++
++CHOP mode is the RAM flag `chop_on`, not "the CHOP page is on screen" (D6): leaving the
++page does not end CHOP; CHP OFF or a power cycle does. Nothing is saved: markers, the
++chop track and the flag are RAM only and come back as the image's defaults at power-on.
++A recorded chop is an ordinary STA p-lock and plays back on stock firmware.
++
++Consequences to know (by design, from the STA lane):
++- Like a STA knob turn, every pad hit in CHOP also changes the chop track's base STA
++  and marks the kit edited (kit_param_changed). Leaving CHOP does not restore it.
++- A repeated hit on the same marker still writes and still records (slot 0x24 is only a
++  range check, sta-14).
++- CHOP rewrites every UI-loop pad message while it is on, whatever pad mode the unit is
++  in. What that does in modes where pads do something other than play (e.g. a mute
++  mode, chromatic mode) is UNKNOWN; switch CHP OFF before using them (test card H4).
++
++## Build
++
++```
++make chop       # 0000-shared 0001-chop 0002-euclid-accents 0003-velocity-humanise
++                # -> build/AR1_OS1.73_0000_0001_0002_0003.syx
++make chop-min   # 0000-shared 0001-chop (bisection) -> build/AR1_OS1.73_0000_0001.syx
++```
++
++Both run `symbols layout` first, then `build.py --mods ... --tag ...`, then
++`verify.py --tag ...` (modelled on `random`). Builds run only in the guest VM.
++0001 is `enabled = false`, so the default `make` is unchanged (0000 0002 0003 0008;
++rebuilt after this change: byte-identical .syx, PASS).
++
++**The CHOP image has no SMP CUT (0008) and no LFO RND (0004).** CHOP detours the same
++four page hosts (0x400f8736, 0x400381a0, 0x400376e4, 0x400a5908), which build.py
++refuses to patch twice (its expect check), and takes the same `cave` claim; so
++`excludes = ["0004-lfo-rnd", "0008-sample-cut"]`. Chaining with `chain_pos` is the
++alternative if the founder ever wants both in one image.
++
++**The id 0001.** It belonged to a retracted MKII mod, `0001-microtiming-fine`, which
++`mods/0002-euclid-accents/mod.toml` still lists in `excludes`. `layout.load_excludes`
++works on full id strings, so `0001-microtiming-fine` (which does not exist in this tree)
++and `0001-chop` never meet: layout reports `layout ok`, and `make chop` builds with
++0001 and 0002 together. Cosmetic only.
++
++## Placement
++
++One claim, `cave` 0x402a1b30 + 0x4d0 (the pool 0008 and 0004 use), section `.text`;
++the stub is 872 B. Code, the page list and descriptor, the strings and the 16 B of RAM
++state all fit there; nothing goes in cave3 (whose `.tab` neighbour is unexplained, F15).
++The state sits at the end, after every entry point (build.py refuses an odd entry):
++
++| label | addr (built) | default |
++|---|---|---|
++| `chop_on` | 0x402a1e88 | 0 |
++| `chop_track` | 0x402a1e89 | 0 |
++| `chop_pad` | 0x402a1e8a | 0 |
++| `chop_rsv` | 0x402a1e8b | 0 |
++| `chop_marks[12]` | 0x402a1e8c | 0, 10, 20 ... 110 |
++
++Every field is a byte, so every store is one instruction. Nothing is written in the
++embedded bootstrap [0x4028c708, 0x402a1b24): verify reports it unchanged.
++
++## Hooks
++
++All expect bytes were re-read from `build/stock_mainos.bin` with python; the registry
++entries are in `registry/allocations.toml` under `0001-chop`.
++
++### Detours (8)
++
++| host | expect | entry | rejoin | what |
++|---|---|---|---|---|
++| 0x400f8736 | 720a202f0004 | page_info_gate | 0x400f873c | page_info answers id 11 with `page_chop` (0008's gate verbatim) |
++| 0x400381a0 | 4feffff448d7040c | get_gate | 0x400381a8 | page_get_value for ids 3..5 = shown value << 8 |
++| 0x400376e4 | 77832f2a0074 | delta_gate | 0x400376ea | param_apply_delta for ids 3..5: RAM only, then view_invalidate; 0003's gate rejoins here |
++| 0x400a5908 | 242f0020262f0024 | text_gate | 0x400a5910 | param_value_text for ids 3..5: number, or OFF / ON |
++| 0x400ce4b8 | 2f0247f9400706f0 | sample_key_gate | 0x400ce4c0 | the SAMPLE key on the SAMP view (below) |
++| 0x400a1ee2 | 48780080767e | pad_on_gate | 0x400a1ee8 | UI-loop case 3, pad note-on (D7) |
++| 0x400a1f26 | 487800804eb94008022e | pad_off_gate | 0x400a1f30 | UI-loop case 4, pad note-off, 10 bytes displaced (D8) |
++| 0x40038336 | 4fefffd048d70cfc | lock_gate | 0x4003833e | held-trig knob path, slot 0x7c (D10) |
++
++Each stub re-emits exactly the displaced instructions and then `jmp`s the rejoin;
++verify.py checks both, and the built image was disassembled to check them by hand
++(below).
++
++### Patches (17)
++
++- SAMP view page list: count 0x400c7162 `7201` -> `7202`; list 0x400c7168 `401af520`
++  ({4}) -> `chop_pages` = {4, 11}.
++- PARAM_ROM records 3, 4, 5 (0x4018e004 + 52*id), five fields each, as 0008 does for
++  its ids: container index +4 `ffffffff` -> 0; max +0xc 0 -> `00007f00`; long name +0x28,
++  group +0x2c, short name +0x30 -> `Chop Pad`/`Pad Start`/`Chop Mode`, `CHOP`,
++  `PAD`/`STA`/`CHP`. Record type +0 stays `ffffffff`, as in 0008.
++
++The range is 0..0x7f00 for all three, not the page lane's 0x0c00/0x7800/0x0100: the
++encoder handler's step size is computed from the ROM range (0x4006db16 via 0x40006ed0;
++the exact scaling is UNKNOWN), and 0x7f00 is the range 0008 and 0004 use with the same
++`asr #8` = whole-steps delta gates (0004 ran on MKII). With a small range a detent may
++come out below one step and the knob would do nothing. The dial graphic therefore
++shows PAD and CHP on a 0..127 scale; the number shown is the value (cosmetic).
++
++### The SAMPLE key (D3)
++
++The SAMP view (vtable 0x401b0a84) overrides the key handler with 0x400ce2c4. For code
++50 (SAMPLE) it never calls the base handler 0x4003a320 on a plain press or release
++(F8: dis:267527-267582), so the base's page cycle never runs and a list patch alone
++gives a two-page view SAMPLE cannot cycle. `sample_key_gate` sits at 0x400ce4b8, which
++is reached only with code 50 (dis:267400-267402), bit1 clear (dis:267526-267530 sends
++bit1 to base), bit2 clear (dis:267531-267535) and, on a release, view+496 == 0
++(dis:267462-267468). Live there: d2 = event, a2 = view, stack clean (no other path
++enters 0x400ce4b9..0x400ce4bf: the only reference is `beqs 0x400ce4b8`).
++
++- **Press, no hold:** `page_cycle_arm` (0x40a07569) = `weak_ptr_expired(view+512)`,
++  i.e. 1 exactly when the press does not close the sample-list popup; then stock. The
++  base arms the same byte with the same 0/1 (seq/negl, dis:75997-76000).
++- **Release:** if the arm byte is set, bit4 is set (ev_bit4), there is no long hold
++  (ev_is_held) and view+136 == 50, then every condition of the base's cycle branch holds
++  (dis:75780-75786 arm and code == +136; dis:76015-76031 bit4, no hold, no bit1,
++  +496 == 0), so the event goes to the base through the SAMP handler's own tail
++  0x400ce3f4 (`base(view, event)`, result -> d3, epilogue; dis:267485-267490). The base
++  then advances view+140 modulo the page count, view_invalidate, 0x4006d834, vtable+80
++  (title) (dis:76032-76050) and returns. Otherwise: stock.
++- **Anything else** (long hold, bit-1/bit-2 events, other keys): stock, arm untouched.
++
++Because the gate checks every condition the base checks before handing over, the base
++can only take the cycle branch; it never reaches its default handler 0x40076ace from
++here. Premise not proven on MK1: that a SAMPLE release carries bit4 - the same premise
++0008's and 0004's FILTER/LFO cycling rely on (H3). The AMP fallback of D3 was not
++needed.
++
++### The pads (D7, D8)
++
++UI loop (dis:207717-207727): `pea 0x40b1065c; moveq #39,%d3; jsr 0x400012c8` takes a
++message into a2 and switches on its first byte through the jump table at 0x400a1e62
++(entry 3 = 0x0080 -> 0x400a1ee2, entry 4 = 0x00c4 -> 0x400a1f26; a python scan of all
++40 entries finds none inside either displaced span, and no branch targets them).
++
++- Case 3, 0x400a1ee2 (dis:207767-207787): `pea 0x80; moveq #126,%d3; jsr is_key_held`,
++  then msg+4 (pad), min(msg+8, 127) and msg+12 into the NoteEvent ctor 0x400746e6 and
++  the view dispatch 0x4009e350; `lea %sp@(32)`; `bras 0x400a1f5a` (destroy, loop).
++  `pad_on_gate`: if `chop_on` and msg+4 <= 11 unsigned: chop_pad = k,
++  `chop_set_sta(chop_track, chop_marks[k])`, msg+4 := chop_track. Then the displaced
++  `pea 0x80; moveq #126,%d3` and `jmp 0x400a1ee8`. It never jumps to 0x400a28ba
++  (skeptic: that lands on an `addql #4,%sp` and corrupts the stack).
++- Case 4, 0x400a1f26 (dis:207788-207801): `pea 0x80; jsr is_key_held` has no 6-byte
++  boundary, so the detour displaces 10 bytes and rejoins at 0x400a1f30; the 4 bytes
++  after the jmp stay stock and are never executed. The pushed 0x80 stays on the stack
++  until stock's own `lea %sp@(36),%sp` at 0x400a1f56, exactly as in stock. `pad_off_gate`
++  rewrites msg+4 := chop_track under the same test and changes nothing else.
++- The table at 0x40249d98 maps nibble 12 to pad id -1 (sk-pads); the unsigned test sends it (and
++  anything above 11) down the stock path.
++- Registers: d2 (the NoteEvent buffer), d4-d7 and a2-a6 are kept (callees are C and
++  chop_set_sta saves d2/d3); d0/d1/a0/a1 are dead at entry (the jsr after the rejoin
++  clobbers them) and d3 is set by the re-emitted moveq.
++
++### chop_set_sta (D9)
++
++`chop_set_sta(d0 = T, d1 = V)`: `T > 11` unsigned returns before touching anything
++(0x400a39fa maps 12 and up to the FX set, kit+4724, sk-sta F1; stock guards the same way
++at dis:180148-180154). Otherwise: project_singleton -> project_kit (0x400ab706, +232) ->
++kit_track_param_set(kit, T) (0x400a39fa) -> param_set_value(set, 43, V << 8, T, 1, 1)
++(0x400a6316, the entry, so any future gate on it still runs). Stock precedent, the same
++sequence with id 0x29: dis:180147-180167. It runs in the UI task only (the case-3 loop).
++It never uses 0000-shared's `shared_sound_of` / `PROJ_KIT = 352`.
++
++### The held-trig path (D10)
++
++The encoder handler calls page-view slot 0x7c (0x40038336) instead of slot 0x58
++(param_apply_delta, where delta_gate sits) when 0x40036512(view+108) is non-null or
++0x400366a2 is true (dis:75274-75284, 75341-75347): the held-trig / lock-source path,
++which would make a stock p-lock. 0008 has no guard there. `lock_gate` at its entry
++returns `d0 = 0` for ids 3..5 - what slot 0x7c itself returns when slot 0x6c says the id
++cannot be locked (dis:73011-73018, 73154-73157) - and the only caller ignores d0
++(`lea %sp@(12),%sp; braw 0x40039f8e`). Slot 0x7c has no direct jsr; seven vtable words
++point at it (base 0x4019a7ac+0x7c and SAMP 0x401b0a84+0x7c among them) and nothing points
++into its first 8 bytes past the entry. No stock page lists ids 3..5 (python read of all
++eleven descriptors), so every other id goes down the stock path unchanged.
++
++## Disassembly check of the built image
++
++`m68k-elf-objdump -D -b binary -m m68k:cfv4e --adjust-vma=0x40000400` on
++`build/mainos_0000_0001_0002_0003.bin` (host, read-only):
++
++- each of the 8 hosts holds `4ef9 <entry>` and the entry is the right stub label
++  (page_info_gate 0x402a1b30, get_gate 0x402a1b4c, delta_gate 0x402a1b6e, text_gate
++  0x402a1c0c, sample_key_gate 0x402a1c60, pad_on_gate 0x402a1cd6, pad_off_gate
++  0x402a1d16, lock_gate 0x402a1d40); the bytes after each jmp up to the rejoin are stock;
++- in the stub, each displaced sequence appears exactly once, immediately followed by
++  `jmp <rejoin>`, byte-identical to stock;
++- every handled path returns with `rts` from a balanced frame (0008's epilogues where
++  0008 has the gate; `moveq #0; rts` in lock_gate; chop_set_sta saves and restores d2/d3
++  in an 8-byte frame); every other path ends in the re-emit + rejoin; no path jumps
++  anywhere else except sample_key_gate's `jmp 0x400ce3f4` with the entry stack.
++- the patches: 0x400c7162 `7202`, 0x400c7166 `movel #0x402a1e2e` (= chop_pages {4, 11}),
++  the fifteen ROM fields pointing at the strings at 0x402a1e5a..0x402a1e87.
++
++## Hardware-only unknowns (the founder's test card)
++
++Nothing below can be proven offline.
++
++- **H1** Does a pad hit play from the new STA on that same hit? (Voice latch timing: the
++  audio target word 0x80005116 + 0x54*T is written synchronously, but whether the voice
++  latches STA from it or from the smoothed PARAMS_EFF is unknown. The 1.72 host prototype,
++  CC 28 then note, says yes for that path.)
++- **H2** Under live REC, does the STA p-lock land on the same step as the pad's recorded
++  trig (quantize, late hits)? The lock goes on 0x40035208's current step for the track.
++- **H3** Does the CHOP page draw and cycle correctly: SAMPLE -> SAMP, SAMPLE again ->
++  CHOP, again -> SAMP; knob labels PAD/STA/CHP; values and popups; a long hold of SAMPLE
++  and the sample-list popup behave as stock. (Needs the SAMPLE release to carry bit4.)
++- **H4** No crash on repeated pad hits and note-offs, fast rolls, CHP toggled while pads
++  are held, CHOP with the FX track selected (CHP must stay OFF), and pads in other pad
++  modes while CHOP is on.
++- **H5** Recovery: a same-version reinstall of stock 1.73 (untested by the upstream
++  author too).
++
++Also unknown, low priority: whether external MIDI CC reaches ids 3..5 through PARAM_ROM
+++0x18 (their stock values read as CC 6/38, 7, 10; lead F14) - with container index 0 a
++stray write would land in the sound's free word 0, which no mod in the CHOP image uses but
++0008 reads as its cut settings in the default image; and whether the knob graphic is drawn
++for ids 3..5 (RAM param_info(id)+48).
++
++Side note from the STA skeptic, outside this mod: 0000-shared's `PROJ_KIT = 352` and
++0008's `SOUND0 = 352+60` disagree with stock 1.73's kit at project + 232 and
++kit_track_sound's 0x60 displacement (sk-sta S1). CHOP does not use either. It should be
++checked before any 0008 image is flashed.
++
++## Next steps (out of scope for v1, D13)
++
++- A pad press selects the PAD knob on screen (redraw the CHOP page when a pad sets
++  chop_pad; today it shows at the next redraw).
++- END per slice (next marker, or the track's END).
++- More than 12 markers (pages of markers).
++- Saving the markers (today RAM only, by design).
++- Hi-res marker values (the 8.8 fraction under SAMPLE POS RES = HI).
++- Optional: restore the chop track's base STA when CHOP ends (sta lane: param_set_value
++  with record 0, notify 1).
+diff --git a/mods/0001-chop/mod.toml b/mods/0001-chop/mod.toml
+new file mode 100644
+index 0000000..0033c0d
+--- /dev/null
++++ b/mods/0001-chop/mod.toml
+@@ -0,0 +1,67 @@
++[mod]
++id      = "0001-chop"
++title   = "CHOP: a second SAMPLE page that turns the twelve pads into sample-start markers"
++
++# Off in the default build, which carries 0008 SMP CUT instead. The CHOP build is
++# `make chop` (0000 0001 0002 0003); `make chop-min` (0000 0001) is the bisection
++# build. The id 0001 once belonged to a retracted MKII mod, 0001-microtiming-fine,
++# which 0002 still excludes by that full id; it does not exist in this tree and the
++# id strings differ, so nothing conflicts (see design.md).
++enabled = false
++
++# CHOP detours the same four page hosts as 0008 SMP CUT and 0004 LFO RND
++# (page_info, page_get_value, param_apply_delta, param_value_text) and takes the
++# same `cave` claim, so it can never be in one image with either.
++excludes = ["0004-lfo-rnd", "0008-sample-cut"]
++
++# re-only | built | hardware-verified | retracted
++status  = "built"
++
++summary = """
++Press SAMPLE a second time for the CHOP page: PAD (1..12, the marker being
++edited), STA (0..120, that marker: a sample start on stock's STA scale) and CHP
++(OFF/ON). Turning CHP right switches CHOP on for the track that is selected at
++that moment; left switches it off. The twelve markers start at 0, 10, 20 ... 110.
++
++While CHOP is on, pad k sets the chop track's STA to marker k through the same
++call a STA knob turn ends in - so under live REC stock records a normal trig with
++a normal STA p-lock - and then plays the chop track as a normal pad hit would.
++Pads do not switch track in CHOP. Hold a pad and turn STA to move its marker.
++
++The markers live in RAM only: a power cycle resets them and ends CHOP. Nothing new
++is saved anywhere; recorded chops are ordinary STA p-locks and play back on stock
++firmware. Like a STA knob turn, every pad hit also changes the chop track's base
++STA (the kit is edited). Never run on hardware: see design.md for the test card.
++"""
++
++[sources]
++stub = "stub.s"
++
++[requires]
++# CHOP calls nothing in 0000-shared (and must not use its sound helpers: STA is
++# written through the active kit at project + 232, not PROJ_KIT = 352).
++shared = false
++symbols = [
++  "page_info_resume",
++  "page_get_value_body",
++  "param_apply_delta_track",
++  "param_value_text_args",
++  "view_invalidate",
++  "track_index_of",
++  "project_singleton",
++  "is_key_held",
++  "project_kit",
++  "kit_track_param_set",
++  "param_set_value",
++  "PARAM_ID_STA",
++  "ui_pad_on_resume",
++  "ui_pad_off_resume",
++  "samp_key_resume",
++  "samp_key_to_base",
++  "page_cycle_arm",
++  "ev_is_down",
++  "ev_is_held",
++  "ev_bit4",
++  "weak_ptr_expired",
++  "lock_delta_body",
++]
+diff --git a/mods/0001-chop/stub.s b/mods/0001-chop/stub.s
+new file mode 100644
+index 0000000..28a9543
+--- /dev/null
++++ b/mods/0001-chop/stub.s
+@@ -0,0 +1,440 @@
++        | Mod 0001 - CHOP: a second SAMPLE page that turns the twelve pads into
++        | twelve sample-start markers for one track.
++        |
++        | Press SAMPLE twice: the CHOP page. Knobs A..C (D..H are blank):
++        |   PAD  1..12    the marker being edited (a pad hit in CHOP also sets it)
++        |   STA  0..120   that marker: a sample start on stock's STA scale
++        |   CHP  OFF/ON   turning it right switches CHOP on for the track that is
++        |                 selected at that moment (the chop track); left, off
++        |
++        | While CHOP is on, pad k (0..11) does three things, in the UI task, before
++        | stock sees the pad: chop_pad = k; the chop track's STA is set to marker k
++        | through the call a STA knob turn ends in, param_set_value(set, 43, V<<8, T,
++        | 1, 1), so under live REC stock writes a normal STA p-lock; and the pad's id
++        | in the UI message is rewritten to the chop track, so stock plays (and
++        | records) the chop track exactly as if its own pad had been hit. Pads never
++        | switch the selected track away from it, and no fire call is hand-built.
++        | Note-offs get the same rewrite. CHOP off, or any pad id outside 0..11:
++        | stock, byte for byte.
++        |
++        | State is RAM only (the 16 bytes at the end of this block; the image bytes
++        | are the power-on defaults). Nothing is saved. CHOP mode is the flag chop_on,
++        | not "the CHOP page is on screen", so no view pointer is ever kept.
++        |
++        | Every gate below that 0008 also has (page_info / get / delta / text) keeps
++        | 0008's entry frame, displaced instructions, rejoin label and epilogue
++        | verbatim (mods/0008-sample-cut/stub.s). Addresses and receipts: design.md.
++
++        .include "symbols.inc"
++
++        .equ    PAGE_SAMP,      4
++        .equ    PAGE_CHOP,      11                | MK1 pages are 0..10 (page_info's moveq #10)
++        .equ    ID_PAD,         3                 | dead Error records 3..5
++        .equ    ID_STA,         4
++        .equ    ID_CHP,         5
++        .equ    PADS,           12
++        .equ    STA_MAX,        120
++        .equ    SAMP_KEY,       50                | the SAMPLE key's code (0x400ce2e0 moveq #50)
++        .equ    VIEW_KEY,       136               | view +136: the view's own page key
++        .equ    VIEW_SEL,       116               | view +116: the track selection (= project + 48)
++        .equ    VIEW_POPUP,     512               | SAMP view +512: weak pointer to its list popup
++
++        .text
++
++        | ------------------------------------------------------------------
++        | page_info, answering PAGE_CHOP. 0008's gate verbatim.
++        | Entered by a jmp at the entry: (%sp) return, 4(%sp) the page id.
++        | ------------------------------------------------------------------
++        .align  2
++page_info_gate:
++        moveq   #PAGE_CHOP,%d0
++        cmp.l   4(%sp),%d0
++        bne.s   1f
++        lea     page_chop,%a0
++        move.l  %a0,%d0
++        rts
++1:      moveq   #10,%d1                           | displaced
++        move.l  %sp@(4),%d0                       | displaced
++        jmp     page_info_resume
++
++        | ------------------------------------------------------------------
++        | page_get_value for ids 3..5: the dials, value << 8.
++        | Entered by a jmp at the entry: (%sp) return, 4 view, 8 id, 12 lock.
++        | ------------------------------------------------------------------
++        .align  2
++get_gate:
++        move.l  8(%sp),%d0
++        subq.l  #ID_PAD,%d0
++        moveq   #2,%d1
++        cmp.l   %d1,%d0
++        bhi.s   9f
++        bsr.w   chop_value                        | d0 = 0..2 -> shown value
++        lsl.l   #8,%d0
++        rts
++9:      lea     %sp@(-12),%sp                     | displaced
++        moveml  %d2-%d3/%a2,%sp@                  | displaced
++        jmp     page_get_value_body
++
++        | ------------------------------------------------------------------
++        | param_apply_delta for ids 3..5: the knobs, RAM only.
++        |
++        | Reached by a jmp over `mvzb %d3,%d3; movel %a2@(116),%sp@-`, past the
++        | prologue (and past 0003's gate, which rejoins here): %sp@(0..11) holds
++        | d2/d3/a2, a2 is the view, %sp@(20) the id, %sp@(24) the delta in 8.8.
++        | Handling the id and returning means stock never writes a sound or a
++        | p-lock for it.
++        | ------------------------------------------------------------------
++        .align  2
++delta_gate:
++        move.l  %sp@(20),%d0
++        subq.l  #ID_PAD,%d0
++        moveq   #2,%d1
++        cmp.l   %d1,%d0
++        bhi.w   9f
++        move.l  %sp@(24),%d2
++        asr.l   #8,%d2                            | whole steps, sign preserved
++        beq.w   7f
++        move.l  %d0,%d3                           | 0 PAD, 1 STA, 2 CHP
++        bne.s   2f
++        moveq   #0,%d0                            | PAD: 0..11 (shown 1..12)
++        move.b  chop_pad,%d0
++        add.l   %d2,%d0
++        moveq   #PADS-1,%d1
++        bsr.w   clamp
++        move.b  %d0,chop_pad
++        bra.s   6f
++2:      subq.l  #1,%d3
++        bne.s   3f
++        moveq   #0,%d1                            | STA: marker[chop_pad], 0..120
++        move.b  chop_pad,%d1
++        lea     chop_marks,%a0
++        adda.l  %d1,%a0
++        moveq   #0,%d0
++        move.b  (%a0),%d0
++        add.l   %d2,%d0
++        moveq   #STA_MAX,%d1
++        bsr.w   clamp                             | keeps a0
++        move.b  %d0,(%a0)
++        bra.s   6f
++3:      tst.l   %d2                               | CHP
++        bgt.s   4f
++        clr.b   chop_on                           | left: off
++        bra.s   6f
++4:      move.l  VIEW_SEL(%a2),-(%sp)              | right: on, for the selected track
++        jsr     track_index_of                    | as stock at 0x400376e6..ea
++        addq.l  #4,%sp
++        moveq   #PADS-1,%d1
++        cmp.l   %d1,%d0
++        bhi.s   6f                                | FX (12) or worse: never latched
++        move.b  %d0,chop_track
++        moveq   #1,%d0
++        move.b  %d0,chop_on
++6:      move.l  %a2,-(%sp)                        | the view
++        jsr     view_invalidate                   | redraw now
++        addq.l  #4,%sp
++7:      movem.l (%sp),%d2-%d3/%a2                 | param_apply_delta's epilogue
++        lea     12(%sp),%sp
++        rts
++9:      mvzb    %d3,%d3                           | displaced
++        move.l  %a2@(116),-(%sp)                  | displaced
++        jmp     param_apply_delta_track
++
++        | ------------------------------------------------------------------
++        | param_value_text for ids 3..5: the popup, a number or OFF/ON.
++        |
++        | Reached by a jmp over `movel %sp@(32),%d2; movel %sp@(36),%d3`, past the
++        | prologue (and past 0002's and 0003's text gates): %sp@(0..19) holds
++        | d2-d4/a2-a3, d4 is the id, %sp@(36) the output buffer.
++        | ------------------------------------------------------------------
++        .align  2
++text_gate:
++        move.l  %d4,%d0
++        subq.l  #ID_PAD,%d0
++        moveq   #2,%d1
++        cmp.l   %d1,%d0
++        bhi.w   9f
++        move.l  %sp@(36),%a1
++        cmp.l   %d1,%d0
++        beq.s   2f
++        bsr.w   chop_value                        | keeps a1
++        bsr.w   put_u3
++        bra.s   5f
++2:      tst.b   chop_on
++        beq.s   3f
++        move.b  #0x4f,(%a1)+                      | ON
++        move.b  #0x4e,(%a1)+
++        bra.s   5f
++3:      move.b  #0x4f,(%a1)+                      | OFF
++        move.b  #0x46,(%a1)+
++        move.b  #0x46,(%a1)+
++5:      clr.b   (%a1)
++        movem.l (%sp),%d2-%d4/%a2-%a3             | param_value_text's epilogue
++        lea     20(%sp),%sp
++        rts
++9:      movel   %sp@(32),%d2                      | displaced
++        movel   %sp@(36),%d3                      | displaced
++        jmp     param_value_text_args
++
++        | ------------------------------------------------------------------
++        | sample_key_gate: the SAMPLE key on the SAMP view, so a second press
++        | cycles to CHOP the way a second FILTER press cycles a FILTER view.
++        |
++        | The SAMP view overrides the key handler (0x400ce2c4) and, for code 50,
++        | never calls the base handler on a plain press or release, so the base's
++        | page cycle (0x4003a952) never runs. This detour sits at 0x400ce4b8,
++        | reached only with code == 50, bit1 clear (0x400ce48e -> base otherwise),
++        | bit2 clear (0x400ce4a8), and, on a release, view +496 == 0
++        | (0x400ce3b6). Live: d2 = the event, a2 = the view, the stack clean;
++        | d0/d1/a0/a1 are free (d3/d4/a3 are set again on every stock path after).
++        |
++        |  press, no hold:  arm the base's cycle byte exactly when the press does
++        |                   not close a popup (popup expired = 1, else 0); stock
++        |  release:         if armed, bit4 set, no hold and the view's own key is
++        |                   SAMPLE, every condition of the base's cycle branch
++        |                   (0x4003a610 .. 0x4003a94e) holds, so hand the event to
++        |                   the base through SAMP's own tail 0x400ce3f4; else stock
++        |  anything else:   stock
++        | ------------------------------------------------------------------
++        .align  2
++sample_key_gate:
++        move.l  %d2,-(%sp)
++        jsr     ev_is_down
++        addq.l  #4,%sp
++        tst.l   %d0
++        bne.s   2f
++        tst.b   page_cycle_arm                    | release
++        beq.s   8f
++        move.l  %d2,-(%sp)
++        jsr     ev_bit4
++        addq.l  #4,%sp
++        tst.l   %d0
++        beq.s   8f
++        move.l  %d2,-(%sp)
++        jsr     ev_is_held
++        addq.l  #4,%sp
++        tst.l   %d0
++        bne.s   8f
++        moveq   #SAMP_KEY,%d1
++        cmp.l   VIEW_KEY(%a2),%d1
++        bne.s   8f
++        jmp     samp_key_to_base                  | base(view, event): cycles, returns
++2:      move.l  %d2,-(%sp)                        | press
++        jsr     ev_is_held
++        addq.l  #4,%sp
++        tst.l   %d0
++        bne.s   8f                                | long hold: stock, arm untouched
++        pea     VIEW_POPUP(%a2)
++        jsr     weak_ptr_expired                  | 1 = no popup open to close
++        addq.l  #4,%sp
++        tst.b   %d0
++        sne     %d0
++        moveq   #1,%d1
++        and.l   %d1,%d0                           | 0 or 1, as the base stores it
++        move.b  %d0,page_cycle_arm
++8:      move.l  %d2,-(%sp)                        | displaced
++        lea     ev_is_down,%a3                    | displaced (lea 0x400706f0,%a3)
++        jmp     samp_key_resume
++
++        | ------------------------------------------------------------------
++        | pad_on_gate: UI-loop case 3 (a pad's note-on message), 0x400a1ee2.
++        | Live: a2 = the message (+4 pad id, +8 velocity, +12 time), d2 = the
++        | NoteEvent buffer, the stack clean; d0/d1/a0/a1/d3 are free (the
++        | re-emitted moveq sets d3, the jsr after the rejoin clobbers the rest).
++        | Kept: d2, d4-d7, a2-a6.
++        | ------------------------------------------------------------------
++        .align  2
++pad_on_gate:
++        tst.b   chop_on
++        beq.s   8f
++        move.l  4(%a2),%d0                        | k
++        moveq   #PADS-1,%d1
++        cmp.l   %d1,%d0
++        bhi.s   8f                                | unsigned: k > 11 (or -1) is stock
++        move.b  %d0,chop_pad
++        lea     chop_marks,%a0
++        moveq   #0,%d1
++        move.b  0(%a0,%d0.l),%d1                  | V = marker k
++        moveq   #0,%d0
++        move.b  chop_track,%d0                    | T
++        bsr.w   chop_set_sta
++        moveq   #0,%d0
++        move.b  chop_track,%d0
++        move.l  %d0,4(%a2)                        | the hit now names the chop track
++8:      pea     0x80                              | displaced
++        moveq   #126,%d3                          | displaced
++        jmp     ui_pad_on_resume
++
++        | ------------------------------------------------------------------
++        | pad_off_gate: UI-loop case 4 (a pad's note-off message), 0x400a1f26,
++        | 10 bytes displaced. The same rewrite as pad_on_gate, nothing else. The
++        | re-emitted pea stays pushed: stock's own `lea %sp@(36)` at 0x400a1f56
++        | pops it, as it does in stock.
++        | ------------------------------------------------------------------
++        .align  2
++pad_off_gate:
++        tst.b   chop_on
++        beq.s   8f
++        move.l  4(%a2),%d0
++        moveq   #PADS-1,%d1
++        cmp.l   %d1,%d0
++        bhi.s   8f
++        moveq   #0,%d0
++        move.b  chop_track,%d0
++        move.l  %d0,4(%a2)
++8:      pea     0x80                              | displaced
++        jsr     is_key_held                       | displaced
++        jmp     ui_pad_off_resume
++
++        | ------------------------------------------------------------------
++        | lock_gate: the page view's held-trig / lock-source knob path (vtable
++        | slot 0x7c, 0x40038336), which the encoder handler calls INSTEAD of
++        | param_apply_delta when a trig is held (0x4003a024). For ids 3..5 it
++        | returns 0 - what stock returns when slot 0x6c says the id cannot be
++        | locked - so a CHOP knob never writes a p-lock. Every other id: stock.
++        | Entered by a jmp at the entry: (%sp) return, 4 view, 8 id, 12 delta.
++        | ------------------------------------------------------------------
++        .align  2
++lock_gate:
++        move.l  8(%sp),%d0
++        subq.l  #ID_PAD,%d0
++        moveq   #2,%d1
++        cmp.l   %d1,%d0
++        bhi.s   9f
++        moveq   #0,%d0
++        rts
++9:      lea     -48(%sp),%sp                      | displaced
++        movem.l %d2-%d7/%a2-%a3,(%sp)             | displaced
++        jmp     lock_delta_body
++
++        | ------------------------------------------------------------------
++        | chop_set_sta(d0 = track T, d1 = marker V 0..120): what a STA knob turn
++        | ends in, for track T: set = kit_track_param_set(project_kit(project), T),
++        | then param_set_value(set, 43, V << 8, T, 1 record, 1 notify) - the same
++        | call stock makes at 0x4008ba12..0x4008ba54 (with id 0x29 there). T > 11
++        | returns without writing: 0x400a39fa maps 12 and up to the FX set.
++        | UI task only. Clobbers d0/d1/a0/a1, keeps everything else.
++        | ------------------------------------------------------------------
++        .align  2
++chop_set_sta:
++        cmpi.l  #PADS-1,%d0
++        bhi.s   9f
++        lea     -8(%sp),%sp
++        movem.l %d2-%d3,(%sp)
++        move.l  %d0,%d2                           | T
++        move.l  %d1,%d3                           | V
++        jsr     project_singleton
++        move.l  %d0,-(%sp)
++        jsr     project_kit                       | project + 232, the active kit
++        addq.l  #4,%sp
++        move.l  %d2,-(%sp)                        | T
++        move.l  %d0,-(%sp)                        | kit
++        jsr     kit_track_param_set               | d0 = track T's SoundParameterSet
++        addq.l  #8,%sp
++        pea     1                                 | notify
++        pea     1                                 | record: a p-lock under live REC
++        move.l  %d2,-(%sp)                        | T
++        lsl.l   #8,%d3
++        move.l  %d3,-(%sp)                        | V, 8.8
++        pea     PARAM_ID_STA                      | 43
++        move.l  %d0,-(%sp)                        | set
++        jsr     param_set_value
++        lea     24(%sp),%sp
++        movem.l (%sp),%d2-%d3
++        lea     8(%sp),%sp
++9:      rts
++
++        | ------------------------------------------------------------------
++        | chop_value(d0 = 0 PAD, 1 STA, 2 CHP) -> d0 = what the knob shows.
++        | Clobbers d0/d1/a0.
++        | ------------------------------------------------------------------
++        .align  2
++chop_value:
++        tst.l   %d0
++        bne.s   1f
++        moveq   #0,%d0
++        move.b  chop_pad,%d0
++        addq.l  #1,%d0                            | 1..12
++        rts
++1:      subq.l  #1,%d0
++        bne.s   2f
++        moveq   #0,%d1
++        move.b  chop_pad,%d1
++        lea     chop_marks,%a0
++        move.b  0(%a0,%d1.l),%d0                  | 0..120 (d0 is 0 here)
++        rts
++2:      moveq   #0,%d0
++        move.b  chop_on,%d0                       | 0/1
++        rts
++
++        | clamp(d0, d1 = max) -> d0 in 0..max. Clobbers nothing else.
++        .align  2
++clamp:  tst.l   %d0
++        bpl.s   1f
++        clr.l   %d0
++1:      cmp.l   %d1,%d0
++        ble.s   2f
++        move.l  %d1,%d0
++2:      rts
++
++        | put_u3(d0 = 0..999, a1 = out) - decimal, no leading zeros. Clobbers
++        | d0/d1, advances a1. 0008's helper verbatim.
++        .align  2
++put_u3:
++        move.l  %d2,-(%sp)
++        moveq   #0,%d2                            | a digit has been printed
++        divu.w  #100,%d0
++        mvzw    %d0,%d1                           | hundreds
++        beq.s   1f
++        add.l   #0x30,%d1
++        move.b  %d1,(%a1)+
++        moveq   #1,%d2
++1:      clr.w   %d0
++        swap    %d0
++        divu.w  #10,%d0
++        mvzw    %d0,%d1                           | tens
++        tst.l   %d2
++        bne.s   2f
++        tst.l   %d1
++        beq.s   3f
++2:      add.l   #0x30,%d1
++        move.b  %d1,(%a1)+
++3:      swap    %d0
++        mvzw    %d0,%d1                           | units
++        add.l   #0x30,%d1
++        move.b  %d1,(%a1)+
++        move.l  (%sp)+,%d2
++        rts
++
++        | ------------------------------------------------------------------
++        | Data
++        | ------------------------------------------------------------------
++        .align  2
++chop_pages:                                       | the SAMP view's pages
++        .long   PAGE_SAMP, PAGE_CHOP
++
++page_chop:                                        | {name, top row, bottom row}
++        .long   str_page
++        .long   ID_PAD, ID_STA, ID_CHP, 0
++        .long   0, 0, 0, 0
++
++        | One label, two uses: the page's name and the parameters' group name.
++str_page:
++str_group:      .asciz  "CHOP"
++str_pad_l:      .asciz  "Chop Pad"
++str_sta_l:      .asciz  "Pad Start"
++str_chp_l:      .asciz  "Chop Mode"
++str_pad:        .asciz  "PAD"
++str_sta:        .asciz  "STA"
++str_chp:        .asciz  "CHP"
++
++        | ------------------------------------------------------------------
++        | Run-time state, RAM only, after every entry point (build.py refuses an
++        | odd entry). The image bytes are the power-on defaults; nothing is saved.
++        | ------------------------------------------------------------------
++        .align  4
++chop_state:
++chop_on:        .byte   0                         | CHOP mode
++chop_track:     .byte   0                         | the chop track, 0..11
++chop_pad:       .byte   0                         | the marker PAD/STA edit, 0..11
++chop_rsv:       .byte   0
++chop_marks:     .byte   0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110
+diff --git a/re/ghidra/scripts/ApplySymbols.java b/re/ghidra/scripts/ApplySymbols.java
+index c66c7df..4f20c1d 100644
+--- a/re/ghidra/scripts/ApplySymbols.java
++++ b/re/ghidra/scripts/ApplySymbols.java
+@@ -31,11 +31,16 @@ public class ApplySymbols extends GhidraScript {
+         name(0x400376eaL, "param_apply_delta_track", false);
+         name(0x400381a0L, "page_get_value", true);
+         name(0x400381a8L, "page_get_value_body", false);
++        name(0x40038336L, "view_lock_delta", false);
++        name(0x4003833eL, "lock_delta_body", false);
+         name(0x40039ae0L, "list_same_resume", false);
+         name(0x40039b48L, "list_new_resume", false);
+         name(0x4003a3d4L, "knob_cidx_resume", false);
+         name(0x4004a578L, "dest_list_build_resume", false);
+         name(0x4006e1caL, "bitmap_ctor", true);
++        name(0x400706c0L, "ev_bit4", true);
++        name(0x400706f0L, "ev_is_down", true);
++        name(0x400706fcL, "ev_is_held", true);
+         name(0x40076c14L, "view_invalidate", true);
+         name(0x4008022eL, "is_key_held", true);
+         name(0x400989d0L, "trig_fire", true);
+@@ -44,6 +49,11 @@ public class ApplySymbols extends GhidraScript {
+         name(0x40098fbaL, "trig_fire_vel_resume", false);
+         name(0x4009901cL, "trig_fire_cfg_resume", false);
+         name(0x4009c7a4L, "lfo_block", true);
++        name(0x400a1ee2L, "ui_pad_on", false);
++        name(0x400a1ee8L, "ui_pad_on_resume", false);
++        name(0x400a1f26L, "ui_pad_off", false);
++        name(0x400a1f30L, "ui_pad_off_resume", false);
++        name(0x400a39faL, "kit_track_param_set", true);
+         name(0x400a3d08L, "kit_track_sound", true);
+         name(0x400a5884L, "param_knob_draw_body", false);
+         name(0x400a58f8L, "param_value_text", true);
+@@ -54,9 +64,11 @@ public class ApplySymbols extends GhidraScript {
+         name(0x400a5b64L, "getbyid_boolop_jsr", false);
+         name(0x400a611aL, "param_set_read_body", false);
+         name(0x400a62b4L, "param_short_name_body", false);
++        name(0x400a6316L, "param_set_value", true);
+         name(0x400a631eL, "param_set_value_body", false);
+         name(0x400a6fc0L, "setbyid_boolop_jsr", false);
+         name(0x400a752aL, "dest_list_build", true);
++        name(0x400ab706L, "project_kit", true);
+         name(0x400ac2e8L, "current_track_pattern", true);
+         name(0x400b3a04L, "track_index_of", true);
+         name(0x400bcdb4L, "vel_get_stock", true);
+@@ -71,10 +83,15 @@ public class ApplySymbols extends GhidraScript {
+         name(0x400bf4aaL, "trig_flags_set", true);
+         name(0x400c0ca2L, "euclid_bake", true);
+         name(0x400c0caaL, "euclid_bake_body", false);
++        name(0x400c7162L, "samp_view_page_count", false);
++        name(0x400c7168L, "samp_view_page_list", false);
+         name(0x400c71d2L, "filter_view_page_count", false);
+         name(0x400c71d8L, "filter_view_page_list", false);
+         name(0x400c727aL, "lfo_view_page_count", false);
+         name(0x400c7280L, "lfo_view_page_list", false);
++        name(0x400ce3f4L, "samp_key_to_base", false);
++        name(0x400ce4b8L, "samp_key_site", false);
++        name(0x400ce4c0L, "samp_key_resume", false);
+         name(0x400f859cL, "euclid_bool_op_format", true);
+         name(0x400f8634L, "boolop_icon_draw", true);
+         name(0x400f8718L, "param_info", true);
+@@ -90,6 +107,7 @@ public class ApplySymbols extends GhidraScript {
+         name(0x4013d9d8L, "param_text_format", true);
+         name(0x401556ccL, "project_singleton", true);
+         name(0x401737a2L, "sound_get", true);
++        name(0x40178ed8L, "weak_ptr_expired", true);
+         name(0x40186632L, "bitmap_set_make", true);
+         name(0x4018e004L, "PARAM_ROM", false);
+         name(0x401ae368L, "EUCLID_CHANGE_INFO", false);
+@@ -99,11 +117,12 @@ public class ApplySymbols extends GhidraScript {
+         name(0x40210b79L, "LBL_AND", false);
+         name(0x4022071eL, "LBL_XOR", false);
+         name(0x40254e2cL, "voice_owner", false);
++        name(0x40a07569L, "page_cycle_arm", false);
+         name(0x416a6aa4L, "PARAM_INFO_BASE", false);
+         name(0x416c6d90L, "boolop_icon_set", false);
+         name(0x416c70c0L, "project_instance", false);
+         name(0x800062c0L, "PARAMS_EFF", false);
+         name(0x8000a9e8L, "TRIG_FLAGS", false);
+-        println("applied 87 symbols");
++        println("applied 106 symbols");
+     }
+ }
+diff --git a/re/symbols.toml b/re/symbols.toml
+index f204dac..2250266 100644
+--- a/re/symbols.toml
++++ b/re/symbols.toml
+@@ -581,3 +581,108 @@ addr = 0x400c7280
+ mk2 = 0x400cb030
+ status = "verified"
+ evidence = "Operand of movel #0x401af514,%d0, the one-entry list {3}."
++
++# ==================================================================== 0001-chop
++# MK1-only entries for CHOP (no MKII counterpart was used). dis:N = line N of
++# /Users/creative/analog rytm firmware/build/mainos_1.73_emac.dis (objdump of
++# build/stock_mainos.bin at base 0x40000400); RE lanes of corp round r2, 2026-10-05.
++
++[fn.project_kit]
++addr = 0x400ab706
++status = "verified"
++evidence = "(project) -> project + 232, the active kit: dis:220420-220422 'movel %sp@(4),%d0 / addil #232,%d0 / rts'. The view base ctor stores its result at view+120 (dis:74628-74633) and the explicit-track STA-style writer 0x4008ba12 calls it right after project_singleton (dis:180147-180150). Not 0000-shared's PROJ_KIT = 352."
++
++[fn.kit_track_param_set]
++addr = 0x400a39fa
++status = "verified"
++evidence = "(kit, T) -> track T's SoundParameterSet = kit + 4320 + 28*T for T 0..11, kit + 4724 (the FX set) for T >= 12: dis:209892-209911 'moveq #12,%d2 / ... lsll #2 / lsll #5 / subl / addil #4320 / ... addil #4724'. Stock precedent dis:180147-180167: project_singleton, project_kit, guard T <= 11, kit_track_param_set, param_set_value(set, 0x29, v<<8, T, 1, 1). Saves d2, clobbers d0/d1."
++
++[fn.param_set_value]
++addr = 0x400a6316
++status = "verified"
++evidence = "Entry of param_set_value(set, id, value 8.8, track, record, notify) (body = param_set_value_body 0x400a631e): dis:213384-213391 'lea %sp@(-40),%sp / moveml %d2-%d7/%a2,%sp@ / movel %sp@(48),%d2 / moveal %sp@(44),%a2 / movel %sp@(52),%d4 / movel %sp@(56),%d6 / movel %sp@(60),%d7 / moveb %sp@(67),%d5'. A STA knob turn branches here with record = notify = 1 (dis:213877-213897 braw 0x400a6316); record = 1 makes the live-REC p-lock in the set's slot 0x30 (0x400ac968)."
++
++[const.PARAM_ID_STA]
++value = 43
++status = "verified"
++evidence = "PARAM_ROM record 43 (0x4018e8c0): type 0x36 (sound), container index 0x15, max 0x7800, names Start / Sample / STA (python read of stock_mainos.bin); bottom-left knob of the SAMP page descriptor (page 4 = [39,40,42,41,43,44,45,46])."
++
++[data.ui_pad_on]
++addr = 0x400a1ee2
++status = "verified"
++evidence = "UI-loop case 3, a pad note-on message (jump table entry 3 at 0x400a1e68 = 0x0080 -> 0x400a1ee2; dispatch dis:207717-207727): dis:207767-207768 '4878 0080 pea 0x80 / 767e moveq #126,%d3', then is_key_held, msg+4 (pad) and min(msg+8,127) into the NoteEvent ctor 0x400746e6 and the view dispatch 0x4009e350 (dis:207769-207785). No branch or table entry targets 0x400a1ee3..0x400a1ee7 (grep + python scan of the 40 entries)."
++
++[data.ui_pad_on_resume]
++addr = 0x400a1ee8
++status = "verified"
++evidence = "dis:207769 'jsr 0x4008022e' (is_key_held), right after the 6 bytes at ui_pad_on."
++
++[data.ui_pad_off]
++addr = 0x400a1f26
++status = "verified"
++evidence = "UI-loop case 4, a pad note-off message (jump table entry 4 at 0x400a1e6a = 0x00c4 -> 0x400a1f26): dis:207788-207789 '4878 0080 pea 0x80 / 4eb9 4008 022e jsr 0x4008022e' - no 6-byte boundary, the first clean one is 10 bytes in. The 0x80 stays pushed until 'lea %sp@(36),%sp' (dis:207801). No branch or table entry targets 0x400a1f27..0x400a1f2f."
++
++[data.ui_pad_off_resume]
++addr = 0x400a1f30
++status = "verified"
++evidence = "dis:207790 'clrl %sp@-', the first NoteEvent ctor argument, right after ui_pad_off's 10 bytes."
++
++[data.samp_view_page_count]
++addr = 0x400c7162
++status = "verified"
++evidence = "moveq #1,%d1 (7201) before movel #0x401af520,%d0 = {4} and the SAMP view ctor 0x400cdd30 with key 0x32 (dis:258531-258545): the SAMPLE twin of filter_view_page_count."
++
++[data.samp_view_page_list]
++addr = 0x400c7168
++status = "verified"
++evidence = "Operand of movel #0x401af520,%d0 at 0x400c7166 (dis:258533 '203c 401a f520'); 0x401af520 holds 4 (python)."
++
++[data.samp_key_site]
++addr = 0x400ce4b8
++status = "verified"
++evidence = "In the SAMP view key handler 0x400ce2c4 (vtable 0x401b0a84 slot 8), the code-50 (SAMPLE) path after the bit1 test (-> base) and the bit2 test: dis:267535 'beqs 0x400ce4b8' (the only reference) / dis:267541-267542 '2f02 movel %d2,%sp@- / 47f9 4007 06f0 lea 0x400706f0,%a3'. Live: d2 = event, a2 = view, stack clean. A plain press or release returns from here without calling the base handler (dis:267544-267582)."
++
++[data.samp_key_resume]
++addr = 0x400ce4c0
++status = "verified"
++evidence = "dis:267543 'jsr %a3@' (ev_is_down) right after the 8 bytes at samp_key_site."
++
++[data.samp_key_to_base]
++addr = 0x400ce3f4
++status = "verified"
++evidence = "SAMP handler tail that calls the base key handler and returns its result: dis:267485-267490 'movel %d2,%sp@- / movel %a2,%sp@- / jsr 0x4003a320 / addql #8,%sp / moveb %d0,%d3 / braw 0x400ce548' (epilogue dis:267589-267592). Expects d2 = event, a2 = view, the stack as at samp_key_site."
++
++[data.page_cycle_arm]
++addr = 0x40a07569
++status = "verified"
++evidence = "The base key handler's page-cycle arm byte (.bss): written only at dis:76000 '4003a8e4 moveb %d0,0x40a07569' (= (code == view+136), seq/negl -> 0 or 1, on a press with no hold and no bit1) and read only at dis:75780 '4003a610 tstb 0x40a07569' (release; then code == +136, bit4, no hold, no bit1, +496 == 0 -> +140 = (+140+1) mod count, view_invalidate, vtable+80: dis:76015-76050). Two references in the whole image."
++
++[fn.ev_is_down]
++addr = 0x400706f0
++status = "verified"
++evidence = "(event) -> event+16 bit 0: dis:145462-145465 'moveal %sp@(4),%a0 / moveq #1,%d0 / andl %a0@(16),%d0 / rts'. Clobbers d0/a0."
++
++[fn.ev_is_held]
++addr = 0x400706fc
++status = "verified"
++evidence = "(event) -> event+16 bit 3 (a long hold): dis:145466-145471 'moveal %sp@(4),%a0 / moveq #1,%d1 / movel %a0@(16),%d0 / lsrl #3,%d0 / andl %d1,%d0 / rts'. Clobbers d0/d1/a0."
++
++[fn.ev_bit4]
++addr = 0x400706c0
++status = "verified"
++evidence = "(event) -> event+16 bit 4, the bit the base handler's page cycle requires on the release (dis:76016 jsr 0x400706c0): dis:145444-145449 'moveal %sp@(4),%a0 / moveq #1,%d1 / movel %a0@(16),%d0 / lsrl #4,%d0 / andl %d1,%d0 / rts'. Meaning beyond that UNKNOWN."
++
++[fn.weak_ptr_expired]
++addr = 0x40178ed8
++status = "verified"
++evidence = "(weak_ptr*) -> 1 when the control block (+4) is null or its use count (+4) is 0, else 0: dis:476097-476105 'moveal %sp@(4),%a0 / moveal %a0@(4),%a0 / tstl %a0 / beqs / movel %a0@(4),%d0 / ... tstl %d0 / seq %d0 / negl %d0 / rts'. The SAMP handler calls it on view+512 and closes the popup only when it returns 0 (dis:267563-267577)."
++
++[data.view_lock_delta]
++addr = 0x40038336
++status = "verified"
++evidence = "Page-view vtable slot 0x7c (base 0x4019a7ac+0x7c and SAMP 0x401b0a84+0x7c both hold it; 7 vtable words point here, no jsr, nothing points into +2..+7): the knob delta on a held trig / lock source, called only from the encoder handler at dis:75341-75347 instead of slot 0x58 (param_apply_delta) when 0x40036512 or 0x400366a2 says so (dis:75274-75281). Frame: (%sp) return, 4 view, 8 id, 12 delta. It first asks slot 0x6c whether the id may be locked and returns d0.b = 0 if not (dis:73011-73018, epilogue dis:73154-73157); the caller ignores d0 (dis:75346-75347 'lea %sp@(12),%sp / braw 0x40039f8e')."
++
++[data.lock_delta_body]
++addr = 0x4003833e
++status = "verified"
++evidence = "dis:73008 'moveal %sp@(52),%a3', right after view_lock_delta's 'lea %sp@(-48),%sp / moveml %d2-%d7/%a2-%a3,%sp@' (4fef ffd0 48d7 0cfc)."
+diff --git a/registry/allocations.toml b/registry/allocations.toml
+index 4912597..87b6106 100644
+--- a/registry/allocations.toml
++++ b/registry/allocations.toml
+@@ -807,3 +807,220 @@ addr    = 0x4018e104
+ size    = 4
+ expect  = "401ff21d"       # id 4: short name, was "ERR"
+ from_symbol = "str_r2dep"
++
++
++# ------------------------------------------------------- 0001-chop
++#
++# The CHOP build's mod (`make chop`: 0000 0001 0002 0003). It excludes 0008 and
++# 0004: the same four page hosts and the same `cave` claim. Everything - code, page
++# data, strings and the 16 B of RAM state at the end - fits in `cave`; nothing in
++# cave3. Every expect below was re-read from build/stock_mainos.bin with python
++# (corp r2 builder, 2026-10-05). Receipts: mods/0001-chop/design.md.
++
++[[cave]]
++owner   = "0001-chop"
++addr    = 0x402a1b30
++size    = 0x4d0
++section = ".text"
++note    = "The page_info / get / delta / text gates, the SAMPLE key gate, the pad note-on and note-off gates, the held-trig lock gate, chop_set_sta, the SAMP view's page list and the CHOP descriptor, the strings, and the RAM state (chop_on, chop_track, chop_pad, a spare byte, twelve markers) after every entry point."
++
++# The SAMP view's page list: {4} becomes {4, 11}. Pressing SAMPLE again then
++# cycles to page 11 (with sample_key_gate below).
++[[patch]]
++owner   = "0001-chop"
++addr    = 0x400c7162
++size    = 2
++expect  = "7201"           # moveq #1,%d1 - page count
++replace = "7202"
++
++[[patch]]
++owner       = "0001-chop"
++addr        = 0x400c7168
++size        = 4
++expect      = "401af520"   # the one-entry list holding page 4
++from_symbol = "chop_pages"
++
++# page_info answers page 11 from the cave; every other id goes to stock.
++[[detour]]
++owner  = "0001-chop"
++addr   = 0x400f8736
++size   = 6
++expect = "720a202f0004"      # moveq #10,%d1; movel %sp@(4),%d0
++entry  = "page_info_gate"
++
++# The dials: page_get_value's entry, for ids 3..5.
++[[detour]]
++owner  = "0001-chop"
++addr   = 0x400381a0
++size   = 6
++expect = "4feffff448d7040c"
++entry  = "get_gate"
++
++# The knobs: param_apply_delta past its prologue, where 0003's gate rejoins. RAM only.
++[[detour]]
++owner  = "0001-chop"
++addr   = 0x400376e4
++size   = 6
++expect = "77832f2a0074"
++entry  = "delta_gate"
++
++# The popup text: param_value_text past its argument loads, where 0003's gate rejoins.
++[[detour]]
++owner  = "0001-chop"
++addr   = 0x400a5908
++size   = 6
++expect = "242f0020262f0024"
++entry  = "text_gate"
++
++# The SAMP view's own key handler never hands a plain SAMPLE press or release to the
++# base handler, so its page cycle never runs. Displaces movel %d2,%sp@- and
++# lea 0x400706f0,%a3 (8 bytes); rejoins at the jsr %a3@. Only reference: the beqs
++# at 0x400ce4a8, which lands on the jmp.
++[[detour]]
++owner  = "0001-chop"
++addr   = 0x400ce4b8
++size   = 6
++expect = "2f0247f9400706f0"
++entry  = "sample_key_gate"
++
++# UI-loop case 3, a pad note-on (jump-table entry 3): pea 0x80; moveq #126,%d3.
++[[detour]]
++owner  = "0001-chop"
++addr   = 0x400a1ee2
++size   = 6
++expect = "48780080767e"
++entry  = "pad_on_gate"
++
++# UI-loop case 4, a pad note-off (jump-table entry 4): pea 0x80; jsr is_key_held.
++# No 6-byte boundary, so 10 bytes are displaced and re-emitted and the stub rejoins
++# at 0x400a1f30; the 4 bytes after the jmp stay stock and are never executed.
++# layout.py checks detour overlap on `size` only: checked by hand that no claim
++# touches 0x400a1f26..0x400a1f2f and no branch or table entry lands inside it.
++[[detour]]
++owner  = "0001-chop"
++addr   = 0x400a1f26
++size   = 6
++expect = "487800804eb94008022e"
++entry  = "pad_off_gate"
++
++# The page view's held-trig / lock-source knob path (vtable slot 0x7c), which the
++# encoder handler calls instead of param_apply_delta while a trig is held: ids 3..5
++# return "not lockable", so a CHOP knob never writes a stock p-lock (0008 has no
++# such guard). lea %sp@(-48),%sp; moveml %d2-%d7/%a2-%a3,%sp@.
++[[detour]]
++owner  = "0001-chop"
++addr   = 0x40038336
++size   = 6
++expect = "4fefffd048d70cfc"
++entry  = "lock_gate"
++
++# Parameter ids 3, 4 and 5, dead Error records, become PAD, STA and CHP: container
++# index 0 and range 0..0x7f00 exactly as 0008 does for its ids (the knob handler's
++# step size depends on the ROM range, and 0x7f00 is the range every asr-8 gate here
++# was built on), and new names. CHOP keeps its values in RAM, never in the sound.
++
++[[patch]]
++owner   = "0001-chop"
++addr    = 0x4018e0a4
++size    = 4
++expect  = "ffffffff"       # id 3: container index
++replace = "00000000"
++
++[[patch]]
++owner   = "0001-chop"
++addr    = 0x4018e0ac
++size    = 4
++expect  = "00000000"       # id 3: max
++replace = "00007f00"
++
++[[patch]]
++owner       = "0001-chop"
++addr        = 0x4018e0c8
++size        = 4
++expect      = "40208914"   # id 3: long name, was "Error"
++from_symbol = "str_pad_l"
++
++[[patch]]
++owner       = "0001-chop"
++addr        = 0x4018e0cc
++size        = 4
++expect      = "40208b80"   # id 3: group name, was ""
++from_symbol = "str_group"
++
++[[patch]]
++owner       = "0001-chop"
++addr        = 0x4018e0d0
++size        = 4
++expect      = "401ff21d"   # id 3: short name, was "ERR"
++from_symbol = "str_pad"
++
++[[patch]]
++owner   = "0001-chop"
++addr    = 0x4018e0d8
++size    = 4
++expect  = "ffffffff"       # id 4: container index
++replace = "00000000"
++
++[[patch]]
++owner   = "0001-chop"
++addr    = 0x4018e0e0
++size    = 4
++expect  = "00000000"       # id 4: max
++replace = "00007f00"
++
++[[patch]]
++owner       = "0001-chop"
++addr        = 0x4018e0fc
++size        = 4
++expect      = "40208914"   # id 4: long name, was "Error"
++from_symbol = "str_sta_l"
++
++[[patch]]
++owner       = "0001-chop"
++addr        = 0x4018e100
++size        = 4
++expect      = "40208b80"   # id 4: group name, was ""
++from_symbol = "str_group"
++
++[[patch]]
++owner       = "0001-chop"
++addr        = 0x4018e104
++size        = 4
++expect      = "401ff21d"   # id 4: short name, was "ERR"
++from_symbol = "str_sta"
++
++[[patch]]
++owner   = "0001-chop"
++addr    = 0x4018e10c
++size    = 4
++expect  = "ffffffff"       # id 5: container index
++replace = "00000000"
++
++[[patch]]
++owner   = "0001-chop"
++addr    = 0x4018e114
++size    = 4
++expect  = "00000000"       # id 5: max
++replace = "00007f00"
++
++[[patch]]
++owner       = "0001-chop"
++addr        = 0x4018e130
++size        = 4
++expect      = "40208914"   # id 5: long name, was "Error"
++from_symbol = "str_chp_l"
++
++[[patch]]
++owner       = "0001-chop"
++addr        = 0x4018e134
++size        = 4
++expect      = "40208b80"   # id 5: group name, was ""
++from_symbol = "str_group"
++
++[[patch]]
++owner       = "0001-chop"
++addr        = 0x4018e138
++size        = 4
++expect      = "401ff21d"   # id 5: short name, was "ERR"
++from_symbol = "str_chp"
++
+-- 
+2.47.1
+
+
+From ed4096658dffa7ab796838db092f6ce66e025dc1 Mon Sep 17 00:00:00 2001
+From: jaytriana <83611075+jaytriana@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 18:38:11 -0400
+Subject: [PATCH 2/4] 0001 CHOP: keep the sample list open on a SAMPLE
+ double-tap; document the double-tap, note-off routing and first-flash order
+
+A quick second SAMPLE press is stock's double-tap (bit2) and opens the sample
+list without reaching sample_key_gate, but the arm byte from the first press was
+still set at its release, so that release cycled the page back and the title
+call closed the list. The release path now hands the event to the base cycle
+only when no list popup is open (weak_ptr_expired(view+512)); otherwise stock.
+
+Docs only otherwise: CHOP is reached by press, pause, press (a quick double-tap
+stays stock's sample-list shortcut); turning CHP while a pad is held can send
+that pad's note-off to another track (D8 as written; KeyboardView ignores
+note-offs); a "Before you flash" block with the control -> chop-min -> chop
+order, the recovery route and the verified .syx hashes; the new built addresses
+(stub 872 -> 888 B).
+
+make chop, chop-min, control, random and the default make all PASS in the guest;
+the default .syx is byte-identical to before.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ mods/0001-chop/design.md | 151 +++++++++++++++++++++++++++++++++------
+ mods/0001-chop/mod.toml  |  10 +--
+ mods/0001-chop/stub.s    |  32 +++++++--
+ 3 files changed, 159 insertions(+), 34 deletions(-)
+
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+index 7557bae..7f7dc08 100644
+--- a/mods/0001-chop/design.md
++++ b/mods/0001-chop/design.md
+@@ -1,7 +1,8 @@
+ # 0001 CHOP - design
+ 
+ Status: **built** (`make chop` and `make chop-min` PASS verify in the guest VM,
+-2026-10-05). **Never run on hardware.** Local only: this tree has no license and is
++2026-10-05; `make control`, `make random` and the default `make` re-run the same day, all
++PASS). **Never run on hardware.** Local only: this tree has no license and is
+ never pushed or published. Nothing here flashes a device; the founder flashes.
+ 
+ Line references `dis:N` are lines of
+@@ -12,7 +13,13 @@ Line references `dis:N` are lines of
+ 
+ ## What it does
+ 
+-Press **SAMPLE** a second time on the SAMPLE page: the **CHOP** page (page id 11).
++The **CHOP** page (page id 11) is the SAMPLE view's second page. SAMPLE from another
++screen opens the SAMPLE view; there, each press of SAMPLE switches SAMP <-> CHOP (the
++page changes on the release). **Press, let go, pause, press again** - not a quick
++double-tap: a second press of SAMPLE inside stock's double-tap window is stock 1.73's
++sample-list shortcut and stays stock (below, "The SAMPLE key"). The window is 64
++key-timer ticks, 2.7 times the delay before a held key counts as held (24 ticks); its
++length in seconds is UNKNOWN (H3).
+ 
+ | knob | id | shows | turning it |
+ |---|---|---|---|
+@@ -35,8 +42,11 @@ While CHOP is on, a hit on pad k (k = 0..11):
+    on into stock. KeyboardView then plays (and live-records) the chop track exactly as
+    a hit on its own pad: no hand-built fire call, and no track switch away from it.
+ 
+-Note-offs get the same id rewrite. With CHOP off, or a pad id outside 0..11, every
+-hook is the stock path byte for byte.
++Note-offs get the same id rewrite, decided at the release by `chop_on` and `chop_track`
++as they are then (D8), so turning CHP while a pad is held - off, on, or on again with
++another track selected - can send that pad's note-off to a different track than its
++note-on (below, "The pads"; H4). With CHOP off, or a pad id outside 0..11, every hook is
++the stock path byte for byte.
+ 
+ CHOP mode is the RAM flag `chop_on`, not "the CHOP page is on screen" (D6): leaving the
+ page does not end CHOP; CHP OFF or a power cycle does. Nothing is saved: markers, the
+@@ -63,7 +73,15 @@ make chop-min   # 0000-shared 0001-chop (bisection) -> build/AR1_OS1.73_0000_000
+ Both run `symbols layout` first, then `build.py --mods ... --tag ...`, then
+ `verify.py --tag ...` (modelled on `random`). Builds run only in the guest VM.
+ 0001 is `enabled = false`, so the default `make` is unchanged (0000 0002 0003 0008;
+-rebuilt after this change: byte-identical .syx, PASS).
++rebuilt after this change: byte-identical .syx, PASS). `make control` (no mods: 0
++differing regions) and `make random` (0000 0002 0003 0004) PASS as well.
++
++verify.py's claim check credits a changed byte to the first registry claim that covers
++it, whatever its owner, so its log can name 0008 or 0004 claims for CHOP bytes; and it
++does not test the .syx packet / content / stream checksums (the vendored tool's extract
++ignores its own verdict). Both were checked separately for these builds (in-build claims
++only: every changed byte covered; all .syx gates ok, ELE2 header equal to stock); making
++verify.py do it is a separate tools change.
+ 
+ **The CHOP image has no SMP CUT (0008) and no LFO RND (0004).** CHOP detours the same
+ four page hosts (0x400f8736, 0x400381a0, 0x400376e4, 0x400a5908), which build.py
+@@ -80,17 +98,17 @@ and `0001-chop` never meet: layout reports `layout ok`, and `make chop` builds w
+ ## Placement
+ 
+ One claim, `cave` 0x402a1b30 + 0x4d0 (the pool 0008 and 0004 use), section `.text`;
+-the stub is 872 B. Code, the page list and descriptor, the strings and the 16 B of RAM
++the stub is 888 B. Code, the page list and descriptor, the strings and the 16 B of RAM
+ state all fit there; nothing goes in cave3 (whose `.tab` neighbour is unexplained, F15).
+ The state sits at the end, after every entry point (build.py refuses an odd entry):
+ 
+ | label | addr (built) | default |
+ |---|---|---|
+-| `chop_on` | 0x402a1e88 | 0 |
+-| `chop_track` | 0x402a1e89 | 0 |
+-| `chop_pad` | 0x402a1e8a | 0 |
+-| `chop_rsv` | 0x402a1e8b | 0 |
+-| `chop_marks[12]` | 0x402a1e8c | 0, 10, 20 ... 110 |
++| `chop_on` | 0x402a1e98 | 0 |
++| `chop_track` | 0x402a1e99 | 0 |
++| `chop_pad` | 0x402a1e9a | 0 |
++| `chop_rsv` | 0x402a1e9b | 0 |
++| `chop_marks[12]` | 0x402a1e9c | 0, 10, 20 ... 110 |
+ 
+ Every field is a byte, so every store is one instruction. Nothing is written in the
+ embedded bootstrap [0x4028c708, 0x402a1b24): verify reports it unchanged.
+@@ -148,7 +166,9 @@ enters 0x400ce4b9..0x400ce4bf: the only reference is `beqs 0x400ce4b8`).
+   i.e. 1 exactly when the press does not close the sample-list popup; then stock. The
+   base arms the same byte with the same 0/1 (seq/negl, dis:75997-76000).
+ - **Release:** if the arm byte is set, bit4 is set (ev_bit4), there is no long hold
+-  (ev_is_held) and view+136 == 50, then every condition of the base's cycle branch holds
++  (ev_is_held), view+136 == 50 and no sample-list popup is open
++  (`weak_ptr_expired(view+512)` = 1; an open popup is stock: no cycle, see the double-tap
++  below), then every condition of the base's cycle branch holds
+   (dis:75780-75786 arm and code == +136; dis:76015-76031 bit4, no hold, no bit1,
+   +496 == 0), so the event goes to the base through the SAMP handler's own tail
+   0x400ce3f4 (`base(view, event)`, result -> d3, epilogue; dis:267485-267490). The base
+@@ -156,6 +176,32 @@ enters 0x400ce4b9..0x400ce4bf: the only reference is `beqs 0x400ce4b8`).
+   (title) (dis:76032-76050) and returns. Otherwise: stock.
+ - **Anything else** (long hold, bit-1/bit-2 events, other keys): stock, arm untouched.
+ 
++**The double-tap (stock, kept).** The key scanner marks a press bit2 when it is the same
++key as the last press and comes less than [0x40249d84] = 0x40 = 64 key-timer ticks after
++it (0x400803da `cmpl 0x40249d94,%d4`; 0x400803e2-0x400803ee `now - last < 0x40249d84`;
++0x400803fa `moveq #5` = down | bit2). The first held-key event comes [0x40249d80] = 0x18
++= 24 ticks after a press (0x40080422-0x40080428). Both words were read from
++`build/stock_mainos.bin`. MainScreenView switches screen on a press of keys 48..53
++(0x400c8b2e-0x400c8b44) without consuming the event (no call to 0x40070648 or
++0x4007066c, the two routines that reset the last-key word through 0x40080334), so a
++quick second SAMPLE press after the press that opened the SAMPLE view is bit2 too. The
++SAMP handler sends a bit2 SAMPLE press to the sample-list popup routine 0x400cdf62(view,
++-1) and returns 1 (0x400ce49c-0x400ce4b6); `sample_key_gate` at 0x400ce4b8 never sees
++it. So:
++
++- From another screen, SAMPLE twice quickly = the SAMPLE view with the sample list open
++  (stock). CHOP needs a press after the window has passed.
++- On the SAMPLE view, a quick double-tap: the first press arms, its release switches the
++  page, and the second (bit2) press opens the sample list. The arm byte from the first
++  press is still set at the second release (only the gate and the base's press path
++  write it: dis:76000 and the gate). Without the popup test that release switched the
++  page back and the base's title call vtable+80 = 0x400cdede closed the open list
++  (0x400cdef2-0x400cdf14). With it, the list stays open, on top of whichever page the
++  first release switched to. Stock leaves the list open too (on SAMP, its only page).
++- Residual: 0x400cdf62 can return without opening a list (0x400cdfda, 0x400ce036 and
++  0x400ce048 exit early on held-trig / lock-source states). A quick double-tap there
++  switches the page twice (back where it started); stock does nothing.
++
+ Because the gate checks every condition the base checks before handing over, the base
+ can only take the cycle branch; it never reaches its default handler 0x40076ace from
+ here. Premise not proven on MK1: that a SAMPLE release carries bit4 - the same premise
+@@ -181,6 +227,19 @@ message into a2 and switches on its first byte through the jump table at 0x400a1
+   after the jmp stay stock and are never executed. The pushed 0x80 stays on the stack
+   until stock's own `lea %sp@(36),%sp` at 0x400a1f56, exactly as in stock. `pad_off_gate`
+   rewrites msg+4 := chop_track under the same test and changes nothing else.
++- Note-on and note-off are decided separately, each from `chop_on` / `chop_track` at
++  that moment (D7, D8); nothing records where a held pad's note-on went. Hold pad 5 with
++  CHOP on for track 2 (note-on as 2), turn CHP left, let go (note-off as 5): track 2
++  gets no note-off and track 5 gets one with no note-on. The same happens when CHP is
++  turned on, or on again with another track selected, while a pad is held. When the
++  held pad is the chop track's own pad, both ids match anyway. In the normal pad mode the
++  consumer is KeyboardView::consumeNoteEvent (0x400c4628), which ignores note-offs: it
++  tests note-on (0x400c472a `jsr 0x40074748`, NoteEvent+16 == 1) and on a note-off goes
++  to 0x400c4732 `beqw 0x400c48c0` -> `moveq #1` (consumed, nothing played or stopped). So
++  a mismatched note-off should do nothing in that mode. What other NoteEvent consumers
++  (other pad modes, views ahead of KeyboardView in the dispatch) do with an unpaired or
++  missing note-off is UNKNOWN (H4). Pairing note-offs with their note-ons ("rewrite the
++  note-off when its note-on was rewritten") would need a change to D8.
+ - The table at 0x40249d98 maps nibble 12 to pad id -1 (sk-pads); the unsigned test sends it (and
+   anything above 11) down the stock path.
+ - Registers: d2 (the NoteEvent buffer), d4-d7 and a2-a6 are kept (callees are C and
+@@ -217,20 +276,54 @@ eleven descriptors), so every other id goes down the stock path unchanged.
+ 
+ - each of the 8 hosts holds `4ef9 <entry>` and the entry is the right stub label
+   (page_info_gate 0x402a1b30, get_gate 0x402a1b4c, delta_gate 0x402a1b6e, text_gate
+-  0x402a1c0c, sample_key_gate 0x402a1c60, pad_on_gate 0x402a1cd6, pad_off_gate
+-  0x402a1d16, lock_gate 0x402a1d40); the bytes after each jmp up to the rejoin are stock;
++  0x402a1c0c, sample_key_gate 0x402a1c60, pad_on_gate 0x402a1ce6, pad_off_gate
++  0x402a1d26, lock_gate 0x402a1d50), in both images; the bytes after each jmp up to the
++  end of the expect span are stock;
++- sample_key_gate's release path holds the popup test at 0x402a1c9a-0x402a1ca8
++  (`pea %a2@(512); jsr 0x40178ed8; addql #4,%sp; tstb %d0; beqs 0x402a1cd8`, the stock
++  re-emit) right before `jmp 0x400ce3f4`; the pea is popped before either exit;
+ - in the stub, each displaced sequence appears exactly once, immediately followed by
+   `jmp <rejoin>`, byte-identical to stock;
+ - every handled path returns with `rts` from a balanced frame (0008's epilogues where
+   0008 has the gate; `moveq #0; rts` in lock_gate; chop_set_sta saves and restores d2/d3
+   in an 8-byte frame); every other path ends in the re-emit + rejoin; no path jumps
+   anywhere else except sample_key_gate's `jmp 0x400ce3f4` with the entry stack.
+-- the patches: 0x400c7162 `7202`, 0x400c7166 `movel #0x402a1e2e` (= chop_pages {4, 11}),
+-  the fifteen ROM fields pointing at the strings at 0x402a1e5a..0x402a1e87.
++- the patches: 0x400c7162 `7202`, 0x400c7166 `movel #0x402a1e3e` (= chop_pages {4, 11}),
++  the fifteen ROM fields pointing at the strings at 0x402a1e6a..0x402a1e97.
+ 
+ ## Hardware-only unknowns (the founder's test card)
+ 
+-Nothing below can be proven offline.
++Nothing below can be proven offline. Nothing from this pipeline has run on an MK1 yet.
++
++### Before you flash
++
++1. Back up your projects (Transfer can back up the +Drive).
++2. Keep at hand the stock file, `stock/Analog-Rytm_OS1.73.syx` (sha256
++   `9115c3888354bb388f90410e0445cd312bf020593ed99f768a99e475d1d6157c`, stock/SHA256SUMS),
++   and a DIN MIDI interface: the recovery route is DIN only.
++3. Flash one file at a time, in this order, and check that each boots and plays before
++   the next (normal route: docs/FLASHING.md, Transfer over USB):
++   1. `build/AR1_OS1.73_control.syx` - stock code, only repacked by our tool (`make
++      control`: PASS, 0 differing regions). Proves the packer on this unit.
++   2. `build/AR1_OS1.73_0000_0001.syx` - CHOP alone with the shared runtime (`make
++      chop-min`).
++   3. `build/AR1_OS1.73_0000_0001_0002_0003.syx` - the CHOP build (`make chop`).
++   The stage that fails names the suspect: control = the packer or the file format;
++   chop-min = CHOP (or 0000); chop only = 0002/0003 next to CHOP.
++4. **Do not power off during the first boot after a flash** (docs/HAZARDS.md: the MK1's
++   bootstrap upgrade runs from inside MAIN OS). The embedded bootstrap
++   [0x4028c708, 0x402a1b24) is byte-identical to stock in all three files (verify:
++   "embedded bootstrap image unchanged").
++5. If a stage does not boot: the recovery route in docs/FLASHING.md - hold `[FUNC]` while
++   powering on, `[TRIG 4]` OS UPGRADE, Transfer "LEGACY OS UPGRADE mode" over DIN with the
++   stock `.syx`.
++
++Files verified on 2026-10-05 (guest VM, PASS), sha256:
++`AR1_OS1.73_control.syx` 3407638c3f450daba0faedbddc0d4f08b154925a3ba162172346f51ef9ed6a8d,
++`AR1_OS1.73_0000_0001.syx` 5614a93e5455f6fdd7991b48c5603ce9b9febff1c94650e1e9b0b6fce9542f57,
++`AR1_OS1.73_0000_0001_0002_0003.syx` e19703af24629e384729714b8aa3f024b70cafc7446c448b388e0f82b6bf6de8.
++
++### The unknowns
+ 
+ - **H1** Does a pad hit play from the new STA on that same hit? (Voice latch timing: the
+   audio target word 0x80005116 + 0x54*T is written synchronously, but whether the voice
+@@ -238,12 +331,24 @@ Nothing below can be proven offline.
+   CC 28 then note, says yes for that path.)
+ - **H2** Under live REC, does the STA p-lock land on the same step as the pad's recorded
+   trig (quantize, late hits)? The lock goes on 0x40035208's current step for the track.
+-- **H3** Does the CHOP page draw and cycle correctly: SAMPLE -> SAMP, SAMPLE again ->
+-  CHOP, again -> SAMP; knob labels PAD/STA/CHP; values and popups; a long hold of SAMPLE
+-  and the sample-list popup behave as stock. (Needs the SAMPLE release to carry bit4.)
+-- **H4** No crash on repeated pad hits and note-offs, fast rolls, CHP toggled while pads
+-  are held, CHOP with the FX track selected (CHP must stay OFF), and pads in other pad
+-  modes while CHOP is on.
++- **H3** Does the CHOP page draw and cycle correctly: SAMPLE -> SAMP; press, let go,
++  pause, SAMPLE again -> CHOP; again (after a pause) -> SAMP; knob labels PAD/STA/CHP;
++  values and popups; a long hold of SAMPLE behaves as stock. (Needs the SAMPLE release
++  to carry bit4.) The double-tap, which is stock and kept:
++  (a) from another screen, SAMPLE twice quickly: the sample list opens (stock), no CHOP;
++  (b) on the SAMPLE view, SAMPLE twice quickly: the page switches once and the sample
++  list opens on top of it and stays open;
++  (c) with the list open, one press of SAMPLE after a pause closes it and does not
++  switch the page (a quick one is bit2 again and goes to the list routine, as in stock);
++  (d) how long the pause must be (the double-tap window, 64 key-timer ticks, in seconds);
++  (e) whether SAMPLE from another screen reopens the view on CHOP after you left it on
++  CHOP (the page index is kept in the view; no reset on entry was found for a normal
++  track - UNKNOWN).
++- **H4** No crash on repeated pad hits and note-offs, fast rolls, CHOP with the FX track
++  selected (CHP must stay OFF), and pads in other pad modes while CHOP is on. CHP turned
++  while a pad is held: that pad's note-off goes to another track than its note-on (see
++  "The pads"). Check that no voice hangs or sticks on the chop track or on the pad's own
++  track - in the normal pad mode and in every other pad mode you use with CHOP.
+ - **H5** Recovery: a same-version reinstall of stock 1.73 (untested by the upstream
+   author too).
+ 
+diff --git a/mods/0001-chop/mod.toml b/mods/0001-chop/mod.toml
+index 0033c0d..11c99a7 100644
+--- a/mods/0001-chop/mod.toml
++++ b/mods/0001-chop/mod.toml
+@@ -18,10 +18,12 @@ excludes = ["0004-lfo-rnd", "0008-sample-cut"]
+ status  = "built"
+ 
+ summary = """
+-Press SAMPLE a second time for the CHOP page: PAD (1..12, the marker being
+-edited), STA (0..120, that marker: a sample start on stock's STA scale) and CHP
+-(OFF/ON). Turning CHP right switches CHOP on for the track that is selected at
+-that moment; left switches it off. The twelve markers start at 0, 10, 20 ... 110.
++On the SAMPLE view, press SAMPLE (let go, pause, press again; not a quick
++double-tap, which is stock 1.73's sample-list shortcut and stays stock) for the
++CHOP page: PAD (1..12, the marker being edited), STA (0..120, that marker: a
++sample start on stock's STA scale) and CHP (OFF/ON). Turning CHP right switches
++CHOP on for the track that is selected at that moment; left switches it off. The
++twelve markers start at 0, 10, 20 ... 110.
+ 
+ While CHOP is on, pad k sets the chop track's STA to marker k through the same
+ call a STA knob turn ends in - so under live REC stock records a normal trig with
+diff --git a/mods/0001-chop/stub.s b/mods/0001-chop/stub.s
+index 28a9543..d13bf46 100644
+--- a/mods/0001-chop/stub.s
++++ b/mods/0001-chop/stub.s
+@@ -1,7 +1,10 @@
+         | Mod 0001 - CHOP: a second SAMPLE page that turns the twelve pads into
+         | twelve sample-start markers for one track.
+         |
+-        | Press SAMPLE twice: the CHOP page. Knobs A..C (D..H are blank):
++        | On the SAMPLE view, a press of SAMPLE switches SAMP <-> CHOP (on its
++        | release). Not a quick double-tap: a second press inside stock's
++        | double-tap window is stock's sample-list shortcut and stays stock, so
++        | press, let go, pause, press again. Knobs A..C (D..H are blank):
+         |   PAD  1..12    the marker being edited (a pad hit in CHOP also sets it)
+         |   STA  0..120   that marker: a sample start on stock's STA scale
+         |   CHP  OFF/ON   turning it right switches CHOP on for the track that is
+@@ -14,8 +17,10 @@
+         | in the UI message is rewritten to the chop track, so stock plays (and
+         | records) the chop track exactly as if its own pad had been hit. Pads never
+         | switch the selected track away from it, and no fire call is hand-built.
+-        | Note-offs get the same rewrite. CHOP off, or any pad id outside 0..11:
+-        | stock, byte for byte.
++        | Note-offs get the same rewrite, decided by chop_on and chop_track at the
++        | release (D8), so turning CHP while a pad is held can send that pad's
++        | note-off to another track than its note-on (design.md, H4). CHOP off, or
++        | any pad id outside 0..11: stock, byte for byte.
+         |
+         | State is RAM only (the 16 bytes at the end of this block; the image bytes
+         | are the power-on defaults). Nothing is saved. CHOP mode is the flag chop_on,
+@@ -189,11 +194,19 @@ text_gate:
+         |
+         |  press, no hold:  arm the base's cycle byte exactly when the press does
+         |                   not close a popup (popup expired = 1, else 0); stock
+-        |  release:         if armed, bit4 set, no hold and the view's own key is
+-        |                   SAMPLE, every condition of the base's cycle branch
+-        |                   (0x4003a610 .. 0x4003a94e) holds, so hand the event to
+-        |                   the base through SAMP's own tail 0x400ce3f4; else stock
++        |  release:         if armed, bit4 set, no hold, the view's own key is
++        |                   SAMPLE and no list popup is open, every condition of
++        |                   the base's cycle branch (0x4003a610 .. 0x4003a94e)
++        |                   holds, so hand the event to the base through SAMP's
++        |                   own tail 0x400ce3f4; else stock
+         |  anything else:   stock
++        |
++        | A quick second press of SAMPLE (stock's double-tap window, 0x40249d84 =
++        | 64 key-timer ticks, flags it bit2 at 0x400803da..0x400803fa) never gets
++        | here: SAMP opens the sample list for it (0x400ce49c..0x400ce4b6). The
++        | arm byte from the first press is still set at the second press's
++        | release, which is why the release path checks the popup: an open list
++        | means stock, no cycle.
+         | ------------------------------------------------------------------
+         .align  2
+ sample_key_gate:
+@@ -217,6 +230,11 @@ sample_key_gate:
+         moveq   #SAMP_KEY,%d1
+         cmp.l   VIEW_KEY(%a2),%d1
+         bne.s   8f
++        pea     VIEW_POPUP(%a2)                   | a list popup open now was opened
++        jsr     weak_ptr_expired                  | after the arming press (a double-tap,
++        addq.l  #4,%sp                            | bit2, never reaches this gate): stock
++        tst.b   %d0                               | keeps it open, so no cycle
++        beq.s   8f
+         jmp     samp_key_to_base                  | base(view, event): cycles, returns
+ 2:      move.l  %d2,-(%sp)                        | press
+         jsr     ev_is_held
+-- 
+2.47.1
+
+
+From 2b2a56bd2ad740759b524a04ae774371ecdd0407 Mon Sep 17 00:00:00 2001
+From: jaytriana <83611075+jaytriana@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 18:46:54 -0400
+Subject: [PATCH 3/4] 0001 CHOP: send each pad's note-off to the track its
+ note-on went to
+
+The note-on now records, per pad, whether it was rewritten to the chop
+track (chop_route[12], RAM, power-on 0xFF). The note-off of that pad is
+rewritten only when its note-on was, and the record is then cleared, so
+turning CHP while a pad is held can no longer split a note-on and its
+note-off across two tracks (TRUTH D8a). Pad ids above 11 touch no table
+and stay stock.
+
+design.md: CHOP is for the normal pad mode; turn CHP OFF before using
+chromatic, scale or other pad modes (D14). Path-by-path check of both pad
+gates in the built image, every differing region with its owner, and a
+founder test card: control first, then the CHOP build, recovery steps,
+and note-off checks. make chop, chop-min and control PASS in the guest.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ mods/0001-chop/design.md  | 271 +++++++++++++++++++++++++++-----------
+ mods/0001-chop/stub.s     |  55 +++++---
+ registry/allocations.toml |   4 +-
+ 3 files changed, 234 insertions(+), 96 deletions(-)
+
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+index 7f7dc08..04030ab 100644
+--- a/mods/0001-chop/design.md
++++ b/mods/0001-chop/design.md
+@@ -1,15 +1,17 @@
+ # 0001 CHOP - design
+ 
+-Status: **built** (`make chop` and `make chop-min` PASS verify in the guest VM,
+-2026-10-05; `make control`, `make random` and the default `make` re-run the same day, all
+-PASS). **Never run on hardware.** Local only: this tree has no license and is
+-never pushed or published. Nothing here flashes a device; the founder flashes.
++Status: **built** (`make chop`, `make chop-min` and `make control` PASS verify in the
++guest VM, 2026-10-05, after the round-3 change D8a below; `make random` and the default
++`make` passed earlier the same day and do not contain 0001). **Never run on hardware.**
++Local only: this tree has no license and is never pushed or published. Nothing here
++flashes a device; the founder flashes.
+ 
+ Line references `dis:N` are lines of
+ `/Users/creative/analog rytm firmware/build/mainos_1.73_emac.dis` (objdump of
+ `build/stock_mainos.bin`, base 0x40000400). The RE behind every hook is corp round r2
+-(`/Users/creative/corp-audits/2026-10-05-rytm-chop/corp/`: `TRUTH.md` decisions D1-D13,
+-`r2-re/results.json`, `r2-re/skeptic_fixes.md`).
++(`/Users/creative/corp-audits/2026-10-05-rytm-chop/corp/`: `TRUTH.md` decisions D1-D14
++and D8a, `r2-re/results.json`, `r2-re/skeptic_fixes.md`). Round 3 (D8a) pairs each pad's
++note-off with its note-on; receipts in `corp/fixer-r3/`.
+ 
+ ## What it does
+ 
+@@ -42,11 +44,14 @@ While CHOP is on, a hit on pad k (k = 0..11):
+    on into stock. KeyboardView then plays (and live-records) the chop track exactly as
+    a hit on its own pad: no hand-built fire call, and no track switch away from it.
+ 
+-Note-offs get the same id rewrite, decided at the release by `chop_on` and `chop_track`
+-as they are then (D8), so turning CHP while a pad is held - off, on, or on again with
+-another track selected - can send that pad's note-off to a different track than its
+-note-on (below, "The pads"; H4). With CHOP off, or a pad id outside 0..11, every hook is
+-the stock path byte for byte.
++Note-offs follow their note-ons (D8a). Every note-on of pad k (0..11) records where it
++went in `chop_route[k]`: the chop track when it was rewritten, 0xFF when it was not (CHOP
++off). The note-off of pad k is rewritten to `chop_route[k]` when that is not 0xFF, and
++`chop_route[k]` goes back to 0xFF; otherwise the note-off is stock. The note-off does not
++look at `chop_on`, so turning CHP while a pad is held - off, on, or on again with another
++track selected - still sends the note-off to the track its note-on went to (below, "The
++pads"). A pad id outside 0..11 touches no table and is stock byte for byte; with CHOP
++off, pads 0..11 only store 0xFF in `chop_route` and the messages stay stock.
+ 
+ CHOP mode is the RAM flag `chop_on`, not "the CHOP page is on screen" (D6): leaving the
+ page does not end CHOP; CHP OFF or a power cycle does. Nothing is saved: markers, the
+@@ -58,9 +63,12 @@ Consequences to know (by design, from the STA lane):
+   and marks the kit edited (kit_param_changed). Leaving CHOP does not restore it.
+ - A repeated hit on the same marker still writes and still records (slot 0x24 is only a
+   range check, sta-14).
+-- CHOP rewrites every UI-loop pad message while it is on, whatever pad mode the unit is
+-  in. What that does in modes where pads do something other than play (e.g. a mute
+-  mode, chromatic mode) is UNKNOWN; switch CHP OFF before using them (test card H4).
++- **CHOP is for the normal pad mode (D14).** With chromatic, scale or any other pad mode
++  active (or a mute mode, or anything where pads do something other than play their own
++  track), **turn CHP OFF first.** CHOP rewrites every UI-loop pad message 0..11 while it
++  is on, whatever pad mode the unit is in, and its behaviour in those modes is
++  unverified (nothing offline shows what their NoteEvent consumers do with a rewritten
++  pad id).
+ 
+ ## Build
+ 
+@@ -98,20 +106,25 @@ and `0001-chop` never meet: layout reports `layout ok`, and `make chop` builds w
+ ## Placement
+ 
+ One claim, `cave` 0x402a1b30 + 0x4d0 (the pool 0008 and 0004 use), section `.text`;
+-the stub is 888 B. Code, the page list and descriptor, the strings and the 16 B of RAM
+-state all fit there; nothing goes in cave3 (whose `.tab` neighbour is unexplained, F15).
+-The state sits at the end, after every entry point (build.py refuses an odd entry):
++the stub is 932 B (0x402a1b30..0x402a1ed3, `make chop` and `make chop-min` logs). Code,
++the page list and descriptor, the strings and the 28 B of RAM state all fit there;
++nothing goes in cave3 (whose `.tab` neighbour is unexplained, F15). The state sits at the
++end, after every entry point (build.py refuses an odd entry); addresses from `m68k-elf-nm`
++of the built `obj/0001-chop.elf`, the same in both CHOP images (stub bytes compared):
+ 
+ | label | addr (built) | default |
+ |---|---|---|
+-| `chop_on` | 0x402a1e98 | 0 |
+-| `chop_track` | 0x402a1e99 | 0 |
+-| `chop_pad` | 0x402a1e9a | 0 |
+-| `chop_rsv` | 0x402a1e9b | 0 |
+-| `chop_marks[12]` | 0x402a1e9c | 0, 10, 20 ... 110 |
++| `chop_on` | 0x402a1eb8 | 0 |
++| `chop_track` | 0x402a1eb9 | 0 |
++| `chop_pad` | 0x402a1eba | 0 |
++| `chop_rsv` | 0x402a1ebb | 0 |
++| `chop_marks[12]` | 0x402a1ebc | 0, 10, 20 ... 110 |
++| `chop_route[12]` | 0x402a1ec8 | 0xFF x 12 (D8a: no note-on rewritten yet) |
+ 
+ Every field is a byte, so every store is one instruction. Nothing is written in the
+-embedded bootstrap [0x4028c708, 0x402a1b24): verify reports it unchanged.
++embedded bootstrap [0x4028c708, 0x402a1b24): verify reports it unchanged, and a python
++byte compare of each built MAIN OS against `build/stock_mainos.bin` over that span finds
++0 differing bytes (chop, chop-min, control).
+ 
+ ## Hooks
+ 
+@@ -128,7 +141,7 @@ entries are in `registry/allocations.toml` under `0001-chop`.
+ | 0x400a5908 | 242f0020262f0024 | text_gate | 0x400a5910 | param_value_text for ids 3..5: number, or OFF / ON |
+ | 0x400ce4b8 | 2f0247f9400706f0 | sample_key_gate | 0x400ce4c0 | the SAMPLE key on the SAMP view (below) |
+ | 0x400a1ee2 | 48780080767e | pad_on_gate | 0x400a1ee8 | UI-loop case 3, pad note-on (D7) |
+-| 0x400a1f26 | 487800804eb94008022e | pad_off_gate | 0x400a1f30 | UI-loop case 4, pad note-off, 10 bytes displaced (D8) |
++| 0x400a1f26 | 487800804eb94008022e | pad_off_gate | 0x400a1f30 | UI-loop case 4, pad note-off, 10 bytes displaced, paired with its note-on (D8, D8a) |
+ | 0x40038336 | 4fefffd048d70cfc | lock_gate | 0x4003833e | held-trig knob path, slot 0x7c (D10) |
+ 
+ Each stub re-emits exactly the displaced instructions and then `jmp`s the rejoin;
+@@ -208,7 +221,7 @@ here. Premise not proven on MK1: that a SAMPLE release carries bit4 - the same p
+ 0008's and 0004's FILTER/LFO cycling rely on (H3). The AMP fallback of D3 was not
+ needed.
+ 
+-### The pads (D7, D8)
++### The pads (D7, D8, D8a)
+ 
+ UI loop (dis:207717-207727): `pea 0x40b1065c; moveq #39,%d3; jsr 0x400012c8` takes a
+ message into a2 and switches on its first byte through the jump table at 0x400a1e62
+@@ -218,33 +231,39 @@ message into a2 and switches on its first byte through the jump table at 0x400a1
+ - Case 3, 0x400a1ee2 (dis:207767-207787): `pea 0x80; moveq #126,%d3; jsr is_key_held`,
+   then msg+4 (pad), min(msg+8, 127) and msg+12 into the NoteEvent ctor 0x400746e6 and
+   the view dispatch 0x4009e350; `lea %sp@(32)`; `bras 0x400a1f5a` (destroy, loop).
+-  `pad_on_gate`: if `chop_on` and msg+4 <= 11 unsigned: chop_pad = k,
+-  `chop_set_sta(chop_track, chop_marks[k])`, msg+4 := chop_track. Then the displaced
+-  `pea 0x80; moveq #126,%d3` and `jmp 0x400a1ee8`. It never jumps to 0x400a28ba
+-  (skeptic: that lands on an `addql #4,%sp` and corrupts the stack).
++  `pad_on_gate` (D7 + D8a): k = msg+4; k > 11 unsigned (or -1): stock, no table
++  touched. k <= 11 and CHOP off: `chop_route[k] = 0xFF`, message untouched. k <= 11 and
++  CHOP on: `chop_route[k] = chop_track`, chop_pad = k,
++  `chop_set_sta(chop_track, chop_marks[k])`, msg+4 := chop_track. Every path then runs
++  the displaced `pea 0x80; moveq #126,%d3` and `jmp 0x400a1ee8`. It never jumps to
++  0x400a28ba (skeptic: that lands on an `addql #4,%sp` and corrupts the stack).
+ - Case 4, 0x400a1f26 (dis:207788-207801): `pea 0x80; jsr is_key_held` has no 6-byte
+   boundary, so the detour displaces 10 bytes and rejoins at 0x400a1f30; the 4 bytes
+   after the jmp stay stock and are never executed. The pushed 0x80 stays on the stack
+-  until stock's own `lea %sp@(36),%sp` at 0x400a1f56, exactly as in stock. `pad_off_gate`
+-  rewrites msg+4 := chop_track under the same test and changes nothing else.
+-- Note-on and note-off are decided separately, each from `chop_on` / `chop_track` at
+-  that moment (D7, D8); nothing records where a held pad's note-on went. Hold pad 5 with
+-  CHOP on for track 2 (note-on as 2), turn CHP left, let go (note-off as 5): track 2
+-  gets no note-off and track 5 gets one with no note-on. The same happens when CHP is
+-  turned on, or on again with another track selected, while a pad is held. When the
+-  held pad is the chop track's own pad, both ids match anyway. In the normal pad mode the
+-  consumer is KeyboardView::consumeNoteEvent (0x400c4628), which ignores note-offs: it
+-  tests note-on (0x400c472a `jsr 0x40074748`, NoteEvent+16 == 1) and on a note-off goes
+-  to 0x400c4732 `beqw 0x400c48c0` -> `moveq #1` (consumed, nothing played or stopped). So
+-  a mismatched note-off should do nothing in that mode. What other NoteEvent consumers
+-  (other pad modes, views ahead of KeyboardView in the dispatch) do with an unpaired or
+-  missing note-off is UNKNOWN (H4). Pairing note-offs with their note-ons ("rewrite the
+-  note-off when its note-on was rewritten") would need a change to D8.
++  until stock's own `lea %sp@(36),%sp` at 0x400a1f56, exactly as in stock.
++  `pad_off_gate` (D8a): k = msg+4; k > 11 unsigned: stock, no table touched. k <= 11 and
++  `chop_route[k] == 0xFF`: stock. Otherwise msg+4 := chop_route[k] and
++  `chop_route[k] = 0xFF` (used once). It does not read `chop_on`.
++- So a note-off follows its note-on. Hold pad 5 with CHOP on for track 2 (note-on as 2,
++  route[5] = 2), turn CHP left, let go: the note-off goes to track 2 too, and route[5] is
++  0xFF again. Turn CHP on for track 7 while pad 5 is held from a CHOP-off note-on
++  (route[5] = 0xFF): its note-off stays pad 5, as its note-on was. The values stored in
++  `chop_route` are only `chop_track` (which delta_gate sets only when the selected track
++  is 0..11, stub `bhi.s 6f` before `move.b %d0,chop_track`; default 0) or 0xFF, so a
++  rewritten note-off always names a track 0..11. A note-off that never arrives leaves
++  `chop_route[k]` set until pad k's next note-on, which overwrites it. In the normal pad
++  mode the consumer is KeyboardView::consumeNoteEvent (0x400c4628), which ignores
++  note-offs: it tests note-on (0x400c472a `jsr 0x40074748`, NoteEvent+16 == 1) and on a
++  note-off goes to 0x400c4732 `beqw 0x400c48c0` -> `moveq #1` (consumed, nothing played
++  or stopped). The pairing matters for any other consumer that does act on note-offs;
++  what those do in other pad modes stays unverified (D14: CHP OFF there; H4).
+ - The table at 0x40249d98 maps nibble 12 to pad id -1 (sk-pads); the unsigned test sends it (and
+   anything above 11) down the stock path.
+ - Registers: d2 (the NoteEvent buffer), d4-d7 and a2-a6 are kept (callees are C and
+-  chop_set_sta saves d2/d3); d0/d1/a0/a1 are dead at entry (the jsr after the rejoin
+-  clobbers them) and d3 is set by the re-emitted moveq.
++  chop_set_sta saves d2/d3); d0/d1/a0/a1 are dead at entry: the next instruction after
++  both re-emits is `jsr 0x4008022e` (is_key_held), which writes d0, a0 and d1 before it
++  reads them (dis:165740ff, 0x40080230 / 0x40080234 / 0x4008023a); d3 is set by the
++  re-emitted moveq in case 3 and not touched in case 4.
+ 
+ ### chop_set_sta (D9)
+ 
+@@ -277,8 +296,9 @@ eleven descriptors), so every other id goes down the stock path unchanged.
+ - each of the 8 hosts holds `4ef9 <entry>` and the entry is the right stub label
+   (page_info_gate 0x402a1b30, get_gate 0x402a1b4c, delta_gate 0x402a1b6e, text_gate
+   0x402a1c0c, sample_key_gate 0x402a1c60, pad_on_gate 0x402a1ce6, pad_off_gate
+-  0x402a1d26, lock_gate 0x402a1d50), in both images; the bytes after each jmp up to the
+-  end of the expect span are stock;
++  0x402a1d3a, lock_gate 0x402a1d6e), in both images; the bytes after each jmp up to the
++  end of the expect span are stock (0x400a1ee2 `4ef9402a1ce6`, 0x400a1f26
++  `4ef9402a1d3a` + stock `4008022e`);
+ - sample_key_gate's release path holds the popup test at 0x402a1c9a-0x402a1ca8
+   (`pea %a2@(512); jsr 0x40178ed8; addql #4,%sp; tstb %d0; beqs 0x402a1cd8`, the stock
+   re-emit) right before `jmp 0x400ce3f4`; the pea is popped before either exit;
+@@ -288,8 +308,70 @@ eleven descriptors), so every other id goes down the stock path unchanged.
+   0008 has the gate; `moveq #0; rts` in lock_gate; chop_set_sta saves and restores d2/d3
+   in an 8-byte frame); every other path ends in the re-emit + rejoin; no path jumps
+   anywhere else except sample_key_gate's `jmp 0x400ce3f4` with the entry stack.
+-- the patches: 0x400c7162 `7202`, 0x400c7166 `movel #0x402a1e3e` (= chop_pages {4, 11}),
+-  the fifteen ROM fields pointing at the strings at 0x402a1e6a..0x402a1e97.
++- the patches: 0x400c7162 `7202`, 0x400c7168 -> `402a1e5c` (= chop_pages {4, 11}),
++  the fifteen ROM fields pointing at the strings at 0x402a1e88..0x402a1eb5.
++
++### The pad gates, every path (round 3, built image)
++
++`m68k-elf-objdump -D -b binary -m m68k:cfv4e --adjust-vma=0x40000400
++--start-address=0x402a1ce6 --stop-address=0x402a1de4` of
++`build/mainos_0000_0001_0002_0003.bin` (saved as `corp/fixer-r3/pad_gates_built.dis`).
++Both gates enter by `jmp` with the stack as stock had it at the host (clean), and
++touch only d0, d1, a0 (plus d3 via the re-emit in case 3) and memory at msg+4,
++`chop_pad` and `chop_route[k]`.
++
++pad_on_gate 0x402a1ce6:
++- `movel %a2@(4),%d0; moveq #11,%d1; cmpl %d1,%d0; bhis 0x402a1d2e` - the unsigned k <= 11
++  test comes first, before `lea chop_route; addal %d0,%a0` (0x402a1cf0) and before the
++  marker index `moveb %a0@(0,%d0:l),%d1` (0x402a1d16). So both tables are only indexed
++  with k = 0..11, and the only route store `moveb %d1,%a0@` (0x402a1cfe or 0x402a1d08)
++  writes 0x402a1ec8 + k, inside `chop_route`.
++- k > 11: straight to 0x402a1d2e. Stack untouched.
++- CHOP off (`tstb chop_on; bnes` falls through): `moveq #-1,%d1; moveb %d1,%a0@` (0xFF),
++  `bras 0x402a1d2e`. Stack untouched.
++- CHOP on: route = chop_track, `moveb %d0,0x402a1eba` (chop_pad), marker into d1, T into
++  d0, `bsrw 0x402a1d8c` (chop_set_sta; pushes and pops its own return address), T into
++  d0, `movel %d0,%a2@(4)`. chop_set_sta: `cmpil #11,%d0; bhis` -> `rts` with nothing
++  pushed; else `lea %sp@(-8)` + `moveml %d2-%d3,%sp@`, then pushes 4 / pops 4 (`addql
++  #4`), pushes 8 / pops 8 (`addql #8`), pushes 24 / pops 24 (`lea %sp@(24)`), `moveml
++  %sp@,%d2-%d3` + `lea %sp@(8)`, `rts`: balanced, d2/d3 restored.
++- 0x402a1d2e: `pea 0x80; moveq #126,%d3; jmp 0x400a1ee8` - the stock bytes `4878 0080
++  767e` (dis:207767-207768) and the rejoin right after them (0x400a1ee8 `jsr
++  0x4008022e`, dis:207769).
++
++pad_off_gate 0x402a1d3a:
++- `movel %a2@(4),%d0; moveq #11,%d1; cmpl %d1,%d0; bhis 0x402a1d5e`, then `lea
++  chop_route; addal %d0,%a0`: the same k <= 11 test before the index.
++- `moveq #0,%d0; moveb %a0@,%d0; cmpil #255,%d0; beqs 0x402a1d5e`: 0xFF -> stock.
++- else `movel %d0,%a2@(4)`, `moveq #-1,%d1; moveb %d1,%a0@` (route[k] = 0xFF, k <= 11).
++- No push or pop on any path before 0x402a1d5e: `pea 0x80; jsr 0x4008022e; jmp
++  0x400a1f30` - the stock bytes `4878 0080 4eb9 4008 022e` (dis:207788-207789) and the
++  rejoin right after them (0x400a1f30 `clrl %sp@-`, dis:207790). The pushed 0x80 is
++  popped by stock's `lea %sp@(36),%sp` at 0x400a1f56 as in stock.
++- Both stock paths then read msg+4 after the gate: case 3 at 0x400a1ef4 `movel
++  %a2@(4),%d1`, case 4 at 0x400a1f3e `movel %a2@(4),%sp@-` - so the rewrite is what stock
++  plays.
++
++### Differing regions (round 3)
++
++A python compare of each built MAIN OS with `build/stock_mainos.bin`
++(`corp/fixer-r3/regions.py`, output `regions.out`), each changed byte matched against the
++registry claims of the mods in that build only:
++- `make chop`: 279 regions, 2481 bytes; 0 uncovered. 0001-chop owns: detours 0x400376e4
++  (two regions, +3 and +2), 0x400381a0, 0x40038336, 0x400a1ee2, 0x400a1f26, 0x400a5908,
++  0x400ce4b8, 0x400f8736 (+6 each); patches 0x400c7163 +1, 0x400c7169 +3 and the 15 ROM
++  fields 0x4018e0a4..0x4018e13b (15 regions; 9 detour + 17 patch regions in all); the
++  `cave` stub 0x402a1b30..0x402a1ed3 (90 regions: bytes equal to stock's zeros split it).
++  0002-euclid-accents owns detours 0x40008ba4, 0x40008e42, 0x400376d4, 0x40098ade,
++  0x40098b86, 0x400a58f8, 0x400bde96, 0x400bdec6, 0x400c0ca2, patches 0x400a5b67,
++  0x400a6fc3, 0x400f85a3, 0x400f85ad, 0x400f85b9, 0x400f8639, 0x400f8655, 0x4011cbe5 and
++  its cave 0x402a2780..; 0003-velocity-humanise owns detours 0x400376dc, 0x40098fb4,
++  0x400a5900, 0x400a62ae, patch 0x400a5ad1 and its cave 0x402a2e24..; 0000-shared its cave
++  0x402a2d39..0x402a2e21.
++- `make chop-min`: 133 regions, 1103 bytes, 0 uncovered: the 0001-chop set above plus
++  the 0000-shared cave.
++- `make control`: 0 regions.
++- All three: 0 differing bytes in [0x4028c708, 0x402a1b24).
+ 
+ ## Hardware-only unknowns (the founder's test card)
+ 
+@@ -301,29 +383,52 @@ Nothing below can be proven offline. Nothing from this pipeline has run on an MK
+ 2. Keep at hand the stock file, `stock/Analog-Rytm_OS1.73.syx` (sha256
+    `9115c3888354bb388f90410e0445cd312bf020593ed99f768a99e475d1d6157c`, stock/SHA256SUMS),
+    and a DIN MIDI interface: the recovery route is DIN only.
+-3. Flash one file at a time, in this order, and check that each boots and plays before
+-   the next (normal route: docs/FLASHING.md, Transfer over USB):
+-   1. `build/AR1_OS1.73_control.syx` - stock code, only repacked by our tool (`make
+-      control`: PASS, 0 differing regions). Proves the packer on this unit.
+-   2. `build/AR1_OS1.73_0000_0001.syx` - CHOP alone with the shared runtime (`make
+-      chop-min`).
+-   3. `build/AR1_OS1.73_0000_0001_0002_0003.syx` - the CHOP build (`make chop`).
+-   The stage that fails names the suspect: control = the packer or the file format;
+-   chop-min = CHOP (or 0000); chop only = 0002/0003 next to CHOP.
+-4. **Do not power off during the first boot after a flash** (docs/HAZARDS.md: the MK1's
+-   bootstrap upgrade runs from inside MAIN OS). The embedded bootstrap
+-   [0x4028c708, 0x402a1b24) is byte-identical to stock in all three files (verify:
+-   "embedded bootstrap image unchanged").
+-5. If a stage does not boot: the recovery route in docs/FLASHING.md - hold `[FUNC]` while
+-   powering on, `[TRIG 4]` OS UPGRADE, Transfer "LEGACY OS UPGRADE mode" over DIN with the
+-   stock `.syx`.
+-
+-Files verified on 2026-10-05 (guest VM, PASS), sha256:
++3. Check each file's sha256 against the list below before you send it.
++
++### Flash order
++
++Normal route each time (docs/FLASHING.md): USB connected, power on; Transfer >
++CONNECTION: MIDI IN and OUT = the Analog Rytm; Transfer > DROP: drag the `.syx` on;
++press `[YES]` on the device. The unit restarts by itself. **Do not power off during
++the first boot afterwards** (docs/HAZARDS.md: the MK1's bootstrap upgrade runs from
++inside MAIN OS). The embedded bootstrap [0x4028c708, 0x402a1b24) is byte-identical to
++stock in every file below (verify "embedded bootstrap image unchanged", and a python
++byte compare: 0 differing bytes).
++
++1. **Control first:** `build/AR1_OS1.73_control.syx` - stock code, only repacked by our
++   tool (`make control`: PASS, 0 differing regions). Check it boots and plays a pattern.
++   This proves the packer and file format on this unit, so a later problem is a mod.
++2. **Then CHOP:** `build/AR1_OS1.73_0000_0001_0002_0003.syx` (`make chop`: CHOP with
++   0000 shared, 0002 euclid accents and 0003 velocity humanise). Check it boots and plays,
++   then run H1-H5 below.
++3. Only if the CHOP build misbehaves: `build/AR1_OS1.73_0000_0001.syx` (`make chop-min`,
++   CHOP and 0000 only) to bisect. Fails the same way = CHOP (or 0000); works = 0002/0003
++   next to CHOP.
++
++### If it does not boot, or to go back to stock
++
++- **Recovery route** (docs/FLASHING.md; served by the bootstrap in flash, not by MAIN
++  OS, so it comes up even after a MAIN OS that does not boot; **DIN MIDI only**, a
++  USB-MIDI interface into the Rytm's MIDI IN, not USB):
++  1. hold `[FUNC]` while powering on;
++  2. `[TRIG 4]` enters OS UPGRADE;
++  3. Transfer > CONNECTION: "LEGACY OS UPGRADE mode", select the stock
++     `stock/Analog-Rytm_OS1.73.syx` (sha256 above), UPGRADE.
++- **Back to stock from a booting build:** the normal route with the stock `.syx`. All
++  builds carry version 1.73, the same as stock, so this is a same-version reinstall; the
++  device refuses downgrades, and a same-version reinstall over these builds has not been
++  tried (H5). If it is refused, use the recovery route.
++- Nothing CHOP does is saved: power-cycling ends CHOP and resets the markers. STA p-locks
++  recorded with CHOP are ordinary p-locks and stay in the pattern (stock plays them).
++
++Files verified on 2026-10-05 after the round-3 change (guest VM, `make chop`,
++`make chop-min`, `make control`, all PASS), sha256:
+ `AR1_OS1.73_control.syx` 3407638c3f450daba0faedbddc0d4f08b154925a3ba162172346f51ef9ed6a8d,
+-`AR1_OS1.73_0000_0001.syx` 5614a93e5455f6fdd7991b48c5603ce9b9febff1c94650e1e9b0b6fce9542f57,
+-`AR1_OS1.73_0000_0001_0002_0003.syx` e19703af24629e384729714b8aa3f024b70cafc7446c448b388e0f82b6bf6de8.
++`AR1_OS1.73_0000_0001_0002_0003.syx` 3ea80d31dba5a6ea3c937d6feb68026907759a68c7557e31373f4d7bd1a2b00b,
++`AR1_OS1.73_0000_0001.syx` 3c77f43b566fab6c6b178bae3e515d468fb298d560da083c5f71686e31b31066.
++(The round-2 files 5614a93e… and e19703af… are superseded: they do not pair note-offs.)
+ 
+-### The unknowns
++### The unknowns (test in the normal pad mode, D14)
+ 
+ - **H1** Does a pad hit play from the new STA on that same hit? (Voice latch timing: the
+   audio target word 0x80005116 + 0x54*T is written synchronously, but whether the voice
+@@ -344,13 +449,23 @@ Files verified on 2026-10-05 (guest VM, PASS), sha256:
+   (e) whether SAMPLE from another screen reopens the view on CHOP after you left it on
+   CHOP (the page index is kept in the view; no reset on entry was found for a normal
+   track - UNKNOWN).
+-- **H4** No crash on repeated pad hits and note-offs, fast rolls, CHOP with the FX track
+-  selected (CHP must stay OFF), and pads in other pad modes while CHOP is on. CHP turned
+-  while a pad is held: that pad's note-off goes to another track than its note-on (see
+-  "The pads"). Check that no voice hangs or sticks on the chop track or on the pad's own
+-  track - in the normal pad mode and in every other pad mode you use with CHOP.
+-- **H5** Recovery: a same-version reinstall of stock 1.73 (untested by the upstream
+-  author too).
++- **H4** No crash and no hung or stuck voice, in the normal pad mode:
++  (a) repeated hits on one pad, fast rolls across all twelve pads, two pads held at once;
++  (b) note-off pairing (D8a): hold a pad with CHOP on, turn CHP OFF, let go - the chop
++  track must not hang, and the pad's own track must get no stray note; then hold a pad
++  with CHOP off, turn CHP ON, let go - the pad's own track behaves as stock; then hold
++  a pad with CHOP on for track A, select track B and turn CHP ON again, let go - track A
++  must not hang;
++  (c) the chop track's own pad, hit and held in CHOP: plays and releases as stock;
++  (d) with the FX track selected, turning CHP right must leave it OFF (no latch);
++  (e) CHOP left ON while you leave the CHOP page and play pads elsewhere: the chop track
++  plays, no crash.
++  Other pad modes (chromatic, scale, mutes ...): CHOP is not meant for them - turn CHP
++  OFF first (D14). If you do try one with CHOP on, the behaviour is unverified; stop at
++  the first hung voice.
++- **H5** Recovery: a same-version reinstall of stock 1.73 over a CHOP build (normal
++  route), and if that is refused, the DIN recovery route above (untested by the
++  upstream author too).
+ 
+ Also unknown, low priority: whether external MIDI CC reaches ids 3..5 through PARAM_ROM
+ +0x18 (their stock values read as CC 6/38, 7, 10; lead F14) - with container index 0 a
+diff --git a/mods/0001-chop/stub.s b/mods/0001-chop/stub.s
+index d13bf46..0a5d70a 100644
+--- a/mods/0001-chop/stub.s
++++ b/mods/0001-chop/stub.s
+@@ -17,12 +17,13 @@
+         | in the UI message is rewritten to the chop track, so stock plays (and
+         | records) the chop track exactly as if its own pad had been hit. Pads never
+         | switch the selected track away from it, and no fire call is hand-built.
+-        | Note-offs get the same rewrite, decided by chop_on and chop_track at the
+-        | release (D8), so turning CHP while a pad is held can send that pad's
+-        | note-off to another track than its note-on (design.md, H4). CHOP off, or
+-        | any pad id outside 0..11: stock, byte for byte.
++        | Note-offs follow their note-ons (D8a): the note-on records where pad k
++        | went in chop_route[k] (the chop track, or 0xFF when it was not
++        | rewritten), and the note-off of pad k is rewritten to chop_route[k] when
++        | that is not 0xFF, which then goes back to 0xFF - whatever chop_on is at
++        | the release. Pad ids outside 0..11 touch no table: stock, byte for byte.
+         |
+-        | State is RAM only (the 16 bytes at the end of this block; the image bytes
++        | State is RAM only (the 28 bytes at the end of this block; the image bytes
+         | are the power-on defaults). Nothing is saved. CHOP mode is the flag chop_on,
+         | not "the CHOP page is on screen", so no view pointer is ever kept.
+         |
+@@ -259,15 +260,28 @@ sample_key_gate:
+         | NoteEvent buffer, the stack clean; d0/d1/a0/a1/d3 are free (the
+         | re-emitted moveq sets d3, the jsr after the rejoin clobbers the rest).
+         | Kept: d2, d4-d7, a2-a6.
++        |
++        | k > 11 unsigned (or -1): stock, no table touched. k <= 11 with CHOP
++        | off: chop_route[k] = 0xFF (this note-on was not rewritten), message
++        | untouched. k <= 11 with CHOP on: chop_route[k] = chop_track, then the
++        | marker, the STA call and the rewrite.
+         | ------------------------------------------------------------------
+         .align  2
+ pad_on_gate:
+-        tst.b   chop_on
+-        beq.s   8f
+         move.l  4(%a2),%d0                        | k
+         moveq   #PADS-1,%d1
+         cmp.l   %d1,%d0
+         bhi.s   8f                                | unsigned: k > 11 (or -1) is stock
++        lea     chop_route,%a0
++        adda.l  %d0,%a0                           | a0 = &chop_route[k], k 0..11
++        tst.b   chop_on
++        bne.s   1f
++        moveq   #-1,%d1
++        move.b  %d1,(%a0)                         | chop_route[k] = 0xFF: not rewritten
++        bra.s   8f
++1:      moveq   #0,%d1
++        move.b  chop_track,%d1
++        move.b  %d1,(%a0)                         | chop_route[k] = T: its note-off follows
+         move.b  %d0,chop_pad
+         lea     chop_marks,%a0
+         moveq   #0,%d1
+@@ -284,21 +298,27 @@ pad_on_gate:
+ 
+         | ------------------------------------------------------------------
+         | pad_off_gate: UI-loop case 4 (a pad's note-off message), 0x400a1f26,
+-        | 10 bytes displaced. The same rewrite as pad_on_gate, nothing else. The
+-        | re-emitted pea stays pushed: stock's own `lea %sp@(36)` at 0x400a1f56
+-        | pops it, as it does in stock.
++        | 10 bytes displaced. Paired with the note-on (D8a): if k <= 11 and
++        | chop_route[k] != 0xFF, msg+4 := chop_route[k] and chop_route[k] = 0xFF;
++        | otherwise stock. chop_on is not read here, so a note-off follows its
++        | note-on even when CHP was turned in between. The re-emitted pea stays
++        | pushed: stock's own `lea %sp@(36)` at 0x400a1f56 pops it, as in stock.
+         | ------------------------------------------------------------------
+         .align  2
+ pad_off_gate:
+-        tst.b   chop_on
+-        beq.s   8f
+-        move.l  4(%a2),%d0
++        move.l  4(%a2),%d0                        | k
+         moveq   #PADS-1,%d1
+         cmp.l   %d1,%d0
+-        bhi.s   8f
++        bhi.s   8f                                | unsigned: k > 11 (or -1) is stock
++        lea     chop_route,%a0
++        adda.l  %d0,%a0                           | a0 = &chop_route[k], k 0..11
+         moveq   #0,%d0
+-        move.b  chop_track,%d0
+-        move.l  %d0,4(%a2)
++        move.b  (%a0),%d0                         | T, or 0xFF
++        cmpi.l  #0xff,%d0
++        beq.s   8f                                | its note-on was not rewritten: stock
++        move.l  %d0,4(%a2)                        | the release names the same track
++        moveq   #-1,%d1
++        move.b  %d1,(%a0)                         | chop_route[k] = 0xFF: used once
+ 8:      pea     0x80                              | displaced
+         jsr     is_key_held                       | displaced
+         jmp     ui_pad_off_resume
+@@ -456,3 +476,6 @@ chop_track:     .byte   0                         | the chop track, 0..11
+ chop_pad:       .byte   0                         | the marker PAD/STA edit, 0..11
+ chop_rsv:       .byte   0
+ chop_marks:     .byte   0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110
++chop_route:                                       | per pad: where its note-on went
++        .byte   0xff, 0xff, 0xff, 0xff, 0xff, 0xff | (the chop track), 0xFF = stock
++        .byte   0xff, 0xff, 0xff, 0xff, 0xff, 0xff
+diff --git a/registry/allocations.toml b/registry/allocations.toml
+index 87b6106..86288b7 100644
+--- a/registry/allocations.toml
++++ b/registry/allocations.toml
+@@ -813,7 +813,7 @@ from_symbol = "str_r2dep"
+ #
+ # The CHOP build's mod (`make chop`: 0000 0001 0002 0003). It excludes 0008 and
+ # 0004: the same four page hosts and the same `cave` claim. Everything - code, page
+-# data, strings and the 16 B of RAM state at the end - fits in `cave`; nothing in
++# data, strings and the 28 B of RAM state at the end - fits in `cave`; nothing in
+ # cave3. Every expect below was re-read from build/stock_mainos.bin with python
+ # (corp r2 builder, 2026-10-05). Receipts: mods/0001-chop/design.md.
+ 
+@@ -822,7 +822,7 @@ owner   = "0001-chop"
+ addr    = 0x402a1b30
+ size    = 0x4d0
+ section = ".text"
+-note    = "The page_info / get / delta / text gates, the SAMPLE key gate, the pad note-on and note-off gates, the held-trig lock gate, chop_set_sta, the SAMP view's page list and the CHOP descriptor, the strings, and the RAM state (chop_on, chop_track, chop_pad, a spare byte, twelve markers) after every entry point."
++note    = "The page_info / get / delta / text gates, the SAMPLE key gate, the pad note-on and note-off gates, the held-trig lock gate, chop_set_sta, the SAMP view's page list and the CHOP descriptor, the strings, and the RAM state (chop_on, chop_track, chop_pad, a spare byte, twelve markers, twelve note-off routes) after every entry point."
+ 
+ # The SAMP view's page list: {4} becomes {4, 11}. Pressing SAMPLE again then
+ # cycles to page 11 (with sample_key_gate below).
+-- 
+2.47.1
+
+
+From 4bde508984ea04221b224ddc412b6491377e4068 Mon Sep 17 00:00:00 2001
+From: jaytriana <83611075+jaytriana@users.noreply.github.com>
+Date: Mon, 5 Oct 2026 19:19:52 -0400
+Subject: [PATCH 4/4] 0001 CHOP: test card - final-gate P2 disclosures
+ (same-version refusal, modifier+pad, pressure, FUNC+SAMPLE, never flash
+ 0004/0008 builds)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ mods/0001-chop/design.md | 27 +++++++++++++++++++++++----
+ 1 file changed, 23 insertions(+), 4 deletions(-)
+
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+index 04030ab..13866c4 100644
+--- a/mods/0001-chop/design.md
++++ b/mods/0001-chop/design.md
+@@ -65,10 +65,15 @@ Consequences to know (by design, from the STA lane):
+   range check, sta-14).
+ - **CHOP is for the normal pad mode (D14).** With chromatic, scale or any other pad mode
+   active (or a mute mode, or anything where pads do something other than play their own
+-  track), **turn CHP OFF first.** CHOP rewrites every UI-loop pad message 0..11 while it
+-  is on, whatever pad mode the unit is in, and its behaviour in those modes is
++  track), **turn CHP OFF first.** CHOP rewrites every pad note-on and note-off message
++  0..11 while it is on, whatever pad mode the unit is in, and its behaviour in those modes is
+   unverified (nothing offline shows what their NoteEvent consumers do with a rewritten
+   pad id).
++- **While CHP is ON, every pad press goes to the chop track and writes its STA - with or
++  without a held key** (TRK, FUNC, or any modifier + pad gesture is rewritten too), so the
++  pads cannot select another track until CHP is OFF.
++- **Pad pressure (aftertouch) is not rerouted in v1** (UI-loop case 2 is untouched): leaning
++  on a pad in CHOP still drives the pad's own track, while its note plays the chop track.
+ 
+ ## Build
+ 
+@@ -405,6 +410,16 @@ byte compare: 0 differing bytes).
+    CHOP and 0000 only) to bisect. Fails the same way = CHOP (or 0000); works = 0002/0003
+    next to CHOP.
+ 
++If Transfer refuses a file as the same version, nothing has been written: either stop, or
++send that file through the recovery route below (FUNC at power-on, TRIG 4, LEGACY OS
++UPGRADE over DIN).
++
++**Never flash the upstream SMP CUT (`..._0008.syx`) or RANDOM (`..._0004.syx`) builds** from
++this tree: 0000-shared's `PROJ_KIT = 352` (the MKII kit offset) is used only by 0008 and
++0004 (grep of mods/: 0000-shared, 0004, 0008), and stock 1.73 MK1's kit is at project + 232
++(sk-sta S1). The CHOP build does not contain 0004 or 0008, and 0002/0003 call only
++shared_rnd / shared_func_held / shared_fmt_u8.
++
+ ### If it does not boot, or to go back to stock
+ 
+ - **Recovery route** (docs/FLASHING.md; served by the bootstrap in flash, not by MAIN
+@@ -448,7 +463,9 @@ Files verified on 2026-10-05 after the round-3 change (guest VM, `make chop`,
+   (d) how long the pause must be (the double-tap window, 64 key-timer ticks, in seconds);
+   (e) whether SAMPLE from another screen reopens the view on CHOP after you left it on
+   CHOP (the page index is kept in the view; no reset on entry was found for a normal
+-  track - UNKNOWN).
++  track - UNKNOWN);
++  (f) do not use FUNC + SAMPLE (page copy / paste / clear) while the CHOP page is shown:
++  untraced for ids 3..5.
+ - **H4** No crash and no hung or stuck voice, in the normal pad mode:
+   (a) repeated hits on one pad, fast rolls across all twelve pads, two pads held at once;
+   (b) note-off pairing (D8a): hold a pad with CHOP on, turn CHP OFF, let go - the chop
+@@ -459,7 +476,9 @@ Files verified on 2026-10-05 after the round-3 change (guest VM, `make chop`,
+   (c) the chop track's own pad, hit and held in CHOP: plays and releases as stock;
+   (d) with the FX track selected, turning CHP right must leave it OFF (no latch);
+   (e) CHOP left ON while you leave the CHOP page and play pads elsewhere: the chop track
+-  plays, no crash.
++  plays, no crash;
++  (f) press and lean on a pad in CHOP: the note plays the chop track, the pressure still
++  goes to the pad's own track (by design in v1) - no crash, no hung voice.
+   Other pad modes (chromatic, scale, mutes ...): CHOP is not meant for them - turn CHP
+   OFF first (D14). If you do try one with CHOP on, the behaviour is unverified; stop at
+   the first hung voice.
+-- 
+2.47.1
+
