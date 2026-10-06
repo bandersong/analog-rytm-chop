@@ -1,0 +1,762 @@
+[
+ {
+  "name": "embedded_bootstrap_start",
+  "addr173": "0x4028c708",
+  "addr172_claim": "0x4027fd90",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4027fd90"
+ },
+ {
+  "name": "embedded_bootstrap_end",
+  "addr173": "0x402a1b24",
+  "addr172_claim": "0x402951ac",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x402951ac"
+ },
+ {
+  "name": "bootstrap_upgrade_routine",
+  "addr173": "0x4011a738",
+  "addr172_claim": "0x40116ba0",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40116ba0"
+ },
+ {
+  "name": "fn.euclid_step_map_get",
+  "addr173": "0x400be2d6",
+  "addr172_claim": "0x400bb232",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400bb232"
+ },
+ {
+  "name": "fn.euclid_enabled_get",
+  "addr173": "0x400bde96",
+  "addr172_claim": "0x400badf2",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400badf2"
+ },
+ {
+  "name": "fn.euclid_enabled_set",
+  "addr173": "0x400bdec6",
+  "addr172_claim": "0x400bae22",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400bae22"
+ },
+ {
+  "name": "data.EUCLID_CHANGE_INFO",
+  "addr173": "0x401ae368",
+  "addr172_claim": "0x401a4018",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x401a4018"
+ },
+ {
+  "name": "fn.euclid_bake",
+  "addr173": "0x400c0ca2",
+  "addr172_claim": "0x400bdc06",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400bdc06"
+ },
+ {
+  "name": "data.euclid_bake_body",
+  "addr173": "0x400c0caa",
+  "addr172_claim": "0x400bdc0e",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400bdc0e"
+ },
+ {
+  "name": "fn.euclid_bool_op_format",
+  "addr173": "0x400f859c",
+  "addr172_claim": "0x400f54d8",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400f54d8"
+ },
+ {
+  "name": "data.euclid_bool_op_labels",
+  "addr173": "0x401b96d0",
+  "addr172_claim": "0x401af37c",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x401af37c"
+ },
+ {
+  "name": "data.LBL_OR",
+  "addr173": "0x4020af96",
+  "addr172_claim": "0x4020073c",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4020073c"
+ },
+ {
+  "name": "data.LBL_XOR",
+  "addr173": "0x4022071e",
+  "addr172_claim": "0x40215e34",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40215e34"
+ },
+ {
+  "name": "data.LBL_AND",
+  "addr173": "0x40210b79",
+  "addr172_claim": "0x40206313",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40206313"
+ },
+ {
+  "name": "data.LBL_SUB",
+  "addr173": "0x40209f2f",
+  "addr172_claim": "0x401ff6d5",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x401ff6d5"
+ },
+ {
+  "name": "fn.boolop_icon_draw",
+  "addr173": "0x400f8634",
+  "addr172_claim": "0x400f5570",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400f5570"
+ },
+ {
+  "name": "data.boolop_icon_set",
+  "addr173": "0x416c6d90",
+  "addr172_claim": "0x416ba4dc",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x416ba4dc"
+ },
+ {
+  "name": "fn.bitmap_ctor",
+  "addr173": "0x4006e1ca",
+  "addr172_claim": "0x4006bd2a",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4006bd2a"
+ },
+ {
+  "name": "fn.bitmap_set_make",
+  "addr173": "0x40186632",
+  "addr172_claim": "0x4017cd8e",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4017cd8e"
+ },
+ {
+  "name": "fn.param_info",
+  "addr173": "0x400f8718",
+  "addr172_claim": "0x400f5654",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400f5654"
+ },
+ {
+  "name": "data.param_info_resume",
+  "addr173": "0x400f8722",
+  "addr172_claim": "0x400f565e",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400f565e"
+ },
+ {
+  "name": "data.PARAM_INFO_BASE",
+  "addr173": "0x416a6aa4",
+  "addr172_claim": "0x4169a510",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4169a510"
+ },
+ {
+  "name": "const.PARAM_INFO_STRIDE",
+  "addr173": "88",
+  "addr172_claim": "88",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "88"
+ },
+ {
+  "name": "const.PARAM_ID_BOOL_OP",
+  "addr173": "467",
+  "addr172_claim": "467",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "467"
+ },
+ {
+  "name": "const.PARAM_ID_VEL",
+  "addr173": "30",
+  "addr172_claim": "30",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "30"
+ },
+ {
+  "name": "fn.param_apply_delta",
+  "addr173": "0x400376d4",
+  "addr172_claim": "0x40036034",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40036034"
+ },
+ {
+  "name": "data.param_apply_delta_resume",
+  "addr173": "0x400376dc",
+  "addr172_claim": "0x4003603c",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4003603c"
+ },
+ {
+  "name": "data.param_apply_delta_body",
+  "addr173": "0x400376e4",
+  "addr172_claim": "0x40036044",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40036044"
+ },
+ {
+  "name": "fn.param_value_text",
+  "addr173": "0x400a58f8",
+  "addr172_claim": "0x400a28a0",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a28a0"
+ },
+ {
+  "name": "data.param_value_text_resume",
+  "addr173": "0x400a5900",
+  "addr172_claim": "0x400a28a8",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a28a8"
+ },
+ {
+  "name": "data.param_value_text_body",
+  "addr173": "0x400a5908",
+  "addr172_claim": "0x400a28b0",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a28b0"
+ },
+ {
+  "name": "fn.param_text_format",
+  "addr173": "0x4013d9d8",
+  "addr172_claim": "0x40139604",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40139604"
+ },
+ {
+  "name": "data.param_short_name_body",
+  "addr173": "0x400a62b4",
+  "addr172_claim": "0x400a325c",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a325c"
+ },
+ {
+  "name": "data.getbyid_boolop_jsr",
+  "addr173": "0x400a5b64",
+  "addr172_claim": "0x400a2b0c",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a2b0c"
+ },
+ {
+  "name": "data.setbyid_boolop_jsr",
+  "addr173": "0x400a6fc0",
+  "addr172_claim": "0x400a3f60",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a3f60"
+ },
+ {
+  "name": "data.getbyid_vel_jsr",
+  "addr173": "0x400a5ace",
+  "addr172_claim": "0x400a2a76",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a2a76"
+ },
+ {
+  "name": "data.boolop_iconset_jsr",
+  "addr173": "0x4011cbe2",
+  "addr172_claim": "0x401190b2",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x401190b2"
+ },
+ {
+  "name": "fn.page_info",
+  "addr173": "0x400f8736",
+  "addr172_claim": "0x400f5672",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400f5672"
+ },
+ {
+  "name": "data.page_info_resume",
+  "addr173": "0x400f873c",
+  "addr172_claim": "0x400f5678",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400f5678"
+ },
+ {
+  "name": "fn.page_get_value",
+  "addr173": "0x400381a0",
+  "addr172_claim": "0x40036ae0",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40036ae0"
+ },
+ {
+  "name": "data.page_get_value_body",
+  "addr173": "0x400381a8",
+  "addr172_claim": "0x40036ae8",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40036ae8"
+ },
+ {
+  "name": "data.param_apply_delta_track",
+  "addr173": "0x400376ea",
+  "addr172_claim": "0x4003604a",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4003604a"
+ },
+ {
+  "name": "data.param_value_text_args",
+  "addr173": "0x400a5910",
+  "addr172_claim": "0x400a28b8",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a28b8"
+ },
+ {
+  "name": "fn.view_invalidate",
+  "addr173": "0x40076c14",
+  "addr172_claim": "0x4007460c",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4007460c"
+ },
+ {
+  "name": "data.filter_view_page_count",
+  "addr173": "0x400c71d2",
+  "addr172_claim": "0x400c4114",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400c4114"
+ },
+ {
+  "name": "data.filter_view_page_list",
+  "addr173": "0x400c71d8",
+  "addr172_claim": "0x400c411a",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400c411a"
+ },
+ {
+  "name": "data.PARAM_ROM",
+  "addr173": "0x4018e004",
+  "addr172_claim": "0x40184754",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40184754"
+ },
+ {
+  "name": "fn.voice_out",
+  "addr173": "0x4010795e",
+  "addr172_claim": "0x40103dc6",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40103dc6"
+ },
+ {
+  "name": "data.voice_out_call_a",
+  "addr173": "0x401189e8",
+  "addr172_claim": "0x40114e50",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40114e50"
+ },
+ {
+  "name": "data.voice_out_call_b",
+  "addr173": "0x40119d8a",
+  "addr172_claim": "0x401161f2",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x401161f2"
+ },
+ {
+  "name": "data.voice_owner",
+  "addr173": "0x40254e2c",
+  "addr172_claim": "0x4024a45c",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4024a45c"
+ },
+ {
+  "name": "fn.track_to_voice",
+  "addr173": "0x4000704e",
+  "addr172_claim": "0x4000713e",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4000713e"
+ },
+ {
+  "name": "data.project_instance",
+  "addr173": "0x416c70c0",
+  "addr172_claim": "0x416ba80c",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x416ba80c"
+ },
+ {
+  "name": "fn.sound_get",
+  "addr173": "0x401737a2",
+  "addr172_claim": "0x40169fe6",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40169fe6"
+ },
+ {
+  "name": "fn.sound_param_id_for_index",
+  "addr173": "0x40006f08",
+  "addr172_claim": "0x40006ff8",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40006ff8"
+ },
+ {
+  "name": "fn.param_container_index",
+  "addr173": "0x40006d88",
+  "addr172_claim": "0x40006e78",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40006e78"
+ },
+ {
+  "name": "data.trig_fire_cfg_resume",
+  "addr173": "0x4009901c",
+  "addr172_claim": "0x40096400",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40096400"
+ },
+ {
+  "name": "fn.lfo_block",
+  "addr173": "0x4009c7a4",
+  "addr172_claim": "0x40099b2c",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40099b2c"
+ },
+ {
+  "name": "data.lfo_call_resume",
+  "addr173": "0x40119b18",
+  "addr172_claim": "0x40115f80",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40115f80"
+ },
+ {
+  "name": "data.TRIG_FLAGS",
+  "addr173": "0x8000a9e8",
+  "addr172_claim": "0x8000a9e8",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x8000a9e8"
+ },
+ {
+  "name": "data.PARAMS_EFF",
+  "addr173": "0x800062c0",
+  "addr172_claim": "0x800062c0",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x800062c0"
+ },
+ {
+  "name": "data.param_knob_draw_body",
+  "addr173": "0x400a5884",
+  "addr172_claim": "0x400a282c",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a282c"
+ },
+ {
+  "name": "fn.lfo_dst_knob_draw",
+  "addr173": "0x400f8e0a",
+  "addr172_claim": "0x400f5d46",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400f5d46"
+ },
+ {
+  "name": "data.param_set_value_body",
+  "addr173": "0x400a631e",
+  "addr172_claim": "0x400a32c6",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a32c6"
+ },
+ {
+  "name": "data.param_set_read_body",
+  "addr173": "0x400a611a",
+  "addr172_claim": "0x400a30c2",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a30c2"
+ },
+ {
+  "name": "fn.dest_list_build",
+  "addr173": "0x400a752a",
+  "addr172_claim": "0x400a44ca",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a44ca"
+ },
+ {
+  "name": "data.dest_list_build_resume",
+  "addr173": "0x4004a578",
+  "addr172_claim": "0x40048e10",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40048e10"
+ },
+ {
+  "name": "data.list_same_resume",
+  "addr173": "0x40039ae0",
+  "addr172_claim": "0x40038420",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40038420"
+ },
+ {
+  "name": "data.list_new_resume",
+  "addr173": "0x40039b48",
+  "addr172_claim": "0x40038488",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40038488"
+ },
+ {
+  "name": "data.knob_cidx_resume",
+  "addr173": "0x4003a3d4",
+  "addr172_claim": "0x40038d14",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40038d14"
+ },
+ {
+  "name": "data.lfo_view_page_count",
+  "addr173": "0x400c727a",
+  "addr172_claim": "0x400c41bc",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400c41bc"
+ },
+ {
+  "name": "data.lfo_view_page_list",
+  "addr173": "0x400c7280",
+  "addr172_claim": "0x400c41c2",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400c41c2"
+ },
+ {
+  "name": "project_singleton",
+  "addr173": "0x401556cc",
+  "addr172_claim": "0x4014c0e0",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4014c0e0"
+ },
+ {
+  "name": "current_track_pattern",
+  "addr173": "0x400ac2e8",
+  "addr172_claim": "0x400a9288",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a9288"
+ },
+ {
+  "name": "track_index_of",
+  "addr173": "0x400b3a04",
+  "addr172_claim": "0x400b0986",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400b0986"
+ },
+ {
+  "name": "kit_track_sound",
+  "addr173": "0x400a3d08",
+  "addr172_claim": "0x400a0cb4",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400a0cb4"
+ },
+ {
+  "name": "kit_param_changed",
+  "addr173": "0x40033438",
+  "addr172_claim": "0x40031d98",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40031d98"
+ },
+ {
+  "name": "is_key_held",
+  "addr173": "0x4008022e",
+  "addr172_claim": "0x4007d6ce",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4007d6ce"
+ },
+ {
+  "name": "KEY_FUNC",
+  "addr173": "0x80",
+  "addr172_claim": "0x80",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x80"
+ },
+ {
+  "name": "trig_fire",
+  "addr173": "0x400989d0",
+  "addr172_claim": "0x40095db2",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40095db2"
+ },
+ {
+  "name": "trig_fire_flags_join",
+  "addr173": "0x40098ba0",
+  "addr172_claim": "0x40095f84",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40095f84"
+ },
+ {
+  "name": "trig_fire_euclid_flag_resume",
+  "addr173": "0x40098ae6",
+  "addr172_claim": "0x40095ec8",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40095ec8"
+ },
+ {
+  "name": "trig_fire_vel_resume",
+  "addr173": "0x40098fba",
+  "addr172_claim": "0x4009639e",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x4009639e"
+ },
+ {
+  "name": "pattern_track_load",
+  "addr173": "0x40008a0e",
+  "addr172_claim": "0x400081f6",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400081f6"
+ },
+ {
+  "name": "pattern_track_load_euclid_resume",
+  "addr173": "0x40008baa",
+  "addr172_claim": "0x40008392",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40008392"
+ },
+ {
+  "name": "pattern_track_save",
+  "addr173": "0x40008ca8",
+  "addr172_claim": "0x40008490",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40008490"
+ },
+ {
+  "name": "pattern_track_save_euclid_resume",
+  "addr173": "0x40008e48",
+  "addr172_claim": "0x40008630",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x40008630"
+ },
+ {
+  "name": "pattern_length",
+  "addr173": "0x400bd54c",
+  "addr172_claim": "0x400ba4a8",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400ba4a8"
+ },
+ {
+  "name": "pattern_step_has_trig",
+  "addr173": "0x400bcfa6",
+  "addr172_claim": "0x400b9f02",
+  "loc_status": "mapped",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400b9f02"
+ },
+ {
+  "name": "trig_flags_set",
+  "addr173": "0x400bf4aa",
+  "addr172_claim": "0x400bc406",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400bc406"
+ },
+ {
+  "name": "vel_get_stock",
+  "addr173": "0x400bcdb4",
+  "addr172_claim": "0x400b9d10",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400b9d10"
+ },
+ {
+  "name": "TRIG_BIT_ACCENT",
+  "addr173": "0x8",
+  "addr172_claim": "0x8",
+  "loc_status": "mapped",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x8"
+ },
+ {
+  "name": "euclid_generate",
+  "addr173": "0x400bea2c",
+  "addr172_claim": "0x400bb988",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400bb988"
+ },
+ {
+  "name": "euclid_bool_op_get",
+  "addr173": "0x400be244",
+  "addr172_claim": "0x400bb1a0",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400bb1a0"
+ },
+ {
+  "name": "euclid_bool_op_set",
+  "addr173": "0x400be274",
+  "addr172_claim": "0x400bb1d0",
+  "loc_status": "verified",
+  "verdict": "CONFIRMED",
+  "addr172_verifier": "0x400bb1d0"
+ }
+]
