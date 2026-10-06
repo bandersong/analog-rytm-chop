@@ -62,7 +62,7 @@ Needs SAMPLE POS RES = HI for decimals. LAY has no undo.
 - **Pads all go to the chop track while CHP is ON**, including TRK + pad. Turn CHP OFF to select other tracks with the pads.
 - **Pad pressure (aftertouch) still goes to the pad's own track.**
 - **A quick double-tap of SAMPLE opens the stock sample list.** Pause between presses to get CHOP.
-- **The build includes rytm1_mods' euclid accents and velocity humanise, but not SMP CUT.** SMP CUT clashes with CHOP.
+- **Which build has what:** the proven step-lock build (`make chop`, previous patch) includes euclid accents and velocity humanise but not SMP CUT; `make samplefocus-cut` includes the MK1-fixed SMP CUT and drops euclid/velocity; `make samplefocus` is the same without SMP CUT.
 
 ## Install
 
@@ -114,10 +114,10 @@ shasum -a 256 build/AR1_OS1.73_0000_0001.syx
 1. Back up your projects and +Drive in Transfer.
 2. Connect USB, power on, and in Transfer > CONNECTION set MIDI IN and OUT to the Analog Rytm.
 3. **Control build first:** drag `build/AR1_OS1.73_control.syx` onto Transfer > DROP and press **YES** on the Rytm. Check it boots and plays normally. This proves the toolchain on your unit.
-4. **Then Sample Focus + SMP CUT:** do the same with `build/AR1_OS1.73_0000_0001_0008.syx` (or `..._0000_0001.syx` without SMP CUT).
+4. **Then Sample Focus** (`build/AR1_OS1.73_0000_0001.syx`, no SMP CUT) and check CHOP works; only then **Sample Focus + SMP CUT** (`build/AR1_OS1.73_0000_0001_0008.syx`). SMP CUT's first-run checks: `flash/START_HERE.md` section B.
+5. Don't power off during an update or during the first boot after it.
 
 The hardware-proven step-lock build (CHOP + step-lock + euclid/velocity, sha256 `a96657b4…caf6`) is the previous patch, commit `f82a2f4` of this repo's `mods/0001-chop/rytm1_mods-chop.patch`, built with `make chop`.
-5. Don't power off during an update or during the first boot after it.
 
 If Transfer refuses a file as "same version", nothing was written. Use the recovery route below to send it.
 

@@ -1,96 +1,77 @@
-# CHOP for your MK1 (OS 1.73) — start here
+# CHOP / Sample Focus for your MK1 (OS 1.73) — start here
 
-Nothing here has run on a Rytm yet. Every check that can be done on a computer passed; the rest is the test below.
+Files **2** and **2b** are proven on your unit (see Hardware results at the bottom). Files **4b** and **5** have never run on a Rytm; every check that can be done on a computer passed.
 
 ## Before you flash
 1. In Transfer, back up your projects / +Drive.
 2. Have a DIN MIDI interface ready (recovery is DIN only), and `RECOVERY_stock_Analog-Rytm_OS1.73.syx` from this folder.
+3. Flashing: Transfer > DROP, drag the file, press YES on the Rytm; don't power off during the update or the first boot after it. If Transfer refuses a file as "same version", nothing was written — stop, or use the recovery route below.
 
-## Flash (Transfer > DROP, drag the file, press YES on the Rytm; don't power off during the first boot after)
-1. `1_CONTROL_stock-code_…syx` — stock code, just repacked by our tool. It should boot and play exactly like stock. This proves the tool on your unit.
-2. `2_CHOP_…syx` — CHOP, plus euclid accents and velocity humanise from rytm1_mods (no SMP CUT).
-3. `3_only-if-chop-misbehaves_…syx` — only to narrow down a problem (CHOP alone).
+## What to flash tonight (in this order)
+1. **`4b_SAMPLE-FOCUS-no-STR_…syx`** — the new CHOP page, without SMP CUT. Check CHOP still works (section A). If anything is off, go back to `2b_…`.
+2. **`5_SAMPLE-FOCUS+SMP-CUT_…syx`** — the same CHOP plus SMP CUT. Only after 4b behaved. Run section B.
 
-If Transfer refuses a file as "same version", nothing was written. Stop, or use the recovery route.
+Fallbacks: `4b` (no SMP CUT) → `2b_CHOP+STEPLOCK_…` (proven) → recovery.
 
-## NEWEST: Sample Focus + SMP CUT (`5_SAMPLE-FOCUS+SMP-CUT_…syx`) — not yet tested on hardware
-- **SAMPLE ×2 → CHOP**: PAD, STA (hi-res), CHP, END, DIV, LAY, RND. Knob H is blank (STR removed — it didn't work).
-- **FILTER ×2 → SMP CUT**: LCT (low cut) and HCT (high cut) on the sample layer, per track, saved with the sound.
-- The CHOP STA dial now uses its own default graphic (the stock-STA-looking dial was dropped to make room). Values and decimals are unchanged.
-- **This is SMP CUT's first-ever run on an MK1**, and its filter runs inside the audio engine. Test it before you rely on it:
-  1. First boot: on a sound you haven't touched, LCT/HCT must read "off" (no cut). If not, stop and tell me **before saving anything**.
-  2. FILTER, pause, FILTER → SMP CUT page. Turn LCT up: lows thin out. HCT down: highs roll off. Only on that track.
-  3. All 12 tracks playing with LCT/HCT on: listen for clicks or dropouts (that would mean the filter is too heavy for the audio engine).
-  4. Set cuts on two tracks, save kit + project, power-cycle: the values must come back.
-  5. Then CHOP as before (pads, live REC, step-lock, END/DIV/LAY/RND), with CHP OFF when you want to select another track for SMP CUT.
-  6. Known quirk: turning HCT then LCT very quickly can make LCT jump back — just turn LCT again.
-- Fallbacks: `4b_SAMPLE-FOCUS-no-STR_…` (same CHOP, no SMP CUT), then `2b_CHOP+STEPLOCK_…` (proven).
-- Full list: design.md, test card S1–S10 and H rows.
-
-The SMP CUT warning further down ("don't flash rytm1_mods' SMP CUT builds") still applies to **rytm1_mods' own** builds; file 5 carries the MK1-fixed SMP CUT.
-
-## Sample Focus with STR (`4_SAMPLE-FOCUS_…syx`) — superseded: STR doesn't work; use 4b or 5
-Everything from the step-lock build, minus euclid accents and velocity humanise, plus a full 8-knob CHOP page:
+## The CHOP page (files 4b and 5): SAMPLE, let go, pause, SAMPLE again
+First set **SETTINGS > CONTROLS > SEQUENCER CONFIG > SAMPLE POS RES = HI** (otherwise no decimals).
 
 | Knob | Does |
 |---|---|
-| A **PAD** | which marker you're editing (1–12) |
-| B **STA** | that marker, now **hi-res**: slow turn = decimals (`40.`), FUNC + turn = whole steps — same as stock STA |
-| C **CHP** | CHOP on/off |
+| A **PAD** | which marker you're editing (1–12); hitting a pad also selects it |
+| B **STA** | that marker, **hi-res**: slow turn = decimals (`40.`), FUNC + turn = whole steps |
+| C **CHP** | right = CHOP ON for the selected track; left = OFF (pads stock again) |
 | D **END** | right = ON: each pad also sets END to the next marker (plays just its slice). Left = OFF (END back to 120) |
 | E **DIV** | re-chop into 1–12 equal slices (overwrites hand-set markers) |
-| F **LAY** | turn right once: puts slice 1…N on the **empty** steps of the pattern (never touches your trigs) |
+| F **LAY** | turn right once: puts slice 1…N on the **empty** steps of the pattern (never touches your trigs). **No undo — try it on a copy of a pattern.** |
 | G **RND** | GRID REC: hold steps, turn G → each held step gets a random slice |
-| H **STR** | **experimental** time-stretch setup: sets the track's LFO to sweep STA over 1–64 steps. Keep END OFF, set RETRIG on the steps yourself (stock RETRIG menu), LFO.T on |
+| H | blank (STR removed — it didn't work) |
 
-Before you try it:
-- Set **SETTINGS > CONTROLS > SEQUENCER CONFIG > SAMPLE POS RES = HI** for decimals.
-- **Turn STR OFF before CHP OFF** — after CHP OFF the STR knob can't undo the LFO (reload the kit to restore).
-- **LAY has no undo** — try it on a copy of a pattern.
-- Fallback if anything's off: `2b_CHOP+STEPLOCK_…` (the version that works today).
+The STA dial graphic is now the plain default (the stock-STA-looking one was dropped to make room); values and decimals are unchanged.
+While CHP is ON every pad goes to the chop track (TRK + pad won't select other tracks; turn CHP OFF first), and pad pressure still goes to the pad's own track.
+**Step-lock** (proven on 2b): GRID REC (press REC with the sequencer stopped), hold step(s), hit a pad → each held step gets that marker as an STA p-lock.
 
-What to check (full list: design.md H7–H14): slow STA gives decimals and the pad plays that exact spot; END plays only the slice; DIV 4 gives 0/30/60/90; LAY fills only empty steps; RND re-rolls held steps; everything from before (pads, live REC, step-lock) still works; STR: does each retrig restart the sweep, and is 16 really 16 steps?
+### A. Check CHOP on 4b (then again quickly on 5)
+1. Slow STA turn shows decimals; the pad plays from exactly that spot.
+2. Pads, live REC (trig + STA lock), step-lock in GRID REC: all as before.
+3. END ON: a pad plays only its slice. DIV 4: markers 0/30/60/90. LAY fills only empty steps. RND re-rolls held steps.
+4. Turning a knob other than RND while holding a step then letting go: stock may toggle that step (as after any hold with no edit).
 
-## NEW: step-lock build (`2b_CHOP+STEPLOCK_…syx`)
-Same as CHOP, plus: **in GRID RECORDING, hold one or more steps and hit a pad → each held step gets an STA p-lock = that pad's marker.** Confirmed working on the MK1 (2026-10-06). Flash it like the CHOP file; if anything is off, flash `2_CHOP_…` again (the version that works today).
+## SMP CUT (file 5 only): FILTER, let go, pause, FILTER again
+LCT (low cut) and HCT (high cut) on the sample layer, per track, saved with the sound. **First run of SMP CUT on any MK1** — its filter runs inside the audio engine. For this test: MIDI OUT disconnected, nothing on MIDI IN.
 
-How to test it:
-1. CHOP ON for your track (that track selected).
-2. Press **[REC]** with the sequencer stopped → GRID RECORDING (stock only holds steps for p-locks in grid mode).
-3. Hold a step's trig key, hit pad 5 → check the step's STA on the SAMPLE page (still holding) = 40. Let go: the trig must still be there.
-4. Hold several steps, hit a pad → all of them get that marker.
-5. Hold a step, hit pad 2 then pad 9 → the lock ends at 80.
-6. Afterwards, with no step held, the SAMPLE page's base STA should be unchanged.
-7. Note what the pad preview plays from while a step is held (the new marker, the step's old lock, or the base STA).
-8. Avoid sending MIDI notes into the Rytm while testing.
+### B. First run, in this order
+1. **First boot, before saving anything:** on a sound you haven't touched, **LCT must show OFF (dial far left, 0)** and **HCT must show OFF (dial far right, 127)**. If not, stop and tell me — don't save.
+2. FILTER, pause, FILTER → SMP CUT page. Turn LCT up: lows thin out. HCT down: highs roll off. Only on that track.
+3. All 12 tracks playing with LCT/HCT on: listen for clicks or dropouts. **If you hear any:** set LCT 0 and HCT 127 on every track, save, stop, and go back to `4b`.
+4. **In a copy of your project** (backup from "Before you flash" confirmed): set cuts on two tracks, save kit + project, power-cycle — the values must come back.
+5. CHOP and SMP CUT in one session: CHOP on a track; to use SMP CUT on another track, turn CHP OFF, select the track, FILTER ×2.
+6. Known quirk: turning HCT then LCT very quickly can make LCT jump back — just turn LCT again.
 
-## Use it
-1. Pick the track with the sample you want to chop (normal pad mode, not chromatic).
-2. Press **SAMPLE**, let go, pause, press **SAMPLE** again → the **CHOP** page (knobs PAD / STA / CHP). A quick double-tap opens the sample list instead (that's stock).
-3. Turn **CHP** right → ON. CHOP now belongs to the track that was selected.
-4. Hit pads 1–12: the sample plays from markers 0, 10, 20 … 110.
-5. To move a marker: hit the pad (or turn PAD), then turn **STA**.
-6. Live REC (REC + PLAY) and play pads: each hit records a normal trig with an STA p-lock — it saves with the pattern and plays on stock firmware too.
-7. Turn **CHP** left → OFF. Pads are stock again. Power-off also ends CHOP and resets the markers (they live in RAM by design).
-
-While CHP is ON, every pad goes to the chop track (TRK + pad won't select other tracks), and pad pressure still goes to the pad's own track.
+Full test card: `../mods/0001-chop/src/design.md` (H rows and S1–S10).
 
 ## If it won't boot
 Hold **FUNC** while powering on → **TRIG 4** (OS UPGRADE) → Transfer > CONNECTION > LEGACY OS UPGRADE → send `RECOVERY_stock_Analog-Rytm_OS1.73.syx` over **DIN MIDI**. The recovery code in flash is never touched by these files (checked byte for byte).
 
 ## Don't
-- Don't flash rytm1_mods' SMP CUT or RANDOM builds: they use an MKII offset that is wrong for the MK1.
-- Don't use FUNC + SAMPLE (page copy/paste/clear) while the CHOP page is on screen.
+- Don't flash **rytm1_mods' own** SMP CUT or RANDOM builds: they use MKII offsets that are wrong for the MK1. (File 5 carries the MK1-fixed SMP CUT.)
+- Don't use FUNC + SAMPLE / FUNC + FILTER (page copy/paste/clear) while the CHOP or SMP CUT page is on screen.
 
-## Please check (and tell me)
-1. Does a pad hit play from its marker on the **first** hit?
-2. Under live REC, does the STA lock land on the same step as the trig?
-3. Does the CHOP page draw right and switch back to SAMP?
-4. No crash or stuck notes on fast rolls, two pads held, or holding a pad while turning CHP.
-5. Going back to stock (same-version reinstall) works.
+## All files
+| File | What | Status |
+|---|---|---|
+| `1_CONTROL_…` | stock code, repacked by our tool | proves the tool |
+| `2_CHOP_…` | first CHOP (3 knobs) + euclid/velocity | ✅ proven |
+| `2b_CHOP+STEPLOCK_…` | CHOP + step-lock + euclid/velocity | ✅ proven |
+| `3_only-if-chop-misbehaves_…` | first CHOP alone (bisect) | — |
+| `4_SAMPLE-FOCUS_…` | Sample Focus **with STR** | superseded (STR doesn't work) |
+| `4b_SAMPLE-FOCUS-no-STR_…` | Sample Focus, 7 knobs | 🧪 flash first |
+| `5_SAMPLE-FOCUS+SMP-CUT_…` | Sample Focus + SMP CUT | 🧪 after 4b |
+| `RECOVERY_stock_…` | Elektron's stock 1.73 | recovery |
 
-Full test card: `../mods/0001-chop/src/design.md` § "Hardware-only unknowns". Checksums: `SHA256SUMS`.
+Checksums: `SHA256SUMS`.
 
 ## Hardware results
-- 2026-10-05, MK1 OS 1.73, CHOP build 3ea80d31…b00b: works. H1 (first hit plays from marker) YES; H2 (live-REC lock on the trig step) YES; H3 (CHOP page draws and switches back) YES; H4 (no crash or stuck notes, mashing and retriggers) YES. H5 pending.
+- 2026-10-05, MK1 OS 1.73, CHOP build 3ea80d31…b00b: works. H1 (first hit plays from marker) YES; H2 (live-REC lock on the trig step) YES; H3 (CHOP page draws and switches back) YES; H4 (no crash or stuck notes, mashing and retriggers) YES. H5 (reinstall stock) pending.
 - 2026-10-06, step-lock build a96657b4…caf6: works (founder).
+- 2026-10-06, Sample Focus with STR (734607ae…14dc): STR writes the LFO but produces no sweep (founder) → STR removed.
