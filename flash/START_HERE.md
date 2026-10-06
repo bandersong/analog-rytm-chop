@@ -41,4 +41,4 @@ Hold **FUNC** while powering on → **TRIG 4** (OS UPGRADE) → Transfer > CONNE
 Full test card: `../mods/0001-chop/src/design.md` § "Hardware-only unknowns". Checksums: `SHA256SUMS`.
 
 ## Hardware results
-- 2026-10-05, MK1 OS 1.73, CHOP build 3ea80d31…b00b: works. H1 (first hit plays from marker) YES; H2 (live-REC lock on the trig step) YES. H3–H5 pending.
+- 2026-10-05, MK1 OS 1.73, CHOP build 3ea80d31…b00b: works. H1 (first hit plays from marker) YES; H2 (live-REC lock on the trig step) YES; H3 (CHOP page draws and switches back) YES. H4–H5 pending.
