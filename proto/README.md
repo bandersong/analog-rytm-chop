@@ -30,4 +30,6 @@ Ctrl-C stops it. The start/end values it sets are live sound edits: the kit is n
 2. Is the slice start right on the first hit, or does the trigger sometimes beat the CC? If it does, add a 1 ms gap.
 3. Feel: is the pad-to-sound latency playable?
 
-Tested so far: 7 unit tests (logic) and a dry run. Nothing has been sent to a Rytm.
+Tested: 7 unit tests, a dry run, and on the MK2 2026-10-05: works (owner's ear test, track 1, default markers).
+The MK2's pads (PAD DEST EXT) send on the auto channel, ch 14, note = pad - 1; `chop/pads.json` holds that map.
+Still open: the three measurements above.
