@@ -101,7 +101,7 @@ This route runs from the Rytm's recovery code in flash, which CHOP never touches
 - ✅ A pad hit plays from its marker on the first hit.
 - ✅ Under live REC, the STA p-lock lands on the trig's step.
 - ✅ The CHOP page draws and switches back to the sample page.
-- ⏳ Stress test (fast rolls, two pads held, holding a pad while toggling CHP): in progress.
+- ✅ No crashes or stuck notes under mashing and fast retriggers.
 - ⏳ Reinstalling stock 1.73 over CHOP: not yet tried.
 
 ## What's in this repo
