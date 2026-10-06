@@ -8,7 +8,7 @@ Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/
 |---|---|
 | MK1, OS 1.73 | ✅ Working on hardware |
 | MK2 | ❌ Not yet |
-| Builds reproducibly | ✅ Fresh clone + patch gives the same file, sha256 `a96657b4…caf6` |
+| Builds reproducibly | ✅ Fresh clone + patch gives the same file, sha256 `734607ae…14dc` |
 | Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
 | Sample Focus (hi-res, END, DIV, LAY, RND, STR) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
 | Recovery code untouched | ✅ Byte-for-byte identical to stock |
@@ -83,13 +83,12 @@ git checkout 2fae7ce
 git am /path/to/this-repo/mods/0001-chop/rytm1_mods-chop.patch
 cp /path/to/Analog-Rytm_OS1.73.syx stock/Analog-Rytm_OS1.73.syx
 make setup          # fetches and builds the firmware container tool
-make chop           # (retired in the newest patch: use `make samplefocus`)
 make samplefocus    # newest: CHOP + hi-res + END/DIV/LAY/RND/STR; must end with PASS
 make control        # stock code repacked, for your first flash
 ```
 On macOS, if `python3` is older than 3.11, add `PY=python3.12` to each `make` command.
 
-The end of `make chop`'s output must show all three of these:
+The end of `make samplefocus`'s output must show all three of these:
 ```
 ok   null repack: stock .syx rebuilds byte-identically
 ok   embedded bootstrap image unchanged (87,068 B) - recovery path intact
@@ -97,15 +96,17 @@ PASS
 ```
 Then check your build is the same file this repo was tested with:
 ```bash
-shasum -a 256 build/AR1_OS1.73_0000_0001_0002_0003.syx
-# a96657b49e70b42fc20b9d744a0f10ceceb0f065c0aac7201be88866ac15caf6
+shasum -a 256 build/AR1_OS1.73_0000_0001.syx
+# 734607ae8a213a328a46c474abd2d4b55853172761e753af34e921f41b9d14dc
 ```
 
 ### 3. Flash (Transfer)
 1. Back up your projects and +Drive in Transfer.
 2. Connect USB, power on, and in Transfer > CONNECTION set MIDI IN and OUT to the Analog Rytm.
 3. **Control build first:** drag `build/AR1_OS1.73_control.syx` onto Transfer > DROP and press **YES** on the Rytm. Check it boots and plays normally. This proves the toolchain on your unit.
-4. **Then CHOP:** do the same with `build/AR1_OS1.73_0000_0001_0002_0003.syx`.
+4. **Then Sample Focus:** do the same with `build/AR1_OS1.73_0000_0001.syx`.
+
+The hardware-proven step-lock build (CHOP + step-lock + euclid/velocity, sha256 `a96657b4…caf6`) is the previous patch, commit `800b437` of this repo's `mods/0001-chop/rytm1_mods-chop.patch`, built with `make chop`.
 5. Don't power off during an update or during the first boot after it.
 
 If Transfer refuses a file as "same version", nothing was written. Use the recovery route below to send it.
