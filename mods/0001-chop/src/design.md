@@ -651,6 +651,7 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
 - **H5** Recovery: a same-version reinstall of stock 1.73 over a CHOP build (normal
   route), and if that is refused, the DIN recovery route above (untested by the
   upstream author too).
+- **Hardware result 2026-10-06 (founder, MK1 OS 1.73, build a96657b4…caf6): step lock works.** H1–H4 passed on 2026-10-05 with the round-3 build. Open: H5 (same-version reinstall of stock), and which source the held-step preview plays from (H6 (a)).
 - **H6 Step lock (round 4, D15).** **Precondition: GRID RECORDING mode** (press [REC]
   with the sequencer stopped, the trig keys show the steps). Stock only holds trig keys
   for p-locks in GRID REC; outside it a trig key does not hold a step, and no step lock

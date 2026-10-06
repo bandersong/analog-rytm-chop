@@ -9,7 +9,7 @@ Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/
 | MK1, OS 1.73 | ✅ Working on hardware |
 | MK2 | ❌ Not yet |
 | Builds reproducibly | ✅ Fresh clone + patch gives the same file, sha256 `a96657b4…caf6` |
-| Step-lock (GRID REC: hold steps + pad) | 🧪 Built and reviewed, not yet hardware-tested |
+| Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
 | Recovery code untouched | ✅ Byte-for-byte identical to stock |
 
 ## How it works
@@ -28,7 +28,7 @@ Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/
 | STA | that marker's start point (0–120, same scale as the SAMPLE page) |
 | CHP | CHOP off / on |
 
-**Step-lock (new, not yet hardware-tested):** in GRID RECORDING, hold one or more steps and hit a pad. Each held step gets an STA p-lock set to that pad's marker, just like holding the step and turning STA. The trig stays on when you let go.
+**Step-lock:** in GRID RECORDING (press REC with the sequencer stopped), hold one or more steps and hit a pad. Each held step gets an STA p-lock set to that pad's marker, just like holding the step and turning STA. The trig stays on when you let go.
 
 **Tip:** make your loop 120 sixteenths long (7.5 bars). Then every STA value lands exactly on a 16th.
 
@@ -105,6 +105,7 @@ This route runs from the Rytm's recovery code in flash, which CHOP never touches
 - ✅ Under live REC, the STA p-lock lands on the trig's step.
 - ✅ The CHOP page draws and switches back to the sample page.
 - ✅ No crashes or stuck notes under mashing and fast retriggers.
+- ✅ Step-lock: in GRID REC, holding steps + hitting a pad writes that pad's marker as an STA p-lock.
 - ⏳ Reinstalling stock 1.73 over CHOP: not yet tried.
 
 ## What's in this repo

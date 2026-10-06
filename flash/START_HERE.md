@@ -14,7 +14,7 @@ Nothing here has run on a Rytm yet. Every check that can be done on a computer p
 If Transfer refuses a file as "same version", nothing was written. Stop, or use the recovery route.
 
 ## NEW: step-lock build (`2b_CHOP+STEPLOCK_…syx`)
-Same as CHOP, plus: **in GRID RECORDING, hold one or more steps and hit a pad → each held step gets an STA p-lock = that pad's marker.** Not yet tested on hardware. Flash it like the CHOP file; if anything is off, flash `2_CHOP_…` again (the version that works today).
+Same as CHOP, plus: **in GRID RECORDING, hold one or more steps and hit a pad → each held step gets an STA p-lock = that pad's marker.** Confirmed working on the MK1 (2026-10-06). Flash it like the CHOP file; if anything is off, flash `2_CHOP_…` again (the version that works today).
 
 How to test it:
 1. CHOP ON for your track (that track selected).
@@ -55,3 +55,4 @@ Full test card: `../mods/0001-chop/src/design.md` § "Hardware-only unknowns". C
 
 ## Hardware results
 - 2026-10-05, MK1 OS 1.73, CHOP build 3ea80d31…b00b: works. H1 (first hit plays from marker) YES; H2 (live-REC lock on the trig step) YES; H3 (CHOP page draws and switches back) YES; H4 (no crash or stuck notes, mashing and retriggers) YES. H5 pending.
+- 2026-10-06, step-lock build a96657b4…caf6: works (founder).

@@ -1,7 +1,7 @@
 From 12fbe449235e680196e9744c78c1481b5b48faa3 Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:01:29 -0400
-Subject: [PATCH 1/7] 0001 CHOP: a second SAMPLE page that turns the pads into
+Subject: [PATCH 1/8] 0001 CHOP: a second SAMPLE page that turns the pads into
  sample-start markers
 
 New mod mods/0001-chop (enabled = false; excludes 0004 and 0008) and the
@@ -1292,7 +1292,7 @@ index 4912597..87b6106 100644
 From ed4096658dffa7ab796838db092f6ce66e025dc1 Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:38:11 -0400
-Subject: [PATCH 2/7] 0001 CHOP: keep the sample list open on a SAMPLE
+Subject: [PATCH 2/8] 0001 CHOP: keep the sample list open on a SAMPLE
  double-tap; document the double-tap, note-off routing and first-flash order
 
 A quick second SAMPLE press is stock's double-tap (bit2) and opens the sample
@@ -1650,7 +1650,7 @@ index 28a9543..d13bf46 100644
 From 2b2a56bd2ad740759b524a04ae774371ecdd0407 Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:46:54 -0400
-Subject: [PATCH 3/7] 0001 CHOP: send each pad's note-off to the track its
+Subject: [PATCH 3/8] 0001 CHOP: send each pad's note-off to the track its
  note-on went to
 
 The note-on now records, per pad, whether it was rewritten to the chop
@@ -2168,7 +2168,7 @@ index 87b6106..86288b7 100644
 From 4bde508984ea04221b224ddc412b6491377e4068 Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 19:19:52 -0400
-Subject: [PATCH 4/7] 0001 CHOP: test card - final-gate P2 disclosures
+Subject: [PATCH 4/8] 0001 CHOP: test card - final-gate P2 disclosures
  (same-version refusal, modifier+pad, pressure, FUNC+SAMPLE, never flash
  0004/0008 builds)
 
@@ -2245,7 +2245,7 @@ index 04030ab..13866c4 100644
 From 2b96812d5cd624bb6ffa442dd0c5b62954d258a3 Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 21:51:12 -0400
-Subject: [PATCH 5/7] 0001 CHOP: hold trig keys + pad = STA p-lock of that
+Subject: [PATCH 5/8] 0001 CHOP: hold trig keys + pad = STA p-lock of that
  pad's marker on every held step
 
 In CHOP, a pad hit with trig key(s) of the chop track held now does what stock
@@ -2897,7 +2897,7 @@ index 2250266..0bd9c66 100644
 From c7780f9b5a13fe433e6c11425f088adf338f0d64 Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 22:15:57 -0400
-Subject: [PATCH 6/7] 0001 CHOP: round-4 panel corrections to design.md and the
+Subject: [PATCH 6/8] 0001 CHOP: round-4 panel corrections to design.md and the
  registry cave note (text only)
 
 - design.md: the success-path stack tally of chop_held_lock now includes the
@@ -3072,7 +3072,7 @@ index 86288b7..e4da1df 100644
 From 1d39dd3b4a64ba589b3ac6e2c180fc6bf975b36b Mon Sep 17 00:00:00 2001
 From: jaytriana <83611075+jaytriana@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 22:36:50 -0400
-Subject: [PATCH 7/7] 0001 CHOP: test card H6 - GRID REC precondition, FX-key
+Subject: [PATCH 7/8] 0001 CHOP: test card H6 - GRID REC precondition, FX-key
  reachability, live-REC row fixed, MIDI-note unknown (final-gate P1/P2)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -3131,6 +3131,33 @@ index fb33755..a8e37bb 100644
    Stop at the first deviation; the round-3 file (no step lock) is the fallback.
  
  Also unknown, low priority: whether external MIDI CC reaches ids 3..5 through PARAM_ROM
+-- 
+2.47.1
+
+
+From 411a81f0e5f8c21364e61fd878c23252b97fede7 Mon Sep 17 00:00:00 2001
+From: jaytriana <83611075+jaytriana@users.noreply.github.com>
+Date: Tue, 6 Oct 2026 07:35:49 -0400
+Subject: [PATCH 8/8] 0001 CHOP: step lock confirmed on hardware (founder, MK1
+ 1.73)
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ mods/0001-chop/design.md | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+index a8e37bb..ae888c2 100644
+--- a/mods/0001-chop/design.md
++++ b/mods/0001-chop/design.md
+@@ -651,6 +651,7 @@ Files verified on 2026-10-05 after the round-4 change D15 (guest VM, `make chop`
+ - **H5** Recovery: a same-version reinstall of stock 1.73 over a CHOP build (normal
+   route), and if that is refused, the DIN recovery route above (untested by the
+   upstream author too).
++- **Hardware result 2026-10-06 (founder, MK1 OS 1.73, build a96657b4…caf6): step lock works.** H1–H4 passed on 2026-10-05 with the round-3 build. Open: H5 (same-version reinstall of stock), and which source the held-step preview plays from (H6 (a)).
+ - **H6 Step lock (round 4, D15).** **Precondition: GRID RECORDING mode** (press [REC]
+   with the sequencer stopped, the trig keys show the steps). Stock only holds trig keys
+   for p-locks in GRID REC; outside it a trig key does not hold a step, and no step lock
 -- 
 2.47.1
 
