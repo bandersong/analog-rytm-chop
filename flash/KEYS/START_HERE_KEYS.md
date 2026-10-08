@@ -37,7 +37,7 @@ Fallbacks: 2 → 1 or stock (file 0) → recovery.
 - If a tap does not release: hold a key that is **not** one of the latched notes (e.g. D over a latched C chord), press HOLD, release both, then press and release D. A key on a latched note (E or G of a C chord) does nothing here.
 
 ## Test card (run in order; note what actually happens)
-Every expectation comes from the code and a model, not from hardware. Full card with the code references: `mods/0010-chord/design.md`, "Test card".
+Every expectation comes from the code and a model, not from hardware. Full card with the code references: `mods/0010-chord/src/design.md`, "Test card".
 
 | row | do | expect |
 |---|---|---|

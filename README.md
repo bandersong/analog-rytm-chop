@@ -136,7 +136,7 @@ make DEVICE=mk2 samplefocus-cut   # build/mk2/ARMK2_OS1.73_0000_0001_0008.syx   
 
 ### Analog Keys (OS 1.56): chord memory
 Not yet run on an Analog Keys. Order and first-run checks: [`flash/KEYS/START_HERE_KEYS.md`](flash/KEYS/START_HERE_KEYS.md). **Analog Keys only** — never a Rytm, never an Analog Four MKII.
-1. The unit must run **stock 1.56**. Elektron's file: `KEYS_Analog-Four_Analog-Keys_OS1.56.syx`, sha256 `cda4459d14bfba40635440ad9dfa8fc183e5317e5e3ffa7116704f307fdf7010` → copy it to `stock/`.
+1. The unit must run **stock 1.56**. Elektron's Analog Four / Analog Keys OS 1.56 file (sha256 `cda4459d14bfba40635440ad9dfa8fc183e5317e5e3ffa7116704f307fdf7010`) → save it as `stock/KEYS_Analog-Four_Analog-Keys_OS1.56.syx` (that exact name; the build looks for it).
 2. Build (same clone and patch as above; the Keys file goes in `stock/` too):
 ```bash
 make DEVICE=keys control   # build/keys/AKEYS_OS1.56_control.syx   6981fd94084e8f678e6579a224b009a80e50f9192499f63db2cfcc519f75a475
