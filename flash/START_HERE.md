@@ -1,5 +1,7 @@
 # CHOP / Sample Focus for your MK1 (OS 1.73) — start here
 
+> **⚠️ HOLD (2026-10-08): don't flash `4b`, `5`, or anything in `MKII/` yet.** A bug was found: pressing a CHOP/SMP CUT knob while holding steps writes hidden locks into the slot SMP CUT reads. A fixed build is being made; these files will be replaced. Files `2`/`2b` are fine to keep using — just don't *press* a CHOP knob while holding steps.
+
 Files **2** and **2b** are proven on your unit (see Hardware results at the bottom). Files **4b** and **5** have never run on a Rytm; every check that can be done on a computer passed.
 
 ## Before you flash
