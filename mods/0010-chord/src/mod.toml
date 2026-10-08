@@ -1,0 +1,51 @@
+[mod]
+id      = "0010-chord"
+title   = "CHORD: chord memory for the Analog Keys - capture a held chord, play it from one key"
+
+# Analog Keys only (DEVICE=keys; corp Keys chord memory, TRUTH K1-K5, K7). Off in every
+# Rytm build; the Keys build is `make DEVICE=keys chord` (tag 0010). Its stub refuses to
+# assemble without DEVICE_KEYS, and the Rytm registries hold no claim for it.
+enabled = false
+
+# re-only | built | hardware-verified | retracted
+status  = "built"
+
+summary = """
+Analog Keys OS 1.56 (an Analog Four MK1 runs it, but has no key code 164: inert there).
+Hold 2..4 keys on the keybed, then hold FUNCTION and press OCTAVE UP: the held keys become
+the chord, each counted with the note it was pressed at (chord_root, TRUTH K7 c; root =
+the lowest; at most 4 notes) and chord mode is on (popup "CHORD ON: 0 4 7"). From then on
+every note the keyboard starts on the track - keybed or trig-key notes - plays root + the
+stored intervals, each through the stock note-on routine with the same key id, so the
+key's release frees the whole chord through stock; tones above 127 are skipped (K7 d).
+HOLD (K7 a): while the HOLD key is down or any note is latched, keys play single stock
+notes and latched notes are never captured; a note stock would merge into ANOTHER key's
+latched note is not sent (the orphan guard: no hung note, design.md). FUNCTION + OCTAVE
+UP turns chord mode off only when nothing is held or latched ("CHORD OFF", K7 b); with
+keys that cannot be captured, only latched notes, 1 key or 5+ keys nothing changes and
+the popup says why. RAM only: a power cycle clears the chord and turns chord mode off.
+Needs a poly configuration with enough voices for the chord (stock POLY CONFIG). Under
+live REC stock records the tones as a normal chord trig (NOTE + NO2..NO4), with stock's
+merge rules. Built, never run on hardware (design.md, test card K0-K21).
+"""
+
+[sources]
+stub = "stub.s"
+
+[requires]
+shared = false
+symbols = [
+  "kv_note_on_body",
+  "kv_key_cmp_resume",
+  "kv_active_track",
+  "sel_kind2_test",
+  "uist_kind2_test",
+  "boot_flags",
+  "ui_popup",
+  "KEY_OCT_UP",
+  "kv_midi_ext",
+  "kv_ext_chan",
+  "kv_chan_obj",
+  "kv_chan_fallback",
+  "uist_hold",
+]
