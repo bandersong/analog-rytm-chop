@@ -1,0 +1,54 @@
+[mod]
+id      = "0011-joyrand"
+title   = "JOY RANDOM: FUNCTION + OCTAVE DOWN rolls the joystick assignments (Analog Keys)"
+
+# Analog Keys only (DEVICE=keys; corp joyrand, TRUTH K9). Off in every Rytm build; the Keys
+# builds are `make DEVICE=keys joy` (0010-chord + 0011, tag 0010_0011) and `make DEVICE=keys
+# joy-min` (0011 alone, tag 0011). Its stub refuses to assemble without DEVICE_KEYS, and the
+# Rytm registries hold no claim for it. It works with or without 0010-chord: its own detour
+# (0x400b9e66) and its own cave claim (the cave2 tail after 0010's).
+enabled = false
+
+# re-only | built | hardware-verified | retracted
+status  = "built"
+
+summary = """
+Analog Keys OS 1.56 (an Analog Four MK1 runs it, but has no key code 165: inert there).
+Hold FUNCTION and press OCTAVE DOWN: the active track's joystick assignments are rolled
+through the stock setters the SOUND SETTINGS menus call (setParam + setDepth, one pair per
+slot, the menu's own notify chain): PITCH BEND slots 2-5 (slot 1, the bend itself, is kept),
+MOD WHEEL slots 1-5 and BREATH slots 1-5 get a random destination from this mod's pool
+(synth tracks 53 ids, the FX track 38 ids; both inside the menu's own picker list) and a
+depth of 24..63 with a random sign (stored as the menu stores it, units << 8). No
+destination repeats within a controller. Popup "JOY: RANDOM". AFTERTOUCH and VELOCITY are
+never touched; a CV track only shows "JOY: NOT ON CV". Nothing is saved: [NO/RELOAD] +
+[SOUND] (stock quick reload) brings the saved assignments back; saving the kit keeps the
+roll. Random numbers from stock rand() (reset at boot, not seeded: the first rolls after a
+power cycle can repeat). No run-time state of its own. Built, never run on hardware
+(design.md, test card J0-J13).
+"""
+
+[sources]
+stub = "stub.s"
+
+[requires]
+shared = false
+symbols = [
+  "kv_key_cmp165_resume",
+  "KEY_OCT_DOWN",
+  "proj_singleton",
+  "proj_sel",
+  "sel_track",
+  "proj_kit",
+  "kit_pb_conf",
+  "kit_mw_conf",
+  "kit_bc_conf",
+  "smc_vtable",
+  "smc_count",
+  "smc_get_param",
+  "smc_set_param",
+  "smc_set_depth",
+  "param_index",
+  "stock_rand",
+  "ui_popup",
+]

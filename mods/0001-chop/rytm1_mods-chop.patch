@@ -1,7 +1,7 @@
 From b6a448febf881ca3e75d080d9d41ad5339f99864 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:01:29 -0400
-Subject: [PATCH 01/44] 0001 CHOP: a second SAMPLE page that turns the pads
+Subject: [PATCH 01/46] 0001 CHOP: a second SAMPLE page that turns the pads
  into sample-start markers
 
 New mod mods/0001-chop (enabled = false; excludes 0004 and 0008) and the
@@ -1292,7 +1292,7 @@ index 4912597..87b6106 100644
 From 01c5e5d21befaabca342eaa8ba4df7c684cca720 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:38:11 -0400
-Subject: [PATCH 02/44] 0001 CHOP: keep the sample list open on a SAMPLE
+Subject: [PATCH 02/46] 0001 CHOP: keep the sample list open on a SAMPLE
  double-tap; document the double-tap, note-off routing and first-flash order
 
 A quick second SAMPLE press is stock's double-tap (bit2) and opens the sample
@@ -1650,7 +1650,7 @@ index 28a9543..d13bf46 100644
 From 7d22ee045ff390a3a18c70f1ba55be3afecfdc57 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:46:54 -0400
-Subject: [PATCH 03/44] 0001 CHOP: send each pad's note-off to the track its
+Subject: [PATCH 03/46] 0001 CHOP: send each pad's note-off to the track its
  note-on went to
 
 The note-on now records, per pad, whether it was rewritten to the chop
@@ -2168,7 +2168,7 @@ index 87b6106..86288b7 100644
 From 58ca59b3f9b6df01eb3598fc61e84bc3ed5ad39b Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 19:19:52 -0400
-Subject: [PATCH 04/44] 0001 CHOP: test card - final-gate P2 disclosures
+Subject: [PATCH 04/46] 0001 CHOP: test card - final-gate P2 disclosures
  (same-version refusal, modifier+pad, pressure, FUNC+SAMPLE, never flash
  0004/0008 builds)
 
@@ -2245,7 +2245,7 @@ index 04030ab..13866c4 100644
 From a3119cf4da36f57b4f252b2af0bc7b6496876c56 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 21:51:12 -0400
-Subject: [PATCH 05/44] 0001 CHOP: hold trig keys + pad = STA p-lock of that
+Subject: [PATCH 05/46] 0001 CHOP: hold trig keys + pad = STA p-lock of that
  pad's marker on every held step
 
 In CHOP, a pad hit with trig key(s) of the chop track held now does what stock
@@ -2897,7 +2897,7 @@ index 2250266..0bd9c66 100644
 From e4ae24b91401055c4f4a00c189bbe6c842a5c5c0 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 22:15:57 -0400
-Subject: [PATCH 06/44] 0001 CHOP: round-4 panel corrections to design.md and
+Subject: [PATCH 06/46] 0001 CHOP: round-4 panel corrections to design.md and
  the registry cave note (text only)
 
 - design.md: the success-path stack tally of chop_held_lock now includes the
@@ -3072,7 +3072,7 @@ index 86288b7..e4da1df 100644
 From 6672e37af595211e0fe064f397908a5e37adcbb6 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 22:36:50 -0400
-Subject: [PATCH 07/44] 0001 CHOP: test card H6 - GRID REC precondition, FX-key
+Subject: [PATCH 07/46] 0001 CHOP: test card H6 - GRID REC precondition, FX-key
  reachability, live-REC row fixed, MIDI-note unknown (final-gate P1/P2)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -3138,7 +3138,7 @@ index fb33755..a8e37bb 100644
 From ee8665ed0992702168d14c09d6a2f93af79df58d Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 07:35:49 -0400
-Subject: [PATCH 08/44] 0001 CHOP: step lock confirmed on hardware (founder,
+Subject: [PATCH 08/46] 0001 CHOP: step lock confirmed on hardware (founder,
  MK1 1.73)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -3165,7 +3165,7 @@ index a8e37bb..ae888c2 100644
 From f50dd304c844d8760fd9371c2f8ab2fa5f3b9c73 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 08:43:09 -0400
-Subject: [PATCH 09/44] Sample Focus step 1: 0000-shared PROJ_KIT = 232, and
+Subject: [PATCH 09/46] Sample Focus step 1: 0000-shared PROJ_KIT = 232, and
  the samplefocus target
 
 - 0000-shared: the active kit on MK1 1.73 is project + 232 (project_kit
@@ -3251,7 +3251,7 @@ index 0bd9c66..53c66c0 100644
 From ad157ce7fc81748cd70a8d9130a36cd10ee0e370 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 08:55:23 -0400
-Subject: [PATCH 10/44] Sample Focus step 2: hi-res CHOP markers (D18)
+Subject: [PATCH 10/46] Sample Focus step 2: hi-res CHOP markers (D18)
 
 - chop_marks become 12 x .word 8.8 (0, 10.0 ... 110.0); every load is a word
   load with a *2 index; chop_set_sta and chop_held_lock take V as 8.8.
@@ -3971,7 +3971,7 @@ index e4da1df..6a3a497 100644
 From d9b0302e26973c2701dcb10b8be48eec8e57bdff Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:05:10 -0400
-Subject: [PATCH 11/44] Sample Focus step 3: knob ids proven dead, END and DIV
+Subject: [PATCH 11/46] Sample Focus step 3: knob ids proven dead, END and DIV
  (D19, D20)
 
 - Knob ids: 11..14 proven dead (Error-class ROM record, on no stock page,
@@ -4810,7 +4810,7 @@ index 6a3a497..00d8cbe 100644
 From 449b935670e46cf22ff356fa55dd282015e2c088 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:08:00 -0400
-Subject: [PATCH 12/44] Sample Focus step 4: RND, random markers on held steps
+Subject: [PATCH 12/46] Sample Focus step 4: RND, random markers on held steps
  (D20)
 
 - G RND (id 14, proven dead in step 3): turned while trig key(s) of the chop
@@ -5102,7 +5102,7 @@ index 00d8cbe..847f570 100644
 From 90500f4689681f5caa3ea573d0f78e0d03ed2e2a Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:12:34 -0400
-Subject: [PATCH 13/44] Sample Focus step 5: LAY, lay the slices out on empty
+Subject: [PATCH 13/46] Sample Focus step 5: LAY, lay the slices out on empty
  steps (D20)
 
 - F LAY (id 13, proven dead in step 3): turned right, with CHOP on, the chop
@@ -5496,7 +5496,7 @@ index 847f570..0d4d241 100644
 From 5a3e44b2196b97a3298155108ea33fdb92f1280c Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:20:40 -0400
-Subject: [PATCH 14/44] Sample Focus step 6: STR, EXPERIMENTAL stretch macro
+Subject: [PATCH 14/46] Sample Focus step 6: STR, EXPERIMENTAL stretch macro
  (D21)
 
 - H STR (id 2: an Error-class record, 0008's HCT, not in image A; id 7 was
@@ -5822,7 +5822,7 @@ index 0d4d241..a76960b 100644
 From 5ecdce622aa8dfd71a017691bec7c1a9d45bc046 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:22:31 -0400
-Subject: [PATCH 15/44] Sample Focus step 7 (D18 optional): the CHOP STA dial
+Subject: [PATCH 15/46] Sample Focus step 7 (D18 optional): the CHOP STA dial
  draws as stock STA
 
 - dial_gate at param_knob_draw's entry 0x400a587c (expect 4fefffe848d7047c,
@@ -5911,7 +5911,7 @@ index a76960b..797b957 100644
 From 1d12bc11e789a223588d29b1bb1e60722ec6ef9d Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:31:12 -0400
-Subject: [PATCH 16/44] 0001 CHOP: design.md and summary for Sample Focus image
+Subject: [PATCH 16/46] 0001 CHOP: design.md and summary for Sample Focus image
  A
 
 - design.md: status, a README-level summary, the knob table A..H (what each
@@ -6882,7 +6882,7 @@ index feeac9c..7c6d009 100644
 From 7e0752ad5be154bc1a31c7388620fbc74f4c4fe7 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 10:07:53 -0400
-Subject: [PATCH 17/44] 0001 CHOP: r6 panel corrections (text only; image A
+Subject: [PATCH 17/46] 0001 CHOP: r6 panel corrections (text only; image A
  unchanged)
 
 - Test card: the round-4 fallback is named by its real path
@@ -7298,7 +7298,7 @@ index 797b957..50339f4 100644
 From 688dff3df4ed3b384b1606e7779db8bd03f01c84 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 13:26:55 -0400
-Subject: [PATCH 18/44] Image B step 1: remove STR from CHOP (D24); image A' =
+Subject: [PATCH 18/46] Image B step 1: remove STR from CHOP (D24); image A' =
  image A minus STR
 
 Knob H is blank (id 0 in the CHOP descriptor). Gone: chop_str_held/turn/apply,
@@ -7767,7 +7767,7 @@ index 50339f4..2764568 100644
 From 50874ea8bfedba61329e4a4eff79c2978635c227 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 13:28:40 -0400
-Subject: [PATCH 19/44] Image B step 2: 0008 SMP CUT fixed for MK1 1.73 (D25)
+Subject: [PATCH 19/46] Image B step 2: 0008 SMP CUT fixed for MK1 1.73 (D25)
 
 SOUND0 = 232 + 96 (328): the kit is at project + 232 and kit_track_sound adds
 0x60 (96), so cut_process now reads the live sound at Sound_T + 16
@@ -7866,7 +7866,7 @@ index 18665c4..8ba8511 100644
 From 7ccd9c25d4c16856841abedecfd0ace5d7ae46bd Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 13:37:04 -0400
-Subject: [PATCH 20/44] Image B step 3: one owner for the page hosts; 0008 as a
+Subject: [PATCH 20/46] Image B step 3: one owner for the page hosts; 0008 as a
  provider (D26)
 
 0008-sample-cut: page id 12 (CHOP keeps 11); provides_shared, exporting
@@ -8493,7 +8493,7 @@ index 1b820a6..116e175 100644
 From cef0828591b44bde7259ff2e55000c76a80bbcbb Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 13:56:26 -0400
-Subject: [PATCH 21/44] Image B step 4: measured fit - image B does not fit;
+Subject: [PATCH 21/46] Image B step 4: measured fit - image B does not fit;
  design.md and registry notes
 
 A guest trial (uncommitted registry, receipts in corp/r7-builder/trial/) linked
@@ -9320,7 +9320,7 @@ index d2ed46e..f7903a0 100644
 From bcdc3a97d36f74ca1702342a5e404470197a9176 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 14:21:02 -0400
-Subject: [PATCH 22/44] Image B step 5 (D29 option 4, part a):
+Subject: [PATCH 22/46] Image B step 5 (D29 option 4, part a):
  behaviour-identical compaction of CHOP
 
 Image A' (make samplefocus) shrinks by 186 B with the same stock calls and the
@@ -9694,7 +9694,7 @@ index f7903a0..3fb881d 100644
 From dd84b6c8a37ecc3898c5e95d94d7b276669202b5 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 14:39:57 -0400
-Subject: [PATCH 23/44] Image B step 6 (D29 option 4, part b): image B fits -
+Subject: [PATCH 23/46] Image B step 6 (D29 option 4, part b): image B fits -
  make samplefocus-cut
 
 Image B = 0000-shared (lean) + 0001-chop + 0008-sample-cut (own_pages = 0), tag
@@ -10456,7 +10456,7 @@ index 116e175..9ff6a02 100644
 From 1b0f2b618a1a8511cf728177eb3d087b1ec4982b Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 14:48:35 -0400
-Subject: [PATCH 24/44] Image B step 7: design.md - image B built, its layout,
+Subject: [PATCH 24/46] Image B step 7: design.md - image B built, its layout,
  proofs and test card
 
 design.md: status (image A' since D29 = A minus STR minus the STA dial
@@ -11172,7 +11172,7 @@ index 8082f9c..5804875 100644
 From 2293ae87698826dde3c88bdd8891a4b288ef309b Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 15:25:33 -0400
-Subject: [PATCH 25/44] r7b integrator: panel corrections (verify gate-aware,
+Subject: [PATCH 25/46] r7b integrator: panel corrections (verify gate-aware,
  image B card, cave3 notes)
 
 Every image is unchanged; rebuilt in the guest with the same hashes (image B
@@ -11528,7 +11528,7 @@ index cf7846b..4762d01 100644
 From f5093f3425f4b97f29784ce8ad7f70ef8ea98bb5 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 16:00:31 -0400
-Subject: [PATCH 26/44] r7b gate P2s: MANUAL no longer claims image B works;
+Subject: [PATCH 26/46] r7b gate P2s: MANUAL no longer claims image B works;
  card adds first-boot LCT/HCT check, HCT-then-LCT quirk, CC 1/33 2/34; cave3
  note
 
@@ -11596,7 +11596,7 @@ index a2b3f23..c0a5d08 100644
 From 47ea4ef679826d2710d9bc727902d354c57a3f97 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 22:17:31 -0400
-Subject: [PATCH 27/44] MK2 step 1: DEVICE parameter and the MK2 control build
+Subject: [PATCH 27/46] MK2 step 1: DEVICE parameter and the MK2 control build
  (TRUTH D34, D35, D38)
 
 make DEVICE=mk2 control builds the Analog Rytm MKII 1.73 stock MAIN OS back into
@@ -12696,7 +12696,7 @@ index 4762d01..9c53d84 100644
 From bed4aa55776cb3cf4960a7eac8580a2e2871c80d Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 22:21:21 -0400
-Subject: [PATCH 28/44] MK2 step 2: Sample Focus CHOP on the MKII (make
+Subject: [PATCH 28/46] MK2 step 2: Sample Focus CHOP on the MKII (make
  DEVICE=mk2 samplefocus; TRUTH D36, D37)
 
 0000-shared lean (PROJ_KIT 352 on MK2) + 0001-chop for Analog Rytm MKII 1.73,
@@ -13384,7 +13384,7 @@ index db85280..b1b18dd 100644
 From fd3b07b5a7042bc5af2d8bbf97246f1fbc6fbb4e Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 22:23:45 -0400
-Subject: [PATCH 29/44] MK2 step 3: Sample Focus + SMP CUT on the MKII (make
+Subject: [PATCH 29/46] MK2 step 3: Sample Focus + SMP CUT on the MKII (make
  DEVICE=mk2 samplefocus-cut; D36, D37)
 
 0000-shared lean + 0001-chop + 0008-sample-cut (own_pages = 0, diag = 0) for
@@ -13644,7 +13644,7 @@ index b1b18dd..aef074e 100644
 From 348e89996f8a2713ac5a93011a26ff4482947425 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 22:33:53 -0400
-Subject: [PATCH 30/44] MK2 step 4: design.md - the MKII build, its pages,
+Subject: [PATCH 30/46] MK2 step 4: design.md - the MKII build, its pages,
  differences, proofs and test card
 
 New section "MK2" in mods/0001-chop/design.md: the device parameter and what
@@ -14049,7 +14049,7 @@ index beb8241..5cf96ab 100644
 From 9e3e5f40ab0cad2aa3b2e97481fbfca5d874ac4c Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 22:36:26 -0400
-Subject: [PATCH 31/44] MK2 design.md: list every store target precisely (the
+Subject: [PATCH 31/46] MK2 design.md: list every store target precisely (the
  MK2 proof's state-in-cave bullet)
 
 The proof bullet said every indexed store went to cave; the full objdump list of
@@ -14093,7 +14093,7 @@ index 7b9baf2..41125cb 100644
 From e2f447a1380deb78cd02602eb60851a86bbcb8b7 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 23:16:05 -0400
-Subject: [PATCH 32/44] MK2 integrator: refuse a symbol map without its
+Subject: [PATCH 32/46] MK2 integrator: refuse a symbol map without its
  device's never-write range
 
 corp mk2-panel-brick b1. tools/device.py protected(meta) returns [] when [meta]
@@ -14223,7 +14223,7 @@ index 9c53d84..de2fe46 100644
 From ab17f4ecc54fa2b4588295a7eec80a1ccd2e258f Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 23:21:58 -0400
-Subject: [PATCH 33/44] MK2 integrator: panel corrections to the MK2 notes,
+Subject: [PATCH 33/46] MK2 integrator: panel corrections to the MK2 notes,
  test card and entry points
 
 corp mk2-panel-crash F1-F3, mk2-panel-purpose F1-F5, mk2-panel-brick b2-b3.
@@ -14526,7 +14526,7 @@ index aef074e..460ae6c 100644
 From 083d9e78c2ce7563e98d4ffa0b860b1832229a7e Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 23:26:06 -0400
-Subject: [PATCH 34/44] MK2 integrator: LFO RND note - only changed LFO RND
+Subject: [PATCH 34/46] MK2 integrator: LFO RND note - only changed LFO RND
  settings switch LCT/HCT on
 
 The second opinion on corp mk2-panel-crash F3 disagreed, and the re-read agrees
@@ -14587,7 +14587,7 @@ index 580ac44..96be6bd 100644
 From d68141f65bf9eaeac2bf9a3e7a5e8637022b8001 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 00:26:21 -0400
-Subject: [PATCH 35/44] D39 press_gate: pressing a CHOP or SMP CUT knob with
+Subject: [PATCH 35/46] D39 press_gate: pressing a CHOP or SMP CUT knob with
  trigs held no longer writes hidden p-locks (MK1 + MK2)
 
 Stock's knob-PRESS lock path (page-view slot 0x80: MK1 0x400384f8, MK2 0x400387ba)
@@ -15274,7 +15274,7 @@ index 460ae6c..a30ac06 100644
 From 33ee7634d2e66b16aa1617f8120a2ae4350ff060 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 08:20:55 -0400
-Subject: [PATCH 36/44] Keys step 1: DEVICE=keys profile and the Analog Keys
+Subject: [PATCH 36/46] Keys step 1: DEVICE=keys profile and the Analog Keys
  control build (TRUTH K1, K5)
 
 make DEVICE=keys control rebuilds the Analog Keys / Analog Four MK1 OS 1.56 stock
@@ -15811,7 +15811,7 @@ index de2fe46..f9def7f 100644
 From 58105f43a5e96e617b97fd266f6499d52a8940d3 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 08:36:54 -0400
-Subject: [PATCH 37/44] Keys step 2: 0010-chord, chord memory for the Analog
+Subject: [PATCH 37/46] Keys step 2: 0010-chord, chord memory for the Analog
  Keys (make DEVICE=keys chord; TRUTH K2-K4)
 
 Hold 2..4 keybed keys, then FUNCTION + OCTAVE UP (code 164, no stock function: corp
@@ -16413,7 +16413,7 @@ index 2ca483b..f1a59b6 100644
 From 207dc4deea87cd8528a3ef9e1ac9aa40445b6ac3 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 08:39:25 -0400
-Subject: [PATCH 38/44] Keys step 3: 0010-chord design.md - what it does, the
+Subject: [PATCH 38/46] Keys step 3: 0010-chord design.md - what it does, the
  gesture, limits, proofs and the K test card
 
 mods/0010-chord/design.md: capture rules (kind 1, state 1, the active track, per
@@ -16775,7 +16775,7 @@ index 0000000..f011eb1
 From 29656766833a299e0b780a5c2aa08e91271fdd33 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 08:40:40 -0400
-Subject: [PATCH 39/44] Keys 0010-chord design.md: the message-load limit
+Subject: [PATCH 39/46] Keys 0010-chord design.md: the message-load limit
  (keys-sk-notes plan problem 7)
 
 Each chord tone posts one recorder note message (128-slot ring 0x408e3c20, UI
@@ -16812,7 +16812,7 @@ index f011eb1..c76d38a 100644
 From 5f77e62137c61ffc5d1e478a5bdd66d8b232fde1 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 09:27:37 -0400
-Subject: [PATCH 40/44] Keys integrator: 0010-chord latch guard, capture by key
+Subject: [PATCH 40/46] Keys integrator: 0010-chord latch guard, capture by key
  root, no OFF with keys held (Keys panel)
 
 Panel failures re-derived on the stock 1.56 dis and fixed:
@@ -17788,7 +17788,7 @@ index f1a59b6..890957e 100644
 From 52a611a4f4e2589ae9682204a47f3c68ec4efb03 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 10:30:10 -0400
-Subject: [PATCH 41/44] Keys 0010-chord K7: no chords around HOLD, orphan
+Subject: [PATCH 41/46] Keys 0010-chord K7: no chords around HOLD, orphan
  guard, OFF only when empty
 
 TRUTH K7 (CEO 2026-10-08) after the keys-chord-v1 gate:
@@ -19083,7 +19083,7 @@ index 890957e..6b4a554 100644
 From 8fc96b6f53a9429dac934aa7a73fabfbe44a1615 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 10:33:53 -0400
-Subject: [PATCH 42/44] Keys 0010-chord design.md: exact wording of the
+Subject: [PATCH 42/46] Keys 0010-chord design.md: exact wording of the
  octave-run result (hung tones only from stock's own path)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -19119,7 +19119,7 @@ index 342f2e3..e3ea392 100644
 From 634bd9072908fa7e6e2baa5d906b84698fa0e923 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 11:17:08 -0400
-Subject: [PATCH 43/44] Keys 0010-chord: HOLD release-all read from the key
+Subject: [PATCH 43/46] Keys 0010-chord: HOLD release-all read from the key
  scanner, stuck-note recovery, card order (K7 fix panel)
 
 Corp keys-fix-integrator, on the K7 fix panel (keys-fix-panel-hold, keys-fix-panel-purpose).
@@ -19401,7 +19401,7 @@ index e3ea392..e5e701c 100644
 From 0048acd9aa2ab8cc84a2abf433d0a8d273ed3c44 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 11:44:19 -0400
-Subject: [PATCH 44/44] Keys 0010-chord: CEO decisions K8 (orphan guard
+Subject: [PATCH 44/46] Keys 0010-chord: CEO decisions K8 (orphan guard
  ratified, 5+ keys stay out, stuck-note capture note); files staged
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -19481,6 +19481,1070 @@ index e5e701c..050a18a 100644
 +1. FUNCTION + OCTAVE DOWN (165) is free: e.g. chord mode on/off that keeps the chord.
  
  ## Hardware-only unknowns
+ 
+-- 
+2.47.1
+
+
+From a6f0521f0b21d7f68f3fef892a80dfcab482aaca Mon Sep 17 00:00:00 2001
+From: bandersong <134746909+bandersong@users.noreply.github.com>
+Date: Thu, 8 Oct 2026 13:13:38 -0400
+Subject: [PATCH 45/46] Keys 0011-joyrand: FUNCTION + OCTAVE DOWN rolls the
+ joystick assignments (TRUTH K9)
+
+New Analog Keys mod 0011-joyrand. FUNCTION + OCTAVE DOWN (key code 165) rolls the
+active track's PITCH BEND slots 2-5, MOD WHEEL 1-5 and BREATH 1-5. Each slot gets a
+random destination from the synth pool (53 ids) or the FX pool (38 ids) and a depth of
++-24..63 units (stored << 8). The writes use setParam and setDepth, the same two setters
+the SOUND SETTINGS menus call. PITCH BEND slot 1 is kept, no destination repeats within a
+controller, the CV track only gets a popup, and AFTERTOUCH and VELOCITY are not touched.
+[NO/RELOAD] + [SOUND] undoes a roll.
+
+- Hook: its own 6-byte detour at 0x400b9e66 (cmpil #165,%d3, rejoin 0x400b9e6c). Code
+  and constants go in the cave2 tail after 0010 (0x40234d5c + 0x2a4, 557 B used). It has
+  no run-time state.
+- make DEVICE=keys joy (0010 + 0011, tag 0010_0011) and joy-min (0011 alone, tag 0011).
+  Both PASS verify in the guest. Keys chord-only (02a4c784), Keys control (6981fd94) and
+  every Rytm MK1/MK2 output are rebuilt byte-identical.
+- Keys symbols and registry entries added; design.md has the proofs, the setter decision
+  (28 notifications, not setSlot), the seed decision (stock rand, no tick) and test card
+  J0-J13.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ Makefile                       |  28 ++-
+ README.md                      |   7 +
+ mods/0011-joyrand/design.md    | 314 +++++++++++++++++++++++++++++++++
+ mods/0011-joyrand/mod.toml     |  54 ++++++
+ mods/0011-joyrand/stub.s       | 266 ++++++++++++++++++++++++++++
+ re/symbols_keys.toml           |  90 ++++++++++
+ registry/allocations_keys.toml |  28 +++
+ 7 files changed, 782 insertions(+), 5 deletions(-)
+ create mode 100644 mods/0011-joyrand/design.md
+ create mode 100644 mods/0011-joyrand/mod.toml
+ create mode 100644 mods/0011-joyrand/stub.s
+
+diff --git a/Makefile b/Makefile
+index 4ec2c8c..210ee0d 100644
+--- a/Makefile
++++ b/Makefile
+@@ -12,8 +12,9 @@ PY := python3
+ # DEVICE=keys builds for the Analog Keys (= Analog Four MK1), OS 1.56 (corp Keys chord
+ # memory, TRUTH K1-K5): stock/KEYS_Analog-Four_Analog-Keys_OS1.56.syx (checked against
+ # stock/SHA256SUMS.keys), re/symbols_keys.toml, registry/allocations_keys.toml, outputs
+-# in build/keys/ named AKEYS_OS1.56_<tag>.syx. Keys targets: control and chord (0010
+-# chord memory); every Analog Rytm target refuses, and chord refuses on the Rytm.
++# in build/keys/ named AKEYS_OS1.56_<tag>.syx. Keys targets: control, chord (0010
++# chord memory), joy (0010 + 0011 joystick random) and joy-min (0011 alone); every Analog
++# Rytm target refuses, and the Keys targets refuse on the Rytm.
+ DEVICE ?= mk1
+ DEV := --device $(DEVICE)
+ ifeq ($(DEVICE),mk1)
+@@ -23,8 +24,8 @@ KEYS_ONLY = @echo "make $@ is Analog Keys only: make DEVICE=keys $@" >&2; exit 2
+ # image A' on MK1: 0000-shared full, CHOP's .text in its own slot
+ SAMPLEFOCUS_PARAMS :=
+ else ifeq ($(DEVICE),keys)
+-MK1_ONLY = @echo "make $@ is Analog Rytm MK1-only; DEVICE=keys builds control and chord" >&2; exit 2
+-RYTM_ONLY = @echo "make $@ is Analog Rytm only; DEVICE=keys builds control and chord" >&2; exit 2
++MK1_ONLY = @echo "make $@ is Analog Rytm MK1-only; DEVICE=keys builds control, chord, joy and joy-min" >&2; exit 2
++RYTM_ONLY = @echo "make $@ is Analog Rytm only; DEVICE=keys builds control, chord, joy and joy-min" >&2; exit 2
+ KEYS_ONLY :=
+ SAMPLEFOCUS_PARAMS :=
+ else
+@@ -36,7 +37,7 @@ KEYS_ONLY = @echo "make $@ is Analog Keys only: make DEVICE=keys $@" >&2; exit 2
+ SAMPLEFOCUS_PARAMS := --param 0000-shared:lean=1 --param 0001-chop:shared_lean=1
+ endif
+ 
+-.PHONY: all setup symbols layout build verify random chop chop-min samplefocus samplefocus-cut guard-check elemod elemod-check control chord disasm clean
++.PHONY: all setup symbols layout build verify random chop chop-min samplefocus samplefocus-cut guard-check elemod elemod-check control chord joy joy-min disasm clean
+ 
+ all: verify
+ 
+@@ -154,6 +155,23 @@ chord: symbols layout
+ 	$(PY) tools/build.py $(DEV) --mods $(CHORD_MODS) --tag 0010
+ 	$(PY) tools/verify.py $(DEV) --tag 0010
+ 
++# Analog Keys joystick random (corp joyrand, TRUTH K9; mods/0011-joyrand/design.md):
++# FUNCTION + OCTAVE DOWN rolls the active track's PITCH BEND 2-5 / MOD WHEEL / BREATH
++# assignments. `make DEVICE=keys joy` = 0010 chord memory + 0011 ->
++# build/keys/AKEYS_OS1.56_0010_0011.syx; `make DEVICE=keys joy-min` = 0011 alone (the
++# bisection build) -> build/keys/AKEYS_OS1.56_0011.syx. `chord` is unchanged.
++JOY_MODS := 0010-chord 0011-joyrand
++joy: symbols layout
++	$(KEYS_ONLY)
++	$(PY) tools/build.py $(DEV) --mods $(JOY_MODS) --tag 0010_0011
++	$(PY) tools/verify.py $(DEV) --tag 0010_0011
++
++JOY_MIN_MODS := 0011-joyrand
++joy-min: symbols layout
++	$(KEYS_ONLY)
++	$(PY) tools/build.py $(DEV) --mods $(JOY_MIN_MODS) --tag 0011
++	$(PY) tools/verify.py $(DEV) --tag 0011
++
+ # The pipeline test: no mods at all, stock MAIN OS recompressed by our tool.
+ # (Every device: MK1, MK2 and the Analog Keys.)
+ control: symbols layout
+diff --git a/README.md b/README.md
+index d2dfcec..be4f486 100644
+--- a/README.md
++++ b/README.md
+@@ -81,6 +81,13 @@ hashes, recovery, the HOLD rules (tap HOLD on its own to release all; a stuck no
+ every key, tap HOLD twice) and the test card (K0-K21) are in `mods/0010-chord/design.md`.
+ The files with a start page are staged in the founder's flash folder (`../../flash/KEYS/`).
+ 
++`make DEVICE=keys joy` (0010 chord memory + mod `0011-joyrand`) and `make DEVICE=keys
++joy-min` (0011 alone) add the joystick random: FUNCTION + OCTAVE DOWN rolls the active
++track's PITCH BEND 2-5, MOD WHEEL and BREATH assignments (random destination and depth
++through the SOUND SETTINGS menus' own setters; [NO/RELOAD] + [SOUND] undoes it). Built and
++verified, never run on hardware, not staged in `flash/KEYS/`; hashes and the test card
++(J0-J13) are in `mods/0011-joyrand/design.md`.
++
+ A subset, for bisecting on hardware:
+ 
+     python3 tools/build.py --mods 0000-shared 0002-euclid-accents
+diff --git a/mods/0011-joyrand/design.md b/mods/0011-joyrand/design.md
+new file mode 100644
+index 0000000..e00e655
+--- /dev/null
++++ b/mods/0011-joyrand/design.md
+@@ -0,0 +1,314 @@
++# 0011 JOY RANDOM - random joystick assignments for the Analog Keys (OS 1.56)
++
++Status: **built and verified in the guest VM, never run on hardware** (corp joyrand, TRUTH
++K9; research corp `joyrand-re`, build corp `joy-builder`). Analog Keys only: never send an
++`AKEYS` file to an Analog Rytm or an Analog Four MKII.
++
++| file | what | sha256 |
++|---|---|---|
++| `build/keys/AKEYS_OS1.56_0010_0011.syx` | `make DEVICE=keys joy`: 0010 chord memory + 0011 | `ebc9a6ceef5b84847714e8271442e01b9c980fd40437f873ff0cc66f4c246616` (MAIN OS `03709d216913f2de112e91445f50ab7b4852133daa700b367f377591d4553c0d`) |
++| `build/keys/AKEYS_OS1.56_0011.syx` | `make DEVICE=keys joy-min`: 0011 alone (bisection) | `7797f97486ac25ee5a7896fe108b02511333f63ea99ef66a93d3b3b4c747d469` (MAIN OS `115fb080e00cbb50639e31784c263d09e4f9bf0b9fa4bf160b67c37689f5d110`) |
++| `build/keys/AKEYS_OS1.56_control.syx` | `make DEVICE=keys control`, unchanged | `6981fd94084e8f678e6579a224b009a80e50f9192499f63db2cfcc519f75a475` |
++| `build/keys/AKEYS_OS1.56_0010.syx` | `make DEVICE=keys chord`, unchanged | `02a4c784e99d275d3685e3fed02dff84bf5bde8cd6c9440eba5c55e9f7ffa4de` |
++
++The new files are not staged in the founder's `flash/KEYS/` folder (this round leaves the
++parent repo untouched).
++
++## Summary (README text)
++
++Hold FUNCTION and press OCTAVE DOWN. The active track's joystick assignments are rolled:
++PITCH BEND (sideways) slots 2-5, MOD WHEEL (up) slots 1-5 and BREATH (down) slots 1-5 each
++get a random destination and a random depth of 24..63 with a random sign. PITCH BEND slot 1
++(stock: PMX, the bend itself) is kept, so sideways still bends. No destination appears
++twice in one controller. The popup says `JOY: RANDOM`. AFTERTOUCH and VELOCITY are never
++touched. On the CV track the gesture only shows `JOY: NOT ON CV`. Nothing is saved by the
++mod: `[NO/RELOAD]` + `[SOUND]` (stock quick reload of the active track's Sound) brings the
++saved assignments back; `[YES/SAVE]` + `[KIT]` keeps the roll.
++
++## What it does
++
++- **Gesture**: KeyboardView::handleKey (0x400b9de2) with key code 165 (OCTAVE DOWN), the
++  KeyEvent flags (+16) showing pressed, FUNCTION held and not a repeat (`flags & 0xB ==
++  0x3`, the same test as 0010's gate; bits 0x400599b6 / 0x400599f2 / 0x400599c2). A
++  release, a repeat or OCTAVE DOWN without FUNCTION is pure stock.
++- **Track, kit, controller objects**: exactly as the SOUND SETTINGS menus get them
++  (invokers 0x400e00a2..0x400e01ca): `proj = 0x4012e890()`, `T = 0x400aab78(proj + 48)`,
++  `kit = proj + 244` (0x400a222e), then the controller's getter `(kit, T)`: PITCH BEND
++  0x4009a22a, MOD WHEEL 0x4009a1c4, BREATH 0x4009a290. T 0..3 are the synth tracks
++  (kit + 0x60 + 988 T), 4 the FX track (kit + 4144), 5 the CV track (kit + 5156); the
++  getters send any other T to sound 0, so T is checked first (T above 5, unsigned: popup
++  `JOY: NO CHANGE`, nothing touched).
++- **Each controller object** must carry the 12SoundModConf vtable 0x4016fba0 (stored by
++  its ctor 0x4001f40e at 0x4001f480; all three are built by it in the sound, FX and CV
++  objects, 0x400b0044 / 0x400985bc / 0x40097a1a) and be bound (`count` 0x4001ef3c == 5);
++  otherwise that controller is skipped. That check makes the direct calls below exactly the
++  object's own vtable slots 0x48 / 0x54 / 0x58 / 0x5c.
++- **Writes**: per rolled slot, `setParam(obj, slot, id)` 0x4001f17e, then `setDepth(obj,
++  slot, depth)` 0x4001f032 - the two calls the menus make (destination edit 0x400363c8 ->
++  thunk 0x4001f202; depth edit 0x40036734 -> thunk 0x4001f0d0; the thunks only subtract
++  44 from `this`). Both check the slot against `count`, setDepth clamps to -0x8000..0x7f00,
++  and each sends the menu's own DataChangeInfo through vt+0x10. Byte +2 of a slot is never
++  written (neither setter writes it).
++- **Destination**: `k = rand() % n` into the track type's pool (below); if that
++  destination's container index (0x4000735a(id), the byte setParam stores) is already used
++  in this controller, the next pool entry (wrapping). "Used" = the slots rolled so far plus,
++  for PITCH BEND, the kept slot 1 (getParam 0x4001efde: its stored index, -1 when unbound).
++  At most 4 are taken and every pool has at least 38 ids, so the walk ends within 5 steps.
++- **Depth**: one `rand()` per slot: `|d| = 24 + r % 40` (24..63 whole units), negative when
++  `r & 0x4000`, stored `d << 8` - whole units in the high byte, low byte 0, as the menu
++  stores them (`((old >> 8) + delta) << 8`, 0x40036720..0x40036724). The menu draws the
++  depth as depth / 256 (0x40035f48..0x40035f52) and a bar at depth / 512 + 64
++  (0x40035fa6..0x40035fb8). Manual: the controller menus work "in the same way as setting
++  up performance macros", whose depth "is an offset of the original track parameter value"
++  (Keys manual, SOUND SETTINGS and PERFORMANCE MACROS).
++- **Popup** (`ui_popup` 0x40021774 on KeyboardView+108, the UIStates stock's own `Octave:
++  %d` popup uses): `JOY: RANDOM` when at least one slot was written, `JOY: NOT ON CV` on the
++  CV track, `JOY: NO CHANGE` otherwise. Stock suppresses popups while UIStates+69 is set.
++- **After the roll** stock runs as without the mod: the re-emitted `cmpil #165,%d3` feeds
++  `beqw 0x400b9f9c`, and with FUNCTION held both octave branches go to the base view
++  handler 0x4005fa6e (transpose 0x400ba008, normal 0x400ba338), which acts only on codes
++  80/82/81 and returns 0. So the octave never changes on the gesture.
++- **No run-time state**: the claim holds code and constants only (pools, controller table,
++  three strings). The used-index buffer is on the stack.
++
++## The pools (corp joyrand-re pools.out; re-derived by the builder)
++
++The menu's own list (picker 0x40035354 and encoder path 0x40036350 both call
++`0x4009e13e(out, set, 0x200)` on `set = 0x4009955e(kit, T)`: type 1 for tracks 0..3
++(kit+4048+24T, ctor 0x4009e558), type 7 for the FX track (kit+5132, ctor 0x4009e58e)) is
++every id 1..294 whose ROM record (0x401699c8, 56 B) has that type and modflags & 0x200:
++81 synth ids (37..139), 49 FX ids (140..196). The pools remove:
++
++| synth (28 removed, 53 kept) | why |
++|---|---|
++| 37 None | an empty slot, not a destination |
++| 38 PM1, 39 FM1, 51 PM2, 52 FM2, 65 FMX | pitch family (wild detune at these depths) |
++| 64 PMX | the bend itself: stock PITCH BEND slot 1, kept there, never rolled |
++| 43/56 TRK, 45/58 WAV, 46/59 SUB, 50 AM1, 63 AM2, 66 SMD | stepped switches (clicks, not sweeps) |
++| 93/104/114 SHP, 121/131 MUL | stepped |
++| 68 BND | changes the bend range itself |
++| 69 SLI, 71 FAD (vibrato), 123/133 SPH, 99 ACC | act only on slides, note start, retrig or accents |
++| 98 VOL | track volume (negative depth mutes, positive can clip) |
++
++| FX (11 removed, 38 kept) | why |
++|---|---|
++| 140 None | an empty slot |
++| 145/150 Ext L/R VOL | external input level |
++| 155 chorus FDB, 164 delay FDB, 167 delay OVR | runaway / self-oscillation / loud |
++| 162 pingpong, 178/188 MUL | switches, stepped |
++| 180/190 SPH | only at retrig |
++
++Synth pool (53): 42 44 47 48 49 55 57 60 61 62 67 72 73 74 75 76 77 78 79 81 82 83 84 86 88
++89 90 91 92 94 95 96 97 100 101 102 103 107 109 110 111 112 113 117 119 120 122 127 129 130
++132 137 139. FX pool (38): 141 142 143 144 146 147 148 149 151 152 153 154 156 157 158 159 160
++161 163 165 166 168 169 170 171 172 173 174 175 176 177 179 184 186 187 189 194 196.
++
++Proof (corp joy-builder `pools_rederive.py` -> `pools_rederive.out`, from the stock raw
++MAIN OS; `image_proofs.out` repeats it on the bytes in the BUILT image): every id is in
++its type's menu list; its container index is at most 111; the stock index->id table (built
++at startup by 0x40007204: per (type, index) the first id wins; read by `set->vt[0x64]` =
++0x4009bb82 -> 0x400074fa) maps that index back to the same id. The menu's destination edit
++calls `setParam(slot, set->vt[0x64](0x4000735a(list_id)))` (0x400363ac..0x400363cc), so for
++these ids `setParam(slot, id)` stores exactly what the menu stores. Both re-derived pools
++equal pools.out id for id. CV: no pool in v1 (popup only).
++
++## Decision: the menu's two setters, 28 notifications (not setSlot)
++
++PITCH BEND 2-5 + MOD WHEEL 1-5 + BREATH 1-5 = 14 slots, two setter calls each: **28**
++DataChangeInfo notifications per gesture (the research's "30" counted PITCH BEND slot 1).
++The alternative, `setSlot` (vt+0x50 = 0x4001ef70), would send 14 but:
++
++- it is not what the menu calls;
++- it has **no slot bound check** (only "data bound"; it stores `data[slot*4]` for any slot);
++- it writes all 4 bytes, so it would also write byte +2, which setParam/setDepth never write;
++- the stub would have to compute the stored index itself.
++
++Each notification runs the chain of one menu edit (0x4012f5fe -> listener loop 0x4012f586
++-> the track listener 0x400a3ff8, id -1): +8 -> 0x400faeaa (copies the slots into the 4
++SRAM sound slots, a bounded loop of 4); +9 -> 0x400f19e8 -> 0x4007410a, a 6-byte message
++written through a buffered writer that flushes in chunks (0x40074324 when 28 B or less are
++free), bracketed by 0x40001c28 / 0x40001d4a on the same object (a lock, by its use), and
++that drops a message only when it is re-entered (its flag +1068) - no unchecked ring or
++queue write; then 0x40020d1a and 0x40079610 (voice
++updates). No concrete hazard was found, so the menu-identical path stays. What a burst of
++28 does under load is a hardware question: row J11. If J11 shows trouble, setSlot (with
++its own bound check in the stub and byte +2 read back first) is the fallback.
++
++Between a slot's setParam and its setDepth the engine briefly has the new destination with
++the old depth (one notification apart, same UI-loop pass); with the joystick at rest no
++controller offset applies.
++
++## Random numbers and the seed (decision: stock rand, no seed)
++
++`stock_rand` 0x400923e4: `state = state * 1103515245 + 12345` (long 0x20000100), returns
++`(state >> 16) & 0x7fff`. Stock calls it from this same UI task for RND PAGE (0x4009e2ba),
++and at 0x4005d5b0, 0x400efe64, 0x400f4020 and through 0x40092412 (0x40037748,
++0x4005d608..0x4005d740). The stub never writes its state.
++`srand` 0x4009242e has no caller; the reset code 0x40000f7a-0x40000fa8 zeroes
++0x20000100..0x20200000 when bit 0 of 0x401d8ea4 is set. So the first rolls after a power
++cycle can repeat (row J9); they differ once stock itself has drawn numbers.
++
++The research's seed idea (XOR the engine tick 0x80006074 into the draw) was **not built**:
++that word is not free-running. It lives in the interrupt handler ending at 0x40076b9c
++(`rte`), is cleared at 0x40076a70 (when 0x4043ee48 == 0) and incremented at 0x40076b72 only
++when 0x4043ee44 == 0 and 0x80006008 == 1; its other readers there (0x40076a94..0x40076b36)
++only test it (`tstl`, `andl #-3`). Reading it would be harmless, but as a seed it would often be a
++constant, so it buys nothing provable. Leaving stock rand is the documented choice.
++
++## Gesture site and hook (registry/allocations_keys.toml, owner 0011-joyrand)
++
++`0x400b9e66: 0c83 0000 00a5 cmpil #165,%d3` (dis:241569), rejoin `0x400b9e6c: 6700 012e
++beqw 0x400b9f9c`. Reached only by falling through `beqw 0x400b9ef2` at 0x400b9e62 (codes
++above 162 that are not 164: entry -> 0x400b9e08 `blts` -> 0x400b9e3c -> `bgts 0x400b9e5c`
++-> 0x400b9e5c/0x400b9e62 -> here; d2 = the KeyEvent is not written on that path). With
++0010-chord in the image, its `chord_key_gate` jumps to 0x400b9e62, so the flow is the same.
++Nothing else reaches 0x400b9e66..0x400b9e6b: 0 dis operands/branch targets and 0
++big-endian 32-bit words at any byte offset of the raw MAIN OS point into it (corp
++joy-builder `site_refs.py` -> `site_refs.out`); handleKey dispatches by compare chains (no
++jump table). It does not overlap 0010's 0x400b9e5c..0x400b9e61. The only main-OS compare
++against 165 is this one.
++
++Registers: at the site d3 = code, d2 = KeyEvent, a2 = KeyboardView; d0/d1/a0/a1 are dead
++(0x400b9f9c writes d0 first and calls before reading d1/a0/a1; 0x400ba13e pushes d2/a2 and
++calls). `joy_key_gate` uses only d0/d1/a0, `bsr`s `joy_roll` (which saves and restores
++d2-d7/a2-a5 and never touches a6), re-emits the compare and `jmp 0x400b9e6c`.
++
++```
++[[detour]] owner 0011-joyrand  addr 0x400b9e66  size 6  expect 0c83000000a5  entry joy_key_gate
++[[cave]]   owner 0011-joyrand  addr 0x40234d5c  size 0x2a4
++```
++
++## Space
++
++The cave2 tail right after 0010's claim: 0x40234d5c..0x40235000 (676 B), ending exactly at
++the pool end (= __bss_start). All zero in stock, in the built AKEYS 0010 image and in
++control (0010's last nonzero byte is 0x40234d03). The cave2 pool's static proof (registry
++note, TRUTH K7 e standard) covers the whole pool; its status stays "probably-verified" until
++a Keys hardware run. Used: 557 B (code 400 B to 0x40234eec, ctl_tab 24 B, pools 91 B,
++strings 42 B); 119 B free.
++
++## Build and proofs
++
++Guest only (`make PY=python3.12`, through the session's `gm` wrapper):
++
++- `make DEVICE=keys joy-min`: built `AKEYS_OS1.56_0011.syx`, stub 0x40234d5c (557 B), detour
++  0x400b9e66 -> joy_key_gate @ 0x40234d5c; verify PASS: null repack byte-identical, MAIN OS
++  round-trips, embedded bootstrap unchanged (53,464 B), embedded UI-board firmware unchanged
++  (5,444 B), MAIN OS only; 2 differing regions (0x400b9e66 +6 detour, 0x40234d5c +556 cave),
++  both claimed; displaced `0c83000000a5` re-emitted; rejoins 0x400b9e6c.
++- `make DEVICE=keys joy`: built `AKEYS_OS1.56_0010_0011.syx`; verify PASS, 4 differing
++  regions all claimed (0x400b9819 +5, 0x400b9e5c +16 = 0010's and 0011's detours, 0x4023485c
++  +1192, 0x40234d5c +556); all three detours and rejoins correct.
++- Unchanged, rebuilt and guest-hashed (`guest_hashes.txt`, identical to the pre-build
++  `baseline_hashes.txt` plus the two new files): Keys chord-only 02a4c784..., Keys control
++  6981fd94...; Rytm MK1 control 3407638c..., samplefocus 76a2f4d0..., samplefocus-cut
++  0ec86d0e..., verify (0000_0002_0003_0008) 0d51f7cb..., random 3dafc0bd...; MK2 control
++  f3f6aad0..., samplefocus 016be9ea..., samplefocus-cut 0ce2fe92....
++
++On the BUILT images (host, read-only python + objdump; corp joy-builder):
++
++- `image_proofs.out`: joy-min vs stock and joy vs chord-only: 495 changed bytes each, all in
++  0011's two claims; joy vs stock: all in 0010's and 0011's claims; control = stock; 0010's
++  claims byte-identical in joy and chord-only; 0011's claims byte-identical in joy and
++  joy-min; both never-write ranges stock in all four Keys images; 0x400b9e66 = `4ef9
++  40234d5c`, the rejoin untouched; the built pools equal pools.out and pass the membership
++  proof; ctl_tab = PB 0x4009a22a/1, MW 0x4009a1c4/0, BC 0x4009a290/0; all 13 absolute
++  `jsr`/`jmp` targets are the verified symbols; one indirect call (the getter); the vtable
++  constant is 0x4016fba0.
++- `emu_joy.out` (`emu_joy.py`: the built code, decoded by objdump into `cave_0011.dis`, run
++  in an interpreter that knows only the instruction forms it uses, every stock call modelled
++  at its address, `param_index` read from the real ROM): **gate** - 305 key codes x 20 flag
++  sets: the roll runs only for 165 with press + FUNCTION + no repeat (6 of 6100 runs), every
++  other run makes no call at all; every exit is `jmp 0x400b9e6c` with Z == (code == 165), sp
++  and d2-d7/a2-a6 as at entry, nothing written at or above the entry sp. **roll** - 1080
++  cases (T 0..7, 0x7fffffff, -1; vtable match/mismatch; count 5/0; PB slot-1 destinations;
++  rand vectors forcing collisions and the wrap) plus a null getter result: sp and
++  d2-d7/a2-a6 restored, stores only inside the 60-byte frame; T above 5 and CV touch no
++  object; only PB/MW/BC getters; setParam/setDepth exactly on PB 1..4, MW 0..4, BC 0..4,
++  each id the spec's id for the draw seen, no repeated destination per controller (PB's
++  kept slot included), each depth `+-(24 + r % 40) << 8` for its draw, 28 draws per full
++  roll; depths seen -63..63, none in -23..23; 133/133 instructions executed and every
++  conditional branch taken both ways. PASS. Mutation check (`emu_mutations.out`): flipping
++  the gate's FUNCTION test, the duplicate test or the sign, or dropping a5 from the restore,
++  each FAILs.
++- verify.py's frame check: `lea -60` with `movem` of 10 registers at 20 (ends at 60).
++
++## Limits and risks
++
++- **UI-task stack**: the roll adds one 64-byte frame (joy_roll + its return) on top of
++  KeyboardView::handleKey's own (`linkw -48`) and then runs the menu's own setter chain. The
++  UI task's stack size is UNKNOWN (also open for 0010).
++- **Notification burst**: 28 per gesture (above); row J11.
++- **Overbridge / MIDI**: the +9 path sends a 6-byte message per notification (0x400f19e8 ->
++  0x4007410a); its receiver and whether Overbridge mirrors controller assignments are
++  UNKNOWN; row J10.
++- **Loudness**: filter resonance/overdrive, F12 and the FX sends stay in the pools; volumes,
++  feedback and delay overdrive are out. That the joystick springs back to rest is a
++  hardware fact not checked here.
++- **Repeats after boot**: rolls follow stock rand from its reset state (J9).
++- **Menus open**: a view in front of KeyboardView may take FUNCTION + OCTAVE DOWN itself
++  (J12). The gesture acts on the active track whatever the keyboard mode (MIDI EXT, MULTI
++  MAP): it edits that track's Sound.
++- **Undo** reverts every unsaved edit of that track's Sound, not only the roll (stock
++  semantics of the quick reload: 0x400a30da copies the saved 338-B sound back, popup `TRK %d
++  SOUND RELOADED`, then 0x400faee2 pushes it to the engine; FX 0x104 B). A saved kit keeps
++  the roll.
++- The physical OCTAVE DOWN = code 165 is inferred from the key table order (J1).
++
++## Test card (never run; Analog Keys on stock 1.56 first)
++
++Before you flash: back up the projects (Transfer); keep the stock
++`stock/KEYS_Analog-Four_Analog-Keys_OS1.56.syx` (sha256 `cda4459d14bfba40635440ad9dfa8fc183e5317e5e3ffa7116704f307fdf7010`)
++and a DIN MIDI interface at hand; check each file's sha256 (table at the top) before
++sending. Route each time: USB, Transfer > CONNECTION > drop the .syx > `[YES]` on the device
++(GLOBAL MENU > SYSTEM > OS UPGRADE); do not power off during the first boot afterwards. All
++files carry version 1.56, as stock: if Transfer refuses a same-version file, nothing was
++written - use the recovery route. Every expectation comes from the code and the emulator,
++not from hardware: note what actually happens.
++
++| row | what | expect |
++|---|---|---|
++| J0 | **Control first** (skip if 0010's K0 already passed on this unit): flash `AKEYS_OS1.56_control.syx` | boots, plays, OS 1.56 exactly as before |
++| J1 | flash `AKEYS_OS1.56_0010_0011.syx`; press OCTAVE DOWN alone, then OCTAVE UP; then hold FUNCTION + OCTAVE DOWN; then (nothing held) FUNCTION + OCTAVE UP | stock `Octave: n` popups, one down then back; `JOY: RANDOM` and the octave does not change (proves 165 = OCTAVE DOWN); `CHORD OFF` (0010 intact) |
++| J2 | synth track: write down SOUND > SOUND SETTINGS > PITCH BEND, MODULATION WHEEL, BREATH CONTROLLER, AFTERTOUCH, VELOCITY; FUNCTION + OCTAVE DOWN; read the menus again | PITCH BEND slot 1 unchanged; PITCH BEND 2-5, MOD WHEEL 1-5, BREATH 1-5 new destinations with depths -63..-24 or 24..63; no destination twice in one menu; AFTERTOUCH and VELOCITY unchanged |
++| J3 | hold a note; move the joystick up, down and sideways; let go | audible changes; sideways still bends pitch; at rest the sound is as before the roll |
++| J4 | gesture 5 times on the same track | a different set most times |
++| J5 | **undo**: `[NO/RELOAD]` + `[SOUND]` | stock popup `TRK n SOUND RELOADED`; the J2 "before" values are back (other unsaved edits of that Sound are reverted too) |
++| J6 | FX track: gesture; read the FX track's PITCH BEND / MOD WHEEL / BREATH menus | FX destinations only (chorus, delay, reverb, EXT sends/pans, FX LFOs); never EXT L/R VOL, chorus or delay feedback, delay overdrive |
++| J7 | CV track: gesture | `JOY: NOT ON CV`; its menus unchanged |
++| J8 | roll, `[YES/SAVE]` + `[KIT]`, power cycle | the roll is still there (it is ordinary kit data) |
++| J9 | power cycle twice; each time the first gesture on the same track of the same saved kit (after J5 or a kit reload) | note whether the two rolls are identical (stock rand restarts from its reset state) |
++| J10 | Overbridge connected (if you use it): gesture 10 times | note any error, desync or what the plug-in shows |
++| J11 | **load**: pattern playing, joystick moving, gesture 20 times fast | no crash, no stuck note, no audio dropout (28 setter notifications per press) |
++| J12 | gesture with the MODULATION WHEEL menu open, then with another menu open | note whether it rolls, and whether the open menu shows the new values |
++| J13 | keyboard transpose (FUNCTION + HOLD) or the TRANSPOSE mode active: gesture | rolls (`JOY: RANDOM`); the transpose is unchanged |
++
++0010's own card (K0-K21 in `mods/0010-chord/design.md`) applies to the chord part of the
++joy image. If anything in J1-J13 misbehaves, flash `AKEYS_OS1.56_0011.syx` (0011 alone) to
++tell 0011 from 0010.
++
++### If it does not boot, or to go back to stock
++
++- **Recovery route** (manual, EARLY STARTUP MENU > OS UPGRADE): Analog Keys **MIDI IN**
++  (DIN) from the computer's MIDI interface; hold `[FUNCTION]` while powering on; `[TRIG 4]`
++  = OS UPGRADE; in Transfer, SYSEX TRANSFER > "OS Upgrade via device startup menu", send the
++  stock `KEYS_Analog-Four_Analog-Keys_OS1.56.syx`. USB MIDI cannot be used from the STARTUP
++  menu. Every file here leaves the embedded bootstrap and the UI-board firmware
++  byte-identical to stock. That the STARTUP menu is served by the bootstrap is the Rytm
++  MK1's case; for the Keys it is inferred, not proven.
++- **Back to stock from a booting build**: the normal route with the stock .syx (a
++  same-version reinstall, untested here); if refused, the recovery route.
++- Nothing the mod keeps is saved; a kit saved after a roll keeps the rolled assignments
++  (stock data - `[NO/RELOAD]` + `[SOUND]` before saving, or edit them in the menus).
++
++## Hardware-only unknowns
++
++UI-task stack margin; the notification burst under load (J11); Overbridge (J10); the
++physical OCTAVE DOWN = 165 (J1); joystick springback (J3); repeats after boot (J9); menus
++in front of the keyboard view (J12); cave2's first Keys run (shared with 0010).
++
++## Next steps (not v1)
++
++AFTERTOUCH (one more ctl_tab row, getter 0x4009a2f6, same class); an opt-in CV pool (46
++halfword ids, CV set type 8); setSlot if J11 shows the burst matters; a real seed if a
++free-running counter is proven.
+diff --git a/mods/0011-joyrand/mod.toml b/mods/0011-joyrand/mod.toml
+new file mode 100644
+index 0000000..ce50965
+--- /dev/null
++++ b/mods/0011-joyrand/mod.toml
+@@ -0,0 +1,54 @@
++[mod]
++id      = "0011-joyrand"
++title   = "JOY RANDOM: FUNCTION + OCTAVE DOWN rolls the joystick assignments (Analog Keys)"
++
++# Analog Keys only (DEVICE=keys; corp joyrand, TRUTH K9). Off in every Rytm build; the Keys
++# builds are `make DEVICE=keys joy` (0010-chord + 0011, tag 0010_0011) and `make DEVICE=keys
++# joy-min` (0011 alone, tag 0011). Its stub refuses to assemble without DEVICE_KEYS, and the
++# Rytm registries hold no claim for it. It works with or without 0010-chord: its own detour
++# (0x400b9e66) and its own cave claim (the cave2 tail after 0010's).
++enabled = false
++
++# re-only | built | hardware-verified | retracted
++status  = "built"
++
++summary = """
++Analog Keys OS 1.56 (an Analog Four MK1 runs it, but has no key code 165: inert there).
++Hold FUNCTION and press OCTAVE DOWN: the active track's joystick assignments are rolled
++through the stock setters the SOUND SETTINGS menus call (setParam + setDepth, one pair per
++slot, the menu's own notify chain): PITCH BEND slots 2-5 (slot 1, the bend itself, is kept),
++MOD WHEEL slots 1-5 and BREATH slots 1-5 get a random destination from this mod's pool
++(synth tracks 53 ids, the FX track 38 ids; both inside the menu's own picker list) and a
++depth of 24..63 with a random sign (stored as the menu stores it, units << 8). No
++destination repeats within a controller. Popup "JOY: RANDOM". AFTERTOUCH and VELOCITY are
++never touched; a CV track only shows "JOY: NOT ON CV". Nothing is saved: [NO/RELOAD] +
++[SOUND] (stock quick reload) brings the saved assignments back; saving the kit keeps the
++roll. Random numbers from stock rand() (reset at boot, not seeded: the first rolls after a
++power cycle can repeat). No run-time state of its own. Built, never run on hardware
++(design.md, test card J0-J13).
++"""
++
++[sources]
++stub = "stub.s"
++
++[requires]
++shared = false
++symbols = [
++  "kv_key_cmp165_resume",
++  "KEY_OCT_DOWN",
++  "proj_singleton",
++  "proj_sel",
++  "sel_track",
++  "proj_kit",
++  "kit_pb_conf",
++  "kit_mw_conf",
++  "kit_bc_conf",
++  "smc_vtable",
++  "smc_count",
++  "smc_get_param",
++  "smc_set_param",
++  "smc_set_depth",
++  "param_index",
++  "stock_rand",
++  "ui_popup",
++]
+diff --git a/mods/0011-joyrand/stub.s b/mods/0011-joyrand/stub.s
+new file mode 100644
+index 0000000..1e93950
+--- /dev/null
++++ b/mods/0011-joyrand/stub.s
+@@ -0,0 +1,266 @@
++        | Mod 0011 - JOY RANDOM: random joystick assignments for the Analog Keys, OS 1.56
++        | (corp joyrand, TRUTH K9; `make DEVICE=keys joy` with 0010-chord, `make DEVICE=keys
++        | joy-min` alone). Analog Keys only.
++        |
++        | Hold FUNCTION and press OCTAVE DOWN (key code 165). The active track's joystick
++        | assignments are rolled through the same two stock setters the SOUND SETTINGS menus
++        | call for one edit (setParam, setDepth on the controller's SoundModConf):
++        |   PITCH BEND (sideways)  slots 2-5 (slot 1, stock PMX = the bend itself, is kept)
++        |   MOD WHEEL (up)         slots 1-5
++        |   BREATH (down)          slots 1-5
++        | Each rolled slot gets a destination from this mod's pool for the track type (synth
++        | 53 ids, FX 38 ids: the menu's own picker list minus pitch-family, stepped,
++        | note-start-only, volume and feedback parameters - design.md) and a depth of
++        | 24..63 whole units with a random sign, stored as the menu stores it (units << 8).
++        | No destination repeats within one controller (PITCH BEND's kept slot 1 counts).
++        | Then the popup "JOY: RANDOM". AFTERTOUCH and VELOCITY are never touched. A CV
++        | track only shows "JOY: NOT ON CV". Nothing is saved: [NO/RELOAD] + [SOUND] (stock
++        | quick reload) brings the saved assignments back; a kit save keeps the roll.
++        |
++        | The gesture has no stock function: with FUNCTION held, stock sends OCTAVE DOWN to
++        | the base view handler 0x4005fa6e (both branches, 0x400ba008 and 0x400ba338), which
++        | acts only on codes 80/81/82 and returns 0. That still happens after the roll.
++        |
++        | Random numbers: stock rand() 0x400923e4 (the one stock's RND PAGE uses from this
++        | same UI task). Its state is never written here; stock zeroes it at reset
++        | (0x40000f86) and never seeds it (design.md: why no tick seed).
++        |
++        | Hook (registry/allocations_keys.toml, owner 0011-joyrand):
++        |   0x400b9e66  KeyboardView::handleKey, 'cmpil #165,%d3' -> joy_key_gate
++        | No run-time state: the image bytes here are code and constants only.
++
++        .ifndef DEVICE_KEYS
++        .error  "0011-joyrand is Analog Keys code: build it with make DEVICE=keys joy"
++        .endif
++
++        .include "symbols.inc"
++
++        | KeyEvent (vtable 0x4017a0b8 '8KeyEvent'): +12 the key code, +16 the flags
++        .equ    EV_FLAGS,       16
++        .equ    EV_DOWN,        1                 | bit 0: pressed (0x400599b6)
++        .equ    EV_FUNC,        2                 | bit 1: FUNCTION held (0x400599f2)
++        .equ    EV_REPEAT,      8                 | bit 3: held repeat (0x400599c2)
++        | KeyboardView (ctor 0x400b85d4): +108 UIStates, the popup's owner
++        .equ    KV_UISTATES,    108
++        | tracks as sel_track numbers them: 0..3 synth, 4 FX, 5 CV (the getters' own split)
++        .equ    TRK_FX,         4
++        .equ    TRK_CV,         5
++        | a bound SoundModConf has 5 slots (count 0x4001ef3c)
++        .equ    SMC_SLOTS,      5
++        | depth: |d| = DEP_MIN .. DEP_MIN+DEP_SPAN-1 whole units, sign from bit 14 of the draw
++        .equ    DEP_MIN,        24
++        .equ    DEP_SPAN,       40
++        .equ    DEP_NEG,        0x4000
++        | joy_roll's frame: used[5] (the container index of each slot's destination so far)
++        | at 0, the 10 saved registers at 20..60
++        .equ    USED,           0
++        .equ    SAVE,           20
++        .equ    FRAME,          60
++        | the pool sizes (pool_synth / pool_fx below; checked at the end of this file)
++        .equ    N_SYNTH,        53
++        .equ    N_FX,           38
++
++        .section .text
++        | ------------------------------------------------------------------
++        | joy_key_gate: KeyboardView::handleKey 0x400b9de2 at 0x400b9e66, reached only by
++        | falling through 'beqw 0x400b9ef2' at 0x400b9e62 (codes above 162 that are not
++        | 164; with 0010-chord, chord_key_gate's jmp to 0x400b9e62 comes the same way).
++        | Live: d3 = the key code, d2 = the KeyEvent, a2 = the KeyboardView. d0/d1/a0/a1
++        | are dead here and at both continuations (0x400b9f9c writes d0 first and calls
++        | before reading d1/a0/a1; 0x400ba13e pushes d2/a2 and calls). Kept: d2-d7, a2-a6.
++        | FUNCTION + OCTAVE DOWN, press (down, FUNCTION, not a repeat - the test 0010's
++        | gate and the base handler make) -> joy_roll. Then always the stock path: the
++        | re-emitted compare sets the condition codes 'beqw 0x400b9f9c' at the rejoin reads.
++        | ------------------------------------------------------------------
++        .align  2
++joy_key_gate:
++        cmpi.l  #KEY_OCT_DOWN,%d3
++        bne.s   9f                                | not OCTAVE DOWN: stock
++        move.l  %d2,%a0
++        move.l  EV_FLAGS(%a0),%d0
++        moveq   #EV_DOWN+EV_FUNC+EV_REPEAT,%d1
++        and.l   %d1,%d0
++        moveq   #EV_DOWN+EV_FUNC,%d1
++        cmp.l   %d1,%d0
++        bne.s   9f                                | no FUNCTION, a release or a repeat: stock
++        bsr.w   joy_roll
++9:      cmpi.l  #165,%d3                          | displaced
++        jmp     kv_key_cmp165_resume              | 0x400b9e6c: 'beqw 0x400b9f9c'
++
++        | ------------------------------------------------------------------
++        | joy_roll (a2 = the KeyboardView). The track and its kit the way the SOUND
++        | SETTINGS menus get them (0x400e00a2..0x400e01ca): proj = proj_singleton(),
++        | T = sel_track(proj_sel(proj)), kit = proj_kit(proj), then the controller's
++        | getter (kit, T). The getters map any T above 5 to sound 0, so T is checked
++        | first. Each controller object must carry the SoundModConf vtable (so slots
++        | 0x48/0x54/0x58/0x5c are the verified count/setParam/getParam/setDepth) and be
++        | bound (count 5); otherwise it is skipped. Keeps d2-d7/a2-a6.
++        |   d2 k (pool position), d3 i (slot), d4 slots written, d5 n (pool size),
++        |   d6 T, d7 proj then kit, a3 ctl_tab cursor, a4 pool, a5 the SoundModConf.
++        | ------------------------------------------------------------------
++        .align  2
++joy_roll:
++        lea     -FRAME(%sp),%sp
++        movem.l %d2-%d7/%a2-%a5,SAVE(%sp)
++        jsr     proj_singleton                    | 0x4012e890()
++        move.l  %d0,%d7                           | proj
++        move.l  %d0,-(%sp)
++        jsr     proj_sel                          | 0x400a21f6(proj) = proj+48
++        move.l  %d0,(%sp)
++        jsr     sel_track                         | 0x400aab78(sel): the active track T
++        addq.l  #4,%sp
++        move.l  %d0,%d6
++        moveq   #TRK_CV,%d0
++        cmp.l   %d6,%d0
++        bcs.w   70f                               | unsigned: T above 5 - nothing to roll
++        bne.s   1f
++        lea     str_cv,%a0                        | CV: the popup only
++        bra.w   80f
++1:      lea     pool_synth,%a4
++        moveq   #N_SYNTH,%d5
++        moveq   #TRK_FX,%d0
++        cmp.l   %d6,%d0
++        bne.s   2f
++        lea     pool_fx,%a4                       | the FX track: FX destinations
++        moveq   #N_FX,%d5
++2:      move.l  %d7,-(%sp)
++        jsr     proj_kit                          | 0x400a222e(proj) = proj+244
++        addq.l  #4,%sp
++        move.l  %d0,%d7                           | kit
++        moveq   #0,%d4
++        lea     ctl_tab,%a3
++
++10:     move.l  (%a3)+,%a0                        | the controller's getter
++        move.l  (%a3)+,%d3                        | its first rolled slot
++        move.l  %d6,-(%sp)
++        move.l  %d7,-(%sp)
++        jsr     (%a0)                             | getter(kit, T)
++        addq.l  #8,%sp
++        move.l  %d0,%a5
++        tst.l   %d0
++        beq.w   30f
++        move.l  (%a5),%d0
++        cmpi.l  #smc_vtable,%d0
++        bne.w   30f                               | not a SoundModConf: skipped
++        move.l  %a5,-(%sp)
++        jsr     smc_count                         | 0x4001ef3c: 5 when its data is bound
++        addq.l  #4,%sp
++        moveq   #SMC_SLOTS,%d1
++        cmp.l   %d0,%d1
++        bne.w   30f                               | unbound: skipped
++        moveq   #0,%d2                            | used[j] for the kept slots j < first:
++11:     cmp.l   %d3,%d2                           | their destination's index (getParam,
++        bge.s   20f                               | signed byte, -1 when none)
++        move.l  %d2,-(%sp)
++        move.l  %a5,-(%sp)
++        jsr     smc_get_param                     | 0x4001efde(this, slot)
++        addq.l  #8,%sp
++        move.l  %d0,USED(%sp,%d2.l*4)
++        addq.l  #1,%d2
++        bra.s   11b
++
++20:     jsr     stock_rand                        | 0x400923e4: 0..32767
++        divu.w  %d5,%d0                           | n <= 255: the quotient fits a word
++        clr.w   %d0
++        swap    %d0                               | rand() % n
++        move.l  %d0,%d2                           | k
++21:     moveq   #0,%d0
++        move.b  0(%a4,%d2.l),%d0                  | pool[k]: a parameter id
++        move.l  %d0,-(%sp)
++        jsr     param_index                       | 0x4000735a(id): the index setParam stores
++        addq.l  #4,%sp
++        moveq   #0,%d1                            | j
++22:     cmp.l   %d3,%d1
++        bge.s   24f                               | not used by slots 0..i-1
++        cmp.l   USED(%sp,%d1.l*4),%d0
++        beq.s   23f
++        addq.l  #1,%d1
++        bra.s   22b
++23:     addq.l  #1,%d2                            | taken: the next pool entry
++        cmp.l   %d5,%d2
++        bcs.s   21b
++        moveq   #0,%d2                            | (wrapping; at most 4 are taken, n >= 38)
++        bra.s   21b
++24:     move.l  %d0,USED(%sp,%d3.l*4)             | used[i] = its index
++        moveq   #0,%d0
++        move.b  0(%a4,%d2.l),%d0
++        move.l  %d0,-(%sp)                        | id
++        move.l  %d3,-(%sp)                        | slot
++        move.l  %a5,-(%sp)
++        jsr     smc_set_param                     | 0x4001f17e(this, slot, id)
++        lea     12(%sp),%sp
++        jsr     stock_rand
++        move.l  %d0,%d2                           | the draw: magnitude and sign
++        moveq   #DEP_SPAN,%d1
++        divu.w  %d1,%d0
++        clr.w   %d0
++        swap    %d0                               | rand() % 40
++        addi.l  #DEP_MIN,%d0                      | 24..63
++        andi.l  #DEP_NEG,%d2
++        beq.s   25f
++        neg.l   %d0                               | -63..-24
++25:     lsl.l   #8,%d0                            | whole units in the high byte, as the menu
++        move.l  %d0,-(%sp)                        | writes them (0x40036720..0x40036724)
++        move.l  %d3,-(%sp)
++        move.l  %a5,-(%sp)
++        jsr     smc_set_depth                     | 0x4001f032(this, slot, depth)
++        lea     12(%sp),%sp
++        addq.l  #1,%d4
++        addq.l  #1,%d3
++        moveq   #SMC_SLOTS,%d0
++        cmp.l   %d0,%d3
++        blt.w   20b
++
++30:     cmpa.l  #ctl_end,%a3
++        bne.w   10b
++        lea     str_rnd,%a0
++        tst.l   %d4
++        bne.s   80f
++70:     lea     str_none,%a0
++80:     move.l  %a0,-(%sp)
++        move.l  KV_UISTATES(%a2),-(%sp)
++        jsr     ui_popup                          | 0x40021774(UIStates, text)
++        addq.l  #8,%sp
++        movem.l SAVE(%sp),%d2-%d7/%a2-%a5
++        lea     FRAME(%sp),%sp
++        rts
++
++        | ------------------------------------------------------------------
++        | Constants.
++        | ------------------------------------------------------------------
++        .align  2
++ctl_tab:
++        .long   kit_pb_conf, 1                    | PITCH BEND: slot 1 kept, 2-5 rolled
++        .long   kit_mw_conf, 0                    | MOD WHEEL: 1-5
++        .long   kit_bc_conf, 0                    | BREATH: 1-5
++ctl_end:
++
++        | The pools (corp joyrand-re pools.out; re-derived from the ROM walk by the
++        | builder, design.md): every id is in the menu's own picker list for its track
++        | type (0x4009e13e, type 1 synth / 7 FX, mask 0x200), its container index is at
++        | most 111 and the stock index->id map gives the id back, so setParam(slot, id)
++        | stores exactly what the menu's edit of that destination stores.
++pool_synth:
++        .byte   42, 44, 47, 48, 49, 55, 57, 60, 61, 62, 67, 72
++        .byte   73, 74, 75, 76, 77, 78, 79, 81, 82, 83, 84, 86
++        .byte   88, 89, 90, 91, 92, 94, 95, 96, 97, 100, 101, 102
++        .byte   103, 107, 109, 110, 111, 112, 113, 117, 119, 120, 122, 127
++        .byte   129, 130, 132, 137, 139
++pool_synth_end:
++pool_fx:
++        .byte   141, 142, 143, 144, 146, 147, 148, 149, 151, 152, 153, 154
++        .byte   156, 157, 158, 159, 160, 161, 163, 165, 166, 168, 169, 170
++        .byte   171, 172, 173, 174, 175, 176, 177, 179, 184, 186, 187, 189
++        .byte   194, 196
++pool_fx_end:
++        .if     (pool_synth_end - pool_synth) - N_SYNTH
++        .error  "pool_synth does not hold N_SYNTH ids"
++        .endif
++        .if     (pool_fx_end - pool_fx) - N_FX
++        .error  "pool_fx does not hold N_FX ids"
++        .endif
++
++        | the popups (each under the popup's 32 characters)
++str_rnd:  .asciz "JOY: RANDOM"
++str_cv:   .asciz "JOY: NOT ON CV"
++str_none: .asciz "JOY: NO CHANGE"
+diff --git a/re/symbols_keys.toml b/re/symbols_keys.toml
+index 4a5ccda..22d3b0b 100644
+--- a/re/symbols_keys.toml
++++ b/re/symbols_keys.toml
+@@ -143,3 +143,93 @@ evidence = "Getter, no stores (dis:216391-216417): vt+52 of its argument, then t
+ addr = 0x40021e46
+ status = "verified"
+ evidence = "'moveal %sp@(4),%a0 / moveb %a0@(436),%d0 / rts' (dis:41701-41703): UIStates +436, set to 1 on the HOLD key's press (0x400ba192) and 0 on its release (0x400ba176). kv_note_on reads it as d5 (0x400b9844): a new entry's state is 1 + (d5 != 0) (0x400b9c5c), and with this+136 also set the first note releases the latched notes of its kind (0x400b9874-0x400b98c2)."
++
++# ======================================================== 0011-joyrand (TRUTH K9)
++# corp joyrand-re (Q1-Q5), every address re-read by the joy builder from the Keys 1.56 dis
++# and raw MAIN OS (corp joy-builder). The objects and setters the SOUND SETTINGS menus use
++# for PITCH BEND / MOD WHEEL / BREATH, called the way the menus call them.
++
++[data.kv_key_cmp165_site]
++addr = 0x400b9e66
++status = "verified"
++evidence = "dis:241569 '400b9e66: 0c83 0000 00a5 cmpil #165,%d3', reached only by falling through 'beqw 0x400b9ef2' at 0x400b9e62 (dis:241568). No dis operand or branch target and no 32-bit word at any byte offset of the raw MAIN OS points into 0x400b9e66..0x400b9e6b (corp joy-builder site_refs.out: 0 and 0); handleKey has no jump table (compare chains, 0x400b9e00-0x400b9e70)."
++
++[data.kv_key_cmp165_resume]
++addr = 0x400b9e6c
++status = "verified"
++evidence = "dis:241570 '400b9e6c: 6700 012e beqw 0x400b9f9c' (code 165 -> the octave-down path; else 0x400b9e70 'braw 0x400ba13e'). With FUNCTION held both octave branches end in the base View::handleKey 0x4005fa6e (transpose 0x400ba008, normal 0x400ba338, dis:241695/241950), which acts only on codes 80/82/81 and returns 0 (0x4005fa6e-0x4005fafa)."
++
++[const.KEY_OCT_DOWN]
++value = 165
++status = "verified"
++evidence = "The only main-OS compare against 165 is 0x400b9e66 (with 164 at 0x400b9e5c, KEY_OCT_UP); 165 runs the octave-down path (0x400ba33c..0x400ba37c 'subql #1,%d4', popup 'Octave: %d'). Keys key table order (corp keys-gesture): 164 OCTAVE UP, 165 OCTAVE DOWN. The physical label is inferred, not proven (test card J1)."
++
++[fn.proj_singleton]
++addr = 0x4012e890
++status = "verified"
++evidence = "dis:386968: the project singleton (tstl 0x415cba28, creates it on first use). Called first by every SOUND SETTINGS controller-menu invoker (0x400e00a6/0x400e00f0/0x400e013a/0x400e0184, dis:290841-290937) and by the ModSetupView handler (0x4003631e)."
++
++[fn.proj_sel]
++addr = 0x400a21f6
++status = "verified"
++evidence = "dis:208310-208312 'movel %sp@(4),%d0 / addil #48,%d0 / rts': project + 48. The menu invokers pass it to sel_track (0x400e00b0..0x400e00b8)."
++
++[fn.sel_track]
++addr = 0x400aab78
++status = "verified"
++evidence = "dis:220204-220223: vt+40 of its argument, then that object's long +8 (0 when vt+40 returns 0); no stores. The SOUND SETTINGS menus' track T: 0x400e00b8, 0x400e0102, 0x400e014c, 0x400e0196, and the ModSetupView fallback 0x400362cc."
++
++[fn.proj_kit]
++addr = 0x400a222e
++status = "verified"
++evidence = "dis:208329-208331 'movel %sp@(4),%d0 / addil #244,%d0 / rts': project + 244, the live kit. The menu invokers' kit argument (0x400e00c4, 0x400e010e, 0x400e0158, 0x400e01a2)."
++
++[fn.kit_pb_conf]
++addr = 0x4009a22a
++status = "verified"
++evidence = "dis:197628-197657: (kit, T): T 0..3 (unsigned 'bcss') -> kit+0x60+988*T, then +400 (0x400afe22); T 4 -> kit+4144+400 (0x40098220); T 5 -> kit+5156+400 (0x4009767e); any other T -> sound 0 (kit+0x60) +400 - so callers check T first. Never 0. The PITCH BEND menu invoker 0x400e00ec calls it (0x400e0118). +400 is the PITCH BEND SoundModConf of the sound (0x400b0044), FX (0x400985bc) and CV (0x40097a1a) objects, each built by 0x4001f40e."
++
++[fn.kit_mw_conf]
++addr = 0x4009a1c4
++status = "verified"
++evidence = "dis:197598-197627: as kit_pb_conf with +212 (0x400afe16, FX 0x40098214, CV 0x40097672). The MOD WHEEL menu invoker 0x400e0136 calls it (0x400e0162)."
++
++[fn.kit_bc_conf]
++addr = 0x4009a290
++status = "verified"
++evidence = "dis:197658-197687: as kit_pb_conf with +588 (0x400afe2e, FX 0x4009822c, CV 0x4009768a). The BREATH menu invoker 0x400e0180 calls it (0x400e01ac)."
++
++[data.smc_vtable]
++addr = 0x4016fba0
++status = "verified"
++evidence = "The 12SoundModConf vtable, stored by its ctor 0x4001f40e at 0x4001f480 ('movel #0x4016fba0,%a2@', dis:38266). Raw words (corp joy-builder rd.py): +0x48 0x4001ef3c count, +0x50 0x4001ef70 setSlot, +0x54 0x4001f17e setParam, +0x58 0x4001efde getParam, +0x5c 0x4001f032 setDepth. 0011 calls those four directly only after checking an object's vtable word equals this."
++
++[fn.smc_count]
++addr = 0x4001ef3c
++status = "verified"
++evidence = "dis:37817-37835: 5 when vt+0x28 (the data pointer) is non-zero, else 0. setParam/setDepth/getParam bound their slot by it."
++
++[fn.smc_get_param]
++addr = 0x4001efde
++status = "verified"
++evidence = "dis:37876-37907: (this, slot): data bound, 0 <= slot < count, then 'mvsb %a0@(3,%d2:l:4),%d0' - the slot's destination index as a signed byte; -1 otherwise. No stores."
++
++[fn.smc_set_param]
++addr = 0x4001f17e
++status = "verified"
++evidence = "dis:38028-38071: (this, slot, id): data bound and 0 <= slot < count, then stores 0x4000735a(id) (the parameter's container index) in the slot's byte +3 and notifies (DataChangeInfo vt 0x4016fa08, id -1, +8 = 1, +9 = 1, through vt+0x10). The destination edit of the menus: 0x400363c8 'jsr vt+0x20' -> thunk 0x4001f202 (this -= 44) -> here (dis:67683, 38072)."
++
++[fn.smc_set_depth]
++addr = 0x4001f032
++status = "verified"
++evidence = "dis:37911-37963: (this, slot, v): data bound and 0 <= slot < count, clamps v to -0x8000..0x7f00, stores the word at slot +0 and notifies like setParam. The depth edit of the menus: 0x40036734 'jsr vt+0x28' -> thunk 0x4001f0d0 -> here, with ((old >> 8) + delta) << 8 (0x4003671e-0x40036724; dis:67990, 37964)."
++
++[fn.param_index]
++addr = 0x4000735a
++status = "verified"
++evidence = "dis:8106-8117: (id): id >= 295 -> 0; returns the long at ROM 0x401699c8 + 56*id + 4, the parameter's container index. No stores. setParam stores its low byte (0x4001f1c2-0x4001f1c8)."
++
++[fn.stock_rand]
++addr = 0x400923e4
++status = "verified"
++evidence = "dis:187222-187230: state long 0x20000100 = state * 1103515245 + 12345, returns (state >> 16) & 0x7fff in d0; clobbers d0/a0. Stock calls it from the UI task for RND PAGE (0x4009e2ba). srand 0x4009242e has no caller (no dis reference, no raw word); the reset code 0x40000f7a-0x40000fa8 zeroes 0x20000100..0x20200000 when bit 0 of 0x401d8ea4 is set."
+diff --git a/registry/allocations_keys.toml b/registry/allocations_keys.toml
+index 6b4a554..80c395a 100644
+--- a/registry/allocations_keys.toml
++++ b/registry/allocations_keys.toml
+@@ -154,3 +154,31 @@ addr   = 0x400b9e5c
+ size   = 6
+ expect = "0c83000000a4"   # cmpil #164,%d3
+ entry  = "chord_key_gate"
++
++# ------------------------------------------------------- 0011-joyrand
++# `make DEVICE=keys joy` (0010-chord + 0011) and `make DEVICE=keys joy-min` (0011 alone),
++# TRUTH K9. The cave2 tail right after 0010-chord's claim: 0x40234d5c..0x40235000 (676 B,
++# ending exactly at the pool's end, __bss_start) is all zero in stock and in the built
++# AKEYS 0010 image (corp joy-builder; 0010's last nonzero byte is 0x40234d03). cave2's
++# static proof above covers the whole pool. 0011 keeps no run-time state: code and
++# constants only (its pools, controller table and popup texts).
++
++[[cave]]
++owner = "0011-joyrand"
++addr  = 0x40234d5c
++size  = 0x2a4
++note  = "joy_key_gate (the FUNCTION + OCTAVE DOWN test, then the displaced compare + jmp 0x400b9e6c), joy_roll (track/kit as the SOUND SETTINGS menus get them, the PITCH BEND/MOD WHEEL/BREATH rolls through setParam + setDepth, the popup), ctl_tab, the synth (53) and FX (38) id pools, the popup texts. No run-time state."
++
++# KeyboardView::handleKey 0x400b9de2: 'cmpil #165,%d3' at 0x400b9e66, reached only by
++# falling through 'beqw 0x400b9ef2' at 0x400b9e62 (0010-chord's chord_key_gate jumps to
++# 0x400b9e62, so with 0010 the flow is the same); nothing else targets 0x400b9e66..
++# 0x400b9e6b (no dis operand, no raw 32-bit word at any byte offset; corp joy-builder
++# site_refs.out) and it does not overlap 0010's 0x400b9e5c..0x400b9e61. joy_key_gate
++# re-emits the compare (its condition codes feed 'beqw 0x400b9f9c' at the rejoin) and
++# jumps to 0x400b9e6c (the default rejoin, addr + 6).
++[[detour]]
++owner  = "0011-joyrand"
++addr   = 0x400b9e66
++size   = 6
++expect = "0c83000000a5"   # cmpil #165,%d3
++entry  = "joy_key_gate"
+-- 
+2.47.1
+
+
+From f3e093c64ceff10a6c048a641c98046428ee7d0f Mon Sep 17 00:00:00 2001
+From: bandersong <134746909+bandersong@users.noreply.github.com>
+Date: Thu, 8 Oct 2026 13:43:18 -0400
+Subject: [PATCH 46/46] Keys 0011-joyrand design.md: panel fixes to the limits
+ and the J test card (no image change)
+
+Text-only fixes from the 0011 panel (joy-panel-safety S1-S3, joy-panel-purpose F1-F4). The
+images do not change: all 15 outputs were rebuilt in the guest, every verify PASSed and each
+hash matches the a6f0521 build.
+
+- UI-task stack: was UNKNOWN, now the stock receipt. The task is created at 0x40096486 with
+  a 0x28000-byte (160 KiB) stack at 0x4092f8bc; entry 0x40096908; key dispatch at
+  0x40096d74. The roll adds 64 B under handleKey's frame. Peak use is still not computed.
+- Menus open: the controller menus (ModSetupView) pass code 165 on, so the roll happens
+  under an open menu. Each menu edit reads the slot first, so nothing stale is written.
+  J12 now checks the redraw and a one-step edit.
+- Card: the whole card now runs in a scratch project (CREATE NEW), and J8 saves only
+  there. J2 starts with [NO/RELOAD] + [SOUND], so J5's undo expectation holds after J1's
+  roll. J2 allows a slot to keep its old destination (model: 23.3% of rolls). J3 says to
+  roll again if a direction is silent. J6 undoes the FX roll. J2 uses VELOCITY MOD /
+  VELOCITY TO VOL. New J1b checks that a captured chord still plays after a roll.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ mods/0011-joyrand/design.md | 77 ++++++++++++++++++++++++++++---------
+ 1 file changed, 59 insertions(+), 18 deletions(-)
+
+diff --git a/mods/0011-joyrand/design.md b/mods/0011-joyrand/design.md
+index e00e655..e47e7f8 100644
+--- a/mods/0011-joyrand/design.md
++++ b/mods/0011-joyrand/design.md
+@@ -1,7 +1,8 @@
+ # 0011 JOY RANDOM - random joystick assignments for the Analog Keys (OS 1.56)
+ 
+ Status: **built and verified in the guest VM, never run on hardware** (corp joyrand, TRUTH
+-K9; research corp `joyrand-re`, build corp `joy-builder`). Analog Keys only: never send an
++K9; research corp `joyrand-re`, build corp `joy-builder`, panel fixes corp `joy-integrator`:
++documentation and test card only, the images are unchanged). Analog Keys only: never send an
+ `AKEYS` file to an Analog Rytm or an Analog Four MKII.
+ 
+ | file | what | sha256 |
+@@ -235,9 +236,20 @@ On the BUILT images (host, read-only python + objdump; corp joy-builder):
+ 
+ ## Limits and risks
+ 
+-- **UI-task stack**: the roll adds one 64-byte frame (joy_roll + its return) on top of
+-  KeyboardView::handleKey's own (`linkw -48`) and then runs the menu's own setter chain. The
+-  UI task's stack size is UNKNOWN (also open for 0010).
++- **UI-task stack**: 160 KiB. The task is created at 0x40096486 (`jsr 0x400018e8` with
++  TCB 0x4092f044, entry 0x40096908, stack base 0x4092f8bc, size 0x28000 = 163,840 B);
++  0x400018e8 sets the task's initial sp to base + (size & ~3) - 12 and stores it at TCB+72,
++  so the stack is 0x4092f8bc..0x409578bc. The task's loop calls the key
++  dispatcher 0x40095f88 at 0x40096d74 (its only caller; no `rts`/`unlk` between the entry
++  and that call); 0x40095f88 -> 0x400611a8 offers the event to the views through vt+8
++  (keys-gesture-sk S4). KeyboardView::handleKey 0x400b9de2 has no direct caller: its one
++  32-bit reference in the image is its vtable word 0x40187db8 (slot +8). The roll adds 64 B
++  (joy_roll's 60-B frame + its return) under handleKey's 52-B frame (`linkw -48`, the
++  registers saved inside it), so at each setter call sp is 132 B below handleKey's entry. A
++  menu depth edit (ModSetupView vt+0x48 = 0x400365a4, `linkw -32`) calls the same setter 52 B
++  below its own entry, and the chain under the setter is the same code. The UI task's peak
++  stack use was not computed. (0010's design.md still lists the margin as open; 0010's call
++  path was not re-traced in this round.)
+ - **Notification burst**: 28 per gesture (above); row J11.
+ - **Overbridge / MIDI**: the +9 path sends a 6-byte message per notification (0x400f19e8 ->
+   0x4007410a); its receiver and whether Overbridge mirrors controller assignments are
+@@ -246,13 +258,33 @@ On the BUILT images (host, read-only python + objdump; corp joy-builder):
+   feedback and delay overdrive are out. That the joystick springs back to rest is a
+   hardware fact not checked here.
+ - **Repeats after boot**: rolls follow stock rand from its reset state (J9).
+-- **Menus open**: a view in front of KeyboardView may take FUNCTION + OCTAVE DOWN itself
+-  (J12). The gesture acts on the active track whatever the keyboard mode (MIDI EXT, MULTI
+-  MAP): it edits that track's Sound.
++- **Menus open**: the controller menus (PITCH BEND, MODULATION WHEEL, BREATH CONTROLLER,
++  AFTERTOUCH, VELOCITY MOD: class `12ModSetupView`, vtable 0x401737fc) pass the gesture on,
++  so **the roll happens under an open controller menu**. ModSetupView::handleKey 0x40036a1a
++  sends code 165 to 0x40036cd6, which calls the base handler 0x4005fa6e (it acts only on
++  80/82/81 and returns 0 otherwise) and returns that 0; the view controller then offers the
++  key to the views below (keys-gesture-sk S4). Values stay correct, because the menu reads
++  the slot from the object before every edit: a depth edit reads getDepth (interface vt+0x2c
++  = 0x4001f126 -> 0x4001f0da, at 0x400366fa) and writes `((cur >> 8) + delta) << 8` through
++  vt+0x28; a destination edit reads getParam (vt+0x24, at 0x40036336) and looks the id up in
++  the picker list, which holds every pool id. So nothing stale is written and no lookup
++  misses. Only whether the open menu redraws the new values at once is a hardware check
++  (J12). Views that are not controller menus were not traced: they may take the key
++  themselves. The gesture acts on the active track whatever the keyboard mode (MIDI EXT,
++  MULTI MAP): it edits that track's Sound.
+ - **Undo** reverts every unsaved edit of that track's Sound, not only the roll (stock
+   semantics of the quick reload: 0x400a30da copies the saved 338-B sound back, popup `TRK %d
+-  SOUND RELOADED`, then 0x400faee2 pushes it to the engine; FX 0x104 B). A saved kit keeps
+-  the roll.
++  SOUND RELOADED`, then 0x400faee2 pushes it to the engine; the FX track: 0x104 B at
++  0x400a31aa..0x400a31c2, then 0x400faf30). A saved kit keeps the roll.
++- **The same slot can come back**: each rolled slot draws from the whole pool (only the
++  destinations already taken in that controller are skipped), so a slot can land on the
++  destination it had before. corp joy-integrator `redraw_sim.py` (this stub's walk on
++  stock rand, 200,000 consecutive synth rolls): 23.3% of rolls leave at least one of the 14
++  slots on its previous destination; no controller ever got a destination twice.
++- **Inaudible directions**: some pool destinations change a held note only when another
++  part of the sound is in use (an LFO or ENV2 routed somewhere, the noise source, a pulse
++  wave, sync). A roll can give the up or the down direction only such destinations; roll
++  again (J3). Weighting the pool toward directly audible destinations is a v2 option.
+ - The physical OCTAVE DOWN = code 165 is inferred from the key table order (J1).
+ 
+ ## Test card (never run; Analog Keys on stock 1.56 first)
+@@ -266,21 +298,28 @@ files carry version 1.56, as stock: if Transfer refuses a same-version file, not
+ written - use the recovery route. Every expectation comes from the code and the emulator,
+ not from hardware: note what actually happens.
+ 
++**Run J1-J13 in a scratch project**, never in a project you care about: the rolls change
++real kit data, and J8 saves one. GLOBAL (`[FUNCTION]` + `[SONG]`) > PROJECT > LOAD
++PROJECT > CREATE NEW (bottom of the list; a blank slate). Loading does not save the active
++project first, so save your own project before if it has unsaved edits. When done, load
++your own project again; the Transfer backup restores everything.
++
+ | row | what | expect |
+ |---|---|---|
+ | J0 | **Control first** (skip if 0010's K0 already passed on this unit): flash `AKEYS_OS1.56_control.syx` | boots, plays, OS 1.56 exactly as before |
+ | J1 | flash `AKEYS_OS1.56_0010_0011.syx`; press OCTAVE DOWN alone, then OCTAVE UP; then hold FUNCTION + OCTAVE DOWN; then (nothing held) FUNCTION + OCTAVE UP | stock `Octave: n` popups, one down then back; `JOY: RANDOM` and the octave does not change (proves 165 = OCTAVE DOWN); `CHORD OFF` (0010 intact) |
+-| J2 | synth track: write down SOUND > SOUND SETTINGS > PITCH BEND, MODULATION WHEEL, BREATH CONTROLLER, AFTERTOUCH, VELOCITY; FUNCTION + OCTAVE DOWN; read the menus again | PITCH BEND slot 1 unchanged; PITCH BEND 2-5, MOD WHEEL 1-5, BREATH 1-5 new destinations with depths -63..-24 or 24..63; no destination twice in one menu; AFTERTOUCH and VELOCITY unchanged |
+-| J3 | hold a note; move the joystick up, down and sideways; let go | audible changes; sideways still bends pitch; at rest the sound is as before the roll |
++| J1b | chord memory with a roll: POLY CONFIG and keyboard as 0010's K2 (4-voice poly group, HOLD off, nothing latched, MIDI EXT, MULTI MAP and transpose off); hold C E G, FUNCTION + OCTAVE UP; release; FUNCTION + OCTAVE DOWN; play D; then, nothing held, FUNCTION + OCTAVE UP | `CHORD ON: 0 4 7`; `JOY: RANDOM`; D plays D F# A (the chord survives the roll: 0011 has no RAM state, and 0010's gate passes code 165 on unchanged); `CHORD OFF` |
++| J2 | synth track: first `[NO/RELOAD]` + `[SOUND]` (popup `TRK n SOUND RELOADED`; this undoes J1's roll if J1 was on this track, so the "before" values below are the saved ones); write down SOUND > SOUND SETTINGS > PITCH BEND, MODULATION WHEEL, BREATH CONTROLLER, AFTERTOUCH, VELOCITY MOD (and VELOCITY TO VOL); FUNCTION + OCTAVE DOWN; read the menus again | PITCH BEND slot 1 unchanged; PITCH BEND 2-5, MOD WHEEL 1-5, BREATH 1-5 re-drawn: each a destination from the pool (a slot can land on its old destination by chance; in a model run about 1 roll in 4 has at least one such slot) and a depth of -63..-24 or 24..63; no destination twice in one menu; AFTERTOUCH, VELOCITY MOD and VELOCITY TO VOL unchanged |
++| J3 | hold a note; move the joystick up, down and sideways; let go | audible changes; if up or down does nothing audible, press FUNCTION + OCTAVE DOWN again (some destinations only act when an LFO, ENV2, the noise source, a pulse wave or sync is in use) and retry; sideways still bends pitch; at rest the sound is as before the roll |
+ | J4 | gesture 5 times on the same track | a different set most times |
+ | J5 | **undo**: `[NO/RELOAD]` + `[SOUND]` | stock popup `TRK n SOUND RELOADED`; the J2 "before" values are back (other unsaved edits of that Sound are reverted too) |
+-| J6 | FX track: gesture; read the FX track's PITCH BEND / MOD WHEEL / BREATH menus | FX destinations only (chorus, delay, reverb, EXT sends/pans, FX LFOs); never EXT L/R VOL, chorus or delay feedback, delay overdrive |
++| J6 | FX track: gesture; read the FX track's PITCH BEND / MOD WHEEL / BREATH menus; then `[NO/RELOAD]` + `[SOUND]` on the FX track | FX destinations only (chorus, delay, reverb, EXT sends/pans, FX LFOs); never EXT L/R VOL, chorus or delay feedback, delay overdrive; the reload brings the FX track's saved assignments back (stock reload covers the FX track) |
+ | J7 | CV track: gesture | `JOY: NOT ON CV`; its menus unchanged |
+-| J8 | roll, `[YES/SAVE]` + `[KIT]`, power cycle | the roll is still there (it is ordinary kit data) |
+-| J9 | power cycle twice; each time the first gesture on the same track of the same saved kit (after J5 or a kit reload) | note whether the two rolls are identical (stock rand restarts from its reset state) |
++| J8 | **scratch project only** (see above): roll, then save the kit to the slot it was loaded from (`[YES/SAVE]` + `[KIT]`), power cycle | the roll is still there (it is ordinary kit data) |
++| J9 | scratch project: power cycle twice; each time the first gesture on the same track of the same saved kit (after J5 or a kit reload) | note whether the two rolls are identical (stock rand restarts from its reset state) |
+ | J10 | Overbridge connected (if you use it): gesture 10 times | note any error, desync or what the plug-in shows |
+ | J11 | **load**: pattern playing, joystick moving, gesture 20 times fast | no crash, no stuck note, no audio dropout (28 setter notifications per press) |
+-| J12 | gesture with the MODULATION WHEEL menu open, then with another menu open | note whether it rolls, and whether the open menu shows the new values |
++| J12 | open SOUND > SOUND SETTINGS > MODULATION WHEEL; gesture; then turn one depth by one step; leave and re-open the menu. Then gesture with another (not controller) menu open | controller menu: it rolls (the menu passes the key on); note whether the open menu shows the new values at once or only after re-opening; the one-step edit starts from the rolled depth (the menu reads the slot before each edit). Other menu: note whether it rolls |
+ | J13 | keyboard transpose (FUNCTION + HOLD) or the TRANSPOSE mode active: gesture | rolls (`JOY: RANDOM`); the transpose is unchanged |
+ 
+ 0010's own card (K0-K21 in `mods/0010-chord/design.md`) applies to the chord part of the
+@@ -303,9 +342,11 @@ tell 0011 from 0010.
+ 
+ ## Hardware-only unknowns
+ 
+-UI-task stack margin; the notification burst under load (J11); Overbridge (J10); the
+-physical OCTAVE DOWN = 165 (J1); joystick springback (J3); repeats after boot (J9); menus
+-in front of the keyboard view (J12); cave2's first Keys run (shared with 0010).
++The notification burst under load (J11); Overbridge (J10); the physical OCTAVE DOWN = 165
++(J1); joystick springback (J3); repeats after boot (J9); whether an open controller menu
++redraws the rolled values at once, and views other than the controller menus in front of
++the keyboard view (J12); cave2's first Keys run (shared with 0010). Not a hardware row: the
++UI task's stack size is known (160 KiB, Limits and risks); its peak use was not computed.
+ 
+ ## Next steps (not v1)
  
 -- 
 2.47.1

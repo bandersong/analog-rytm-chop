@@ -2,7 +2,7 @@
 
 **Turn the 12 pads into sample-start markers.** Pick a track, open the CHOP page, and every pad plays that track's sample from its own start point. Record it live and each hit becomes an ordinary STA p-lock, so your patterns play back on stock firmware too.
 
-Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and MKII** (built, not yet hardware-tested), **OS 1.73**, plus **chord memory for the Analog Keys** (OS 1.56, built, not yet hardware-tested), built on [gdeo607/rytm1_mods](https://github.com/gdeo607/rytm1_mods). Not affiliated with or endorsed by Elektron. **Flashing modified firmware is at your own risk.**
+Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and MKII** (built, not yet hardware-tested), **OS 1.73**, plus **chord memory and a joystick randomizer for the Analog Keys** (OS 1.56, built, not yet hardware-tested), built on [gdeo607/rytm1_mods](https://github.com/gdeo607/rytm1_mods). Not affiliated with or endorsed by Elektron. **Flashing modified firmware is at your own risk.**
 
 | Status | |
 |---|---|
@@ -14,6 +14,7 @@ Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and M
 | SMP CUT (FILTER ×2: low/high cut), fixed for MK1 | 🧪 Built, reviewed, reproducible; first MK1 run pending |
 | STR (time-stretch) | ❌ Removed: didn't work on hardware |
 | Analog Keys (OS 1.56): chord memory | 🧪 Built, reviewed, reproducible (`make DEVICE=keys chord`); not yet hardware-tested |
+| Analog Keys (OS 1.56): JOY RANDOM (joystick roll) | 🧪 Built, reviewed, reproducible (`make DEVICE=keys joy`); not yet hardware-tested |
 | Recovery code untouched | ✅ Byte-for-byte identical to stock |
 
 ## Sample Focus + SMP CUT (newest, `make samplefocus-cut`)
@@ -134,15 +135,16 @@ make DEVICE=mk2 samplefocus-cut   # build/mk2/ARMK2_OS1.73_0000_0001_0008.syx   
 3. Flash control → CHOP → CHOP + SMP CUT. On the MKII, CHOP is the **third** SAMPLE page (SAMPLE already has two) and SMP CUT is FILTER ×2.
 4. Recovery: same STARTUP-menu route (FUNC at power-on, TRIG 4, DIN MIDI) with the MKII stock file; the MKII bootstrap is a separate section these builds never touch.
 
-### Analog Keys (OS 1.56): chord memory
+### Analog Keys (OS 1.56): chord memory and JOY RANDOM
 Not yet run on an Analog Keys. Order and first-run checks: [`flash/KEYS/START_HERE_KEYS.md`](flash/KEYS/START_HERE_KEYS.md). **Analog Keys only** — never a Rytm, never an Analog Four MKII.
 1. The unit must run **stock 1.56**. Elektron's Analog Four / Analog Keys OS 1.56 file (sha256 `cda4459d14bfba40635440ad9dfa8fc183e5317e5e3ffa7116704f307fdf7010`) → save it as `stock/KEYS_Analog-Four_Analog-Keys_OS1.56.syx` (that exact name; the build looks for it).
 2. Build (same clone and patch as above; the Keys file goes in `stock/` too):
 ```bash
 make DEVICE=keys control   # build/keys/AKEYS_OS1.56_control.syx   6981fd94084e8f678e6579a224b009a80e50f9192499f63db2cfcc519f75a475
 make DEVICE=keys chord     # build/keys/AKEYS_OS1.56_0010.syx      02a4c784e99d275d3685e3fed02dff84bf5bde8cd6c9440eba5c55e9f7ffa4de
+make DEVICE=keys joy       # build/keys/AKEYS_OS1.56_0010_0011.syx ebc9a6ceef5b84847714e8271442e01b9c980fd40437f873ff0cc66f4c246616
 ```
-3. Flash control → chord. **Chord memory:** hold 2-4 keys + FUNCTION + OCTAVE UP captures a chord; each key then plays it with itself as the root. FUNCTION + OCTAVE UP with nothing held turns it off. While HOLD is down or anything is latched, keys play single notes. HOLD: tap HOLD on its own to release all; a stuck note: release every key and tap HOLD twice.
+3. Flash control → chord. **Chord memory:** hold 2-4 keys + FUNCTION + OCTAVE UP captures a chord; each key then plays it with itself as the root. FUNCTION + OCTAVE UP with nothing held turns it off. While HOLD is down or anything is latched, keys play single notes. **JOY RANDOM** (the `joy` build, flash after chord): FUNCTION + OCTAVE DOWN gives the active track's joystick new random assignments (pitch-bend slot 1 stays); `[NO/RELOAD]` + `[SOUND]` undoes it. Try it in a scratch project first. HOLD: tap HOLD on its own to release all; a stuck note: release every key and tap HOLD twice.
 4. Recovery: FUNCTION at power-on, TRIG 4, DIN MIDI, Transfer's SYSEX TRANSFER page ("OS Upgrade via device startup menu") with the stock 1.56 file.
 
 ### If it won't boot: recovery
@@ -165,7 +167,8 @@ This route runs from the Rytm's recovery code in flash, which CHOP never touches
 ## What's in this repo
 | Path | What |
 |---|---|
-| `mods/0001-chop/rytm1_mods-chop.patch` | all the mods (CHOP, SMP CUT fix, MKII port, Keys chord), as one patch series for rytm1_mods @ `2fae7ce` |
+| `mods/0001-chop/rytm1_mods-chop.patch` | all the mods (CHOP, SMP CUT fix, MKII port, Keys chord and JOY RANDOM), as one patch series for rytm1_mods @ `2fae7ce` |
+| `mods/0011-joyrand/src/` | Analog Keys JOY RANDOM source (joystick roll), same patch |
 | `mods/0010-chord/src/` | Analog Keys chord memory source (`stub.s`, `mod.toml`, `design.md` with proofs and test card); built from the same patch |
 | `mods/0001-chop/src/` | the mod source (`stub.s`, `mod.toml`, and `design.md` with every hook, address and the full test card) |
 | `proto/chop/` | a Mac-side prototype (Rust, MIDI only, no firmware): pads → CC 28 → trigger. Works on MK1 and MK2 |
