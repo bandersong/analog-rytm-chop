@@ -8,17 +8,18 @@ Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/
 |---|---|
 | MK1, OS 1.73 | ✅ Working on hardware |
 | MK2 | ❌ Not yet |
-| Builds reproducibly | ✅ Fresh clone + patch gives the same files (`86e1dd1b…a9a1`, `23a20937…7915`) |
+| Builds reproducibly | ✅ Fresh clone + patch gives the same files (`0ec86d0e…977e`, `76a2f4d0…1422`) |
 | Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
 | Sample Focus (hi-res, END, DIV, LAY, RND) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
+| MKII (OS 1.73): CHOP + SMP CUT | 🧪 Built, reviewed, reproducible (`make DEVICE=mk2 samplefocus-cut`); not yet hardware-tested |
 | SMP CUT (FILTER ×2: low/high cut), fixed for MK1 | 🧪 Built, reviewed, reproducible; first MK1 run pending |
 | STR (time-stretch) | ❌ Removed: didn't work on hardware |
 | Recovery code untouched | ✅ Byte-for-byte identical to stock |
 
 ## Sample Focus + SMP CUT (newest, `make samplefocus-cut`)
 CHOP's page (below, minus STR) plus rytm1_mods' **SMP CUT** page on **FILTER ×2** (LCT low cut / HCT high cut on the sample layer), fixed for the MK1: the original uses the MK2's kit and sound offsets, which can crash an MK1. CHOP owns the shared page hooks and hands SMP CUT's knobs to its code. Fitted by code compaction; no features dropped except STR. **SMP CUT has not run on an MK1 yet**: see the test card (S1–S10).
-Expected sha256 of `build/AR1_OS1.73_0000_0001_0008.syx`: `86e1dd1b2a177b709d1e3977ee61b7f228d587ab752416d203014e66d21fa9a1`.
-Without SMP CUT: `make samplefocus` → `build/AR1_OS1.73_0000_0001.syx`, `23a20937c06fe856abcd1013bda03a14eb775dbcccb9329145d0d808c5157915`.
+Expected sha256 of `build/AR1_OS1.73_0000_0001_0008.syx`: `0ec86d0ed118b8ba7eb0f43d4add9105bd0fa99bc39ca4710bdf2b3e6052977e`.
+Without SMP CUT: `make samplefocus` → `build/AR1_OS1.73_0000_0001.syx`, `76a2f4d058daadd0629d44cb62f2608a17f7a66e8f1e95357880b15f1c481422`.
 
 ## Sample Focus (previous build; STR has since been removed)
 `make samplefocus` builds CHOP plus a full 8-knob page (0000-shared + CHOP only; no euclid/velocity):
@@ -105,9 +106,9 @@ PASS
 Then check your build is the same file this repo was tested with:
 ```bash
 shasum -a 256 build/AR1_OS1.73_0000_0001_0008.syx
-# 86e1dd1b2a177b709d1e3977ee61b7f228d587ab752416d203014e66d21fa9a1   (samplefocus-cut)
+# 0ec86d0ed118b8ba7eb0f43d4add9105bd0fa99bc39ca4710bdf2b3e6052977e   (samplefocus-cut)
 shasum -a 256 build/AR1_OS1.73_0000_0001.syx
-# 23a20937c06fe856abcd1013bda03a14eb775dbcccb9329145d0d808c5157915   (samplefocus)
+# 76a2f4d058daadd0629d44cb62f2608a17f7a66e8f1e95357880b15f1c481422   (samplefocus)
 ```
 
 ### 3. Flash (Transfer)
