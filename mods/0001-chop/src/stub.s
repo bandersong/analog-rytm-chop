@@ -55,7 +55,8 @@
         | state: run-time state only in `cave`, read pc-relative by the code next to
         | it); .text in `cave2` (the page gates, the SAMPLE key gate, lock_gate,
         | the helpers and the Sample Focus knobs, then the long knob names); .cave2
-        | in `cave2` above 0000-shared's slot (the step lock and RND); .cave3 in
+        | in `cave2` above 0000-shared's slot (the step lock and RND, then, since
+        | corp D39, press_gate - the knob-press lock path); .cave3 in
         | `cave3` (constants only: the SAMP page list, the CHOP descriptor, the page
         | name and the short knob names). cave and cave2 are within bsr.w range of
         | each other; nothing branches to or from cave3.
@@ -66,17 +67,46 @@
         |
         | Image B (corp round 7, D26): with 0008-sample-cut in the same build, this
         | mod is the single owner of the page hosts (page_info, get, delta, text,
-        | lock). 0008 then builds without its own page gates (own_pages = 0)
-        | and provides its handlers as shared_cut_* labels in build/shared.inc;
-        | the gates here send ids 1..2 (LCT, HCT) to them and answer page 12 with
-        | 0008's descriptor. Without 0008 (image A', chop-min) none of that is
-        | assembled (.ifdef): the code is image A' exactly.
+        | lock; since corp D39 also the knob-press lock path). 0008 then builds
+        | without its own page gates (own_pages = 0) and provides its handlers as
+        | shared_cut_* labels in build/shared.inc; the gates here send ids 1..2
+        | (LCT, HCT) to them and answer page 12 with 0008's descriptor. Without
+        | 0008 (image A', chop-min) none of that is assembled (.ifdef): the code
+        | is image A' exactly.
+        |
+        | Analog Rytm MKII 1.73 (DEVICE_MK2: `make DEVICE=mk2 samplefocus` /
+        | `samplefocus-cut`; corp MK2 port, TRUTH D34-D38, design.md "MK2"). The
+        | same code with the MKII addresses (re/symbols_mk2.toml) and five
+        | differences, each selected by .ifdef DEVICE_MK2 so the MK1 bytes stay as
+        | they were: (1) stock MK2 has pages 0..11 and its SAMP view already has
+        | two pages, SAMPLE (4) and SMPL WAVEFORM (5), so CHOP is page 12, the SAMP
+        | list becomes {4, 5, 12} and page_info's displaced compare is moveq #11;
+        | (2) no SAMPLE-key gate: every MK2 SAMPLE-key event reaches the base page
+        | cycle, so a press of SAMPLE cycles SAMPLE -> SMPL WAVEFORM -> CHOP;
+        | (3) samp_draw_gate: the MK2 SAMP view draws every page index but 0 with
+        | the waveform layout, so page 12 is sent to the knob page draw;
+        | (4) id 4's encoder template is 16 bytes on MK2 (the curve pointer at
+        | +0x10), so page_info_gate copies four longs, not three; (5) the RAM
+        | record stride (84) and STA's text format ('%d.%02d') come from the MK2
+        | symbols and stock code. Sections land per layout A
+        | (registry/allocations_mk2.toml): .chst and .cave2 in `cave`, .text and
+        | .cave3 in `cave2`; run-time state stays at the end of .chst, in `cave`.
 
         .include "symbols.inc"
         .include "shared.inc"                     | shared_rnd (0000-shared)
 
         .equ    PAGE_SAMP,      4
+        .ifdef  DEVICE_MK2
+        | MK2 1.73: stock pages are 0..11 (page_info 0x400ff574 'moveq #11'); the
+        | SAMP view's stock pages are 4 SAMPLE and 5 SMPL WAVEFORM (list 0x401e1b20)
+        | (corp mk2-addrA/addrB/geometry, skeptic-confirmed; TRUTH D36)
+        .equ    PAGE_SMPL_WAVE, 5
+        .equ    PAGE_CHOP,      12
+        .equ    PAGE_LAST,      11                | page_info's displaced moveq
+        .else
         .equ    PAGE_CHOP,      11                | MK1 pages are 0..10 (page_info's moveq #10)
+        .equ    PAGE_LAST,      10                | page_info's displaced moveq
+        .endif
         .equ    ID_PAD,         3                 | dead Error records 3..5
         .equ    ID_STA,         4
         .equ    ID_CHP,         5
@@ -95,13 +125,20 @@
         .equ    K_CUT,          7                 | not a CHOP knob: 0008's ids 1..2 (image B)
         .equ    PADS,           12
         .equ    STA_MAX,        0x7800            | stock STA's ROM max (id 43): 120.0 in 8.8
+        .equ    VIEW_SEL,       116               | view +116: the track selection (= project + 48)
+        .ifndef DEVICE_MK2                        | the SAMPLE key gate's (MK1 only)
         .equ    SAMP_KEY,       50                | the SAMPLE key's code (0x400ce2e0 moveq #50)
         .equ    VIEW_KEY,       136               | view +136: the view's own page key
-        .equ    VIEW_SEL,       116               | view +116: the track selection (= project + 48)
         .equ    VIEW_POPUP,     512               | SAMP view +512: weak pointer to its list popup
+        .else                                     | samp_draw_gate's (MK2 only)
+        .equ    VIEW_PAGES,     124               | view +124: its page list (a vector's begin)
+        .equ    VIEW_PAGE_IX,   140               | view +140: the page's index in it
+        .endif
         | id 4's RAM record +4/+8/+0xc: the encoder's per-tick step, pushed step and
         | acceleration for the CHOP STA knob (the static ctor's own address for it,
-        | dis:480494 'pea 0x416a6c08')
+        | dis:480494 'pea 0x416a6c08'). MK2: +4..+0x13, a 16-byte template whose
+        | +0x10 is the curve the encoder copies (0x419a49dc, the MK2 static ctor's
+        | own operand, dis:534569; corp mk2-sk-addrA).
         .equ    REC4_STEP,      PARAM_INFO_BASE + ID_STA * PARAM_INFO_STRIDE + 4
 
         .text
@@ -116,6 +153,12 @@
         | (dis:75090-75099, then 75150-75168), so the knob always turns with the
         | current mode's fields. Touches d0, a0 and those 12 bytes (stock page_info
         | touches d0/d1/a0).
+        | MK2: the template is 16 bytes, {1, 0x40, 0, curve 0x417e3800} for STA
+        | (0x401ed03c) and {1, 2, 0, curve 0x417e37e4} for the default (0x401ed07c,
+        | id 4's boot value; the encoder forces a5 = 1, d6 = 2 and that curve on
+        | 43/44 under LO, MK2 dis:75235-75236 and 75327-75328), and the encoder
+        | reads +4, +8 and the curve at +0x10 after slot 0x9c (0x4003795a, which
+        | calls page_info) - so four longs are copied, 16 bytes.
         | Entered by a jmp at the entry: (%sp) return, 4(%sp) the page id.
         | ------------------------------------------------------------------
         .align  2
@@ -130,7 +173,12 @@ page_info_gate:
         lea     param_tmpl_default,%a0            | LO: {0x100, 0x800, 0}
 2:      move.l  (%a0)+,REC4_STEP
         move.l  (%a0)+,REC4_STEP+4
+        .ifdef  DEVICE_MK2
+        move.l  (%a0)+,REC4_STEP+8
+        move.l  (%a0),REC4_STEP+12                | MK2: +0x10, the encoder's curve
+        .else
         move.l  (%a0),REC4_STEP+8
+        .endif
         lea     page_chop,%a0
         move.l  %a0,%d0
         rts
@@ -143,7 +191,7 @@ page_info_gate:
         rts
 3:
         .endif
-        moveq   #10,%d1                           | displaced
+        moveq   #PAGE_LAST,%d1                    | displaced (MK1 #10, MK2 #11)
         move.l  %sp@(4),%d0                       | displaced
         jmp     page_info_resume
 
@@ -350,6 +398,7 @@ text_gate:
         movel   %sp@(36),%d3                      | displaced
         jmp     param_value_text_args
 
+        .ifndef DEVICE_MK2
         | ------------------------------------------------------------------
         | sample_key_gate: the SAMPLE key on the SAMP view, so a second press
         | cycles to CHOP the way a second FILTER press cycles a FILTER view.
@@ -422,6 +471,40 @@ sample_key_gate:
 8:      move.l  %d2,-(%sp)                        | displaced
         lea     ev_is_down,%a3                    | displaced (lea 0x400706f0,%a3)
         jmp     samp_key_resume
+
+        .else
+        | ------------------------------------------------------------------
+        | samp_draw_gate (MK2 only): the SAMP view's draw (vtable 0x401e3170 slot
+        | 0x10 = 0x400d1f98) draws page INDEX 0 as a knob page (0x400d1fae: jsr
+        | 0x400d2e1a, the knob page draw - 0x40039782 plus FILTER extras for page
+        | id 6 only) and every other index with SMPL WAVEFORM's layout (0x400d1fbc:
+        | a fixed 8-knob grid and the waveform at view+400). This detour replaces
+        | that test, 'tstl %a2@(140); bnes 0x400d1fbc' at 0x400d1fa8 (6 bytes,
+        | exactly the jmp), so that the CHOP page draws as a knob page too:
+        |   index 0                      -> 0x400d1fae (stock)
+        |   page id at the index == 12   -> 0x400d1fae (CHOP)
+        |   anything else                -> 0x400d1fbc (stock: SMPL WAVEFORM)
+        | The page id is read as the view's own slot 0x68 reads it (0x40037660:
+        | view+124 is the page list, view+140 the index; it touches d0/a0 only).
+        | Live: a2 = the view, a4 = the draw context, d2-d7/a2-a6 saved by the
+        | host's prologue; d0/d1/a0/a1 are not read on either continuation before
+        | being written (0x400d1fae pushes a4/a2 and calls; 0x400d1fbc pushes
+        | constants and a4 and calls), and neither reads the condition codes.
+        | The bne.s is pc-relative, so it is re-implemented here, not re-emitted
+        | (registry: reemit = false); tst.l 140(%a2) is the displaced test.
+        | ------------------------------------------------------------------
+        .align  2
+samp_draw_gate:
+        tst.l   VIEW_PAGE_IX(%a2)                 | displaced: index 0 (SAMPLE)
+        beq.s   1f
+        move.l  VIEW_PAGES(%a2),%a0
+        move.l  VIEW_PAGE_IX(%a2),%d0
+        moveq   #PAGE_CHOP,%d1
+        cmp.l   0(%a0,%d0.l*4),%d1
+        beq.s   1f                                | CHOP: the knob page as well
+        jmp     samp_draw_wave                    | stock: SMPL WAVEFORM's layout
+1:      jmp     samp_draw_knobs                   | stock: the knob page draw
+        .endif
 
         | ------------------------------------------------------------------
         | pad_on_gate: UI-loop case 3 (a pad's note-on message), 0x400a1ee2.
@@ -632,7 +715,11 @@ clamp:  tst.l   %d0
                                                   | lists its labels as D, which build.py reads)
         .align  2
 chop_pages:                                       | the SAMP view's pages
+        .ifdef  DEVICE_MK2
+        .long   PAGE_SAMP, PAGE_SMPL_WAVE, PAGE_CHOP  | MK2: stock's {4, 5}, then CHOP
+        .else
         .long   PAGE_SAMP, PAGE_CHOP
+        .endif
 
 page_chop:                                        | {name, top row, bottom row}
         .long   str_page
@@ -1201,6 +1288,43 @@ chop_rnd_step:
         lea     16(%sp),%sp
         move.l  (%sp)+,%d2
         rts
+
+        | ------------------------------------------------------------------
+        | press_gate (corp D39): the page view's knob-PRESS lock path, vtable
+        | slot 0x80 (MK1 0x400384f8, MK2 0x400387ba; the same seven page-view
+        | vtables that hold lock_gate's slot 0x7c). The base key handler (MK1
+        | 0x4003a320, MK2 0x4003a544) calls it on every fresh press of a knob
+        | that has an id (MK1 0x4003a6e8, MK2 0x4003a90c). Stock asks slot 0x6c
+        | whether the id can be locked; if so, a scene/perf lock source takes
+        | the press, or, with trig(s) held, it marks the hold edited and writes
+        | the knob's shown value as a p-lock on every held step. CHOP's ids (and
+        | 0008's 1..2 in image B) have container index 0 since their ROM renames,
+        | so that p-lock would land in lock slot 0 - the sound's free word, which
+        | SMP CUT reads as LCT/HCT. For every id chop_knob maps (>= 0) this gate
+        | returns d0 = 0 at once: stock's own early exit when slot 0x6c says the
+        | id cannot be locked (MK1 0x40038518 / MK2 0x400387da 'beqw' to the
+        | epilogue) - no lock, no lock-source call, no hold_set_edited (stock
+        | does not call it on that exit; lock_gate, the turn path for the same
+        | ids, does not either). The only caller that reads d0 stores its low
+        | byte as the knob's "press locked" flag (MK1 0x4003a6f4, MK2 0x4003a918),
+        | and 0 is what stock stores for every knob press with no trig held.
+        | Every other id: the displaced prologue, then stock at +8.
+        | Entered by a jmp at the entry: (%sp) return, 4 view, 8 id. chop_knob
+        | clobbers d0/d1/a0 only; d2-d5/a2-a4 reach the re-emitted moveml as the
+        | caller left them. Code only, no state.
+        | ------------------------------------------------------------------
+        .section .cave2,"ax"
+        .align  2
+press_gate:
+        move.l  8(%sp),%d0
+        bsr.w   chop_knob                         | d0 = the knob, or -1
+        tst.l   %d0
+        bmi.s   9f
+        moveq   #0,%d0                            | "cannot be locked": stock's early exit
+        rts
+9:      lea     -48(%sp),%sp                      | displaced
+        movem.l %d2-%d5/%a2-%a4,(%sp)             | displaced
+        jmp     press_lock_body
 
         | (dial_gate, image A's optional D18 detour at param_knob_draw 0x400a587c
         | that drew the CHOP STA knob's dial with stock STA's functor, was

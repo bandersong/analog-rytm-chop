@@ -2,12 +2,11 @@
 
 **Turn the 12 pads into sample-start markers.** Pick a track, open the CHOP page, and every pad plays that track's sample from its own start point. Record it live and each hit becomes an ordinary STA p-lock, so your patterns play back on stock firmware too.
 
-Unofficial firmware mod for the **Analog Rytm MK1, OS 1.73**, built on [gdeo607/rytm1_mods](https://github.com/gdeo607/rytm1_mods). Not affiliated with or endorsed by Elektron. **Flashing modified firmware is at your own risk.**
+Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and MKII** (built, not yet hardware-tested), **OS 1.73**, built on [gdeo607/rytm1_mods](https://github.com/gdeo607/rytm1_mods). Not affiliated with or endorsed by Elektron. **Flashing modified firmware is at your own risk.**
 
 | Status | |
 |---|---|
 | MK1, OS 1.73 | ✅ Working on hardware |
-| MK2 | ❌ Not yet |
 | Builds reproducibly | ✅ Fresh clone + patch gives the same files (`0ec86d0e…977e`, `76a2f4d0…1422`) |
 | Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
 | Sample Focus (hi-res, END, DIV, LAY, RND) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
@@ -121,6 +120,18 @@ shasum -a 256 build/AR1_OS1.73_0000_0001.syx
 The hardware-proven step-lock build (CHOP + step-lock + euclid/velocity, sha256 `a96657b4…caf6`) is the previous patch, commit `f82a2f4` of this repo's `mods/0001-chop/rytm1_mods-chop.patch`, built with `make chop`.
 
 If Transfer refuses a file as "same version", nothing was written. Use the recovery route below to send it.
+
+### MKII (OS 1.73)
+Not yet run on an MKII. Order and first-run checks: [`flash/MKII/START_HERE_MKII.md`](flash/MKII/START_HERE_MKII.md).
+1. The unit must run **stock 1.73** (not 1.74). Elektron's MKII 1.73 file: `Analog-Rytm_MKII_OS1.73.syx`, sha256 `8ad671087ec30433d5407c7380d2396e0915ab931c5d3dd18a78bf284d3d1e52` → copy it to `stock/`.
+2. Build:
+```bash
+make DEVICE=mk2 control           # build/mk2/ARMK2_OS1.73_control.syx            f3f6aad0cad09a7c3d531fb36a34fc78ed45bee126b9aab84cfed93e51d99c04
+make DEVICE=mk2 samplefocus       # build/mk2/ARMK2_OS1.73_0000_0001.syx          016be9ea4b4cf963d194c250e9e2af68d0a2afc20103b67fe842fe1b19535cc4
+make DEVICE=mk2 samplefocus-cut   # build/mk2/ARMK2_OS1.73_0000_0001_0008.syx     0ce2fe92539bfc551ce6a28a36e8efa60e4848beec695143957f9e0a8d929280
+```
+3. Flash control → CHOP → CHOP + SMP CUT. On the MKII, CHOP is the **third** SAMPLE page (SAMPLE already has two) and SMP CUT is FILTER ×2.
+4. Recovery: same STARTUP-menu route (FUNC at power-on, TRIG 4, DIN MIDI) with the MKII stock file; the MKII bootstrap is a separate section these builds never touch.
 
 ### If it won't boot: recovery
 1. Hold **FUNC** while powering on.

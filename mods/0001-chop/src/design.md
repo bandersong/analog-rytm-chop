@@ -17,6 +17,18 @@ build a96657b4...caf6: page, pads, live-REC locks, note-off pairing, step lock) 
 confirmed working on the founder's MK1 (hardware result 2026-10-06, below). `make chop`
 (0000 0001 0002 0003) is retired: CHOP now also claims the part of cave2 that 0002
 occupies (see Build).
+**MK2 (Analog Rytm MKII 1.73) is built too** (corp MK2 port, TRUTH D34-D38): `make
+DEVICE=mk2 samplefocus` (CHOP only) and `make DEVICE=mk2 samplefocus-cut` (CHOP + SMP CUT),
+PASS in the guest VM, 2026-10-07, never run on an MKII; MK1 builds unchanged byte for byte.
+See "MK2" below (pages: SAMPLE x3 for CHOP, FILTER x2 for SMP CUT; differences; MK2 test
+card M0-M3; recovery).
+**Corp D39 (2026-10-08): the knob-press lock path is gated on both devices.** Pressing a
+CHOP knob (or, in image B, LCT/HCT) while trig keys are held used to write a hidden p-lock
+into the sound's free word (MK2 gate opus G1); `press_gate` (detour MK1 0x400384f8, MK2
+0x400387ba) now returns stock's "cannot be locked" for those ids ("The held-trig path
+(D10)" below). All four CHOP images were rebuilt (new hashes under "If it does not boot"
+and "MK2 flashing"); MK1 and MK2 control, the default build and `random` are unchanged.
+Receipts: `corp/press-fixer/`.
 Local only: this tree has no license and is never pushed or published. Nothing here
 flashes a device; the founder flashes.
 Commit hashes in this file are those after the 2026-10-06 re-author of branch `chop` to
@@ -73,7 +85,7 @@ length in seconds is UNKNOWN (H3).
 | knob | id | shows | turning it |
 |---|---|---|---|
 | A `PAD` | 3 | 1..12 | which marker PAD/STA edit (a pad hit in CHOP also sets it) |
-| B `STA` | 4 | 0..120, stock STA's text (`40.` when there is a fraction) | that marker, 8.8 like stock STA (id 43, max 0x7800): HI = fine and accelerated steps, LO = whole steps, FUNC = one whole step (rounded down first), press-and-turn = big steps; the dial is id 4's own (image A drew it as stock STA's; removed in round 7, D29) |
+| B `STA` | 4 | 0..120, stock STA's text (`40.` when there is a fraction) | that marker, 8.8 like stock STA (id 43, max 0x7800): HI = fine and accelerated steps, LO = whole steps, FUNC = one whole step (rounded down first), press-and-turn = big steps (no trig held; with a trig held a press of any CHOP knob writes nothing, D39); the dial is id 4's own (image A drew it as stock STA's; removed in round 7, D29) |
 | C `CHP` | 5 | OFF / ON | right: CHOP on, for the track selected at that moment (the *chop track*); left: off (END on: the chop track's END back to 120 first) |
 | D `END` | 11 | OFF / ON | right: on - a pad also sets the chop track's END to its slice end (the next marker above its own, else 120), after STA; left: off, and the chop track's END goes back to 120 |
 | E `DIV` | 12 | 1..12 | re-chop: marker i = ((i mod DIV) x 120) / DIV for all twelve (pads above DIV repeat the slices); overwrites hand-set markers; turning against an end changes nothing |
@@ -141,6 +153,14 @@ Consequences to know (by design):
   on a pad in CHOP still drives the pad's own track, while its note plays the chop track.
 - LAY edits the pattern with no undo: its trigs and locks stay until you clear them (a
   later DIV change leaves them as they are).
+- **Pressing a CHOP knob (or, in image B, LCT/HCT) while trig keys are held writes
+  nothing** (corp D39, press_gate): stock would lock the knob's shown value on each held
+  step, and for these ids that lock lands in the sound's free word (SMP CUT's setting).
+  Since nothing is written, nothing marks the hold as edited either: when you let go of
+  the trig key it behaves as after any hold with no edit (stock's pending toggle may
+  remove an existing trig) unless something else edited the hold (a pad hit's step lock,
+  an RND turn). Builds before D39 (round-4 `2`/`2b`, image A' `23a20937...`, image B
+  `86e1dd1b...`) do not have this gate: there, do not press CHOP knobs with steps held.
 - If you ran image A's STR: the LFO, END and LOOP values it wrote into a kit stay in that
   kit (ordinary stock values); image A' never touches the LFO. Reload or edit the kit.
 
@@ -229,7 +249,7 @@ Since D29 (step 6, commit dd84b6c) image A' and image B use **one layout**, four
 |---|---|---|---|---|
 | `cave` 0x402a1edc + 0x124 | `.chst` | pad_on_gate, pad_off_gate, chop_value, then the 48 B of RAM state (read pc-relative by the code beside it) | 280 B | 280 B |
 | `cave2` 0x402a2780 + 0x5b8 (shared_lean = 0) / + 0x618 (shared_lean = 1) | `.text` | page_info / get / delta / text gates, sample_key_gate, lock_gate, chop_set_sta, chop_knob, clamp, the knob tables, chop_put, chop_set_of, chop_locked, chop_next_above, the END helpers, chop_delta_more, chop_rechop, chop_lay, the long knob names | 1448 of 1464 B | 1500 of 1560 B |
-| `cave2` 0x402a2e24 + 0x1dc (0003's space) | `.cave2` | the step lock (chop_held_lock / chop_held_with, chop_lock_step, chop_lock_one, chop_fn_mgr), chop_rnd_held, chop_rnd_step | 434 B | 434 B |
+| `cave2` 0x402a2e24 + 0x1dc (0003's space) | `.cave2` | the step lock (chop_held_lock / chop_held_with, chop_lock_step, chop_lock_one, chop_fn_mgr), chop_rnd_held, chop_rnd_step, then (corp D39) press_gate, 30 B appended last | 464 of 476 B (434 before D39) | 464 of 476 B (434 before D39) |
 | `cave3` 0x4024deb8 + 0x54 | `.cave3` | constants only: chop_pages, page_chop, "CHOP" and the short knob names | 77 B | 77 B |
 
 (Sizes from the step-6 build logs, "0001-chop: stub 0x402a2780 (1448 B)" for A' and
@@ -273,7 +293,7 @@ unchanged, and a python byte compare of the built MAIN OS against
 All expect bytes were re-read from `build/stock_mainos.bin` with python; the registry
 entries are in `registry/allocations.toml` under `0001-chop`.
 
-### Detours (8; image A had 9 - dial_gate was removed in round 7, D29)
+### Detours (9 since corp D39: dial_gate was removed in round 7, D29, and press_gate added in D39)
 
 | host | expect | entry | rejoin | what |
 |---|---|---|---|---|
@@ -285,6 +305,7 @@ entries are in `registry/allocations.toml` under `0001-chop`.
 | 0x400a1ee2 | 48780080767e | pad_on_gate | 0x400a1ee8 | UI-loop case 3, pad note-on (D7) |
 | 0x400a1f26 | 487800804eb94008022e | pad_off_gate | 0x400a1f30 | UI-loop case 4, pad note-off, 10 bytes displaced, paired with its note-on (D8, D8a) |
 | 0x40038336 | 4fefffd048d70cfc | lock_gate | 0x4003833e | held-trig knob path, slot 0x7c (D10): 0 for CHOP's ids (and, in image B, 0008's ids 1..2); RND branches here |
+| 0x400384f8 | 4fefffd048d71c3c | press_gate | 0x40038500 | knob-PRESS lock path, slot 0x80 (corp D39): 0 for every id chop_knob maps (CHOP's, and in image B 0008's 1..2), as stock's "cannot be locked" exit |
 
 (0x400a587c, param_knob_draw, carried image A's dial_gate - id 4's dial drawn as id 43's.
 Removed in round 7 to fit image B (D29); the host reads stock `4fefffe848d7047c` in every
@@ -295,7 +316,9 @@ verify.py checks both ("re-emitted", "rejoins"), and the stack walks
 (`corp/r6-builder/s7/stackcheck.txt`; since D29 `corp/r7b-builder/b3/stackcheck_A.txt`
 and `stackcheck_B.txt`) show each re-emit path leaves with the stack offset the
 re-emitted instructions make (pad gates -4: the `pea 0x80`; get -12, lock -48: the
-prologue's `lea`; delta -4: the re-emitted `movel %a2@(116),%sp@-`).
+prologue's `lea`; delta -4: the re-emitted `movel %a2@(116),%sp@-`). press_gate (D39)
+leaves its stock path at -48 (the prologue's `lea`) and its `d0 = 0` path at 0 with an
+`rts`; decoded from the built images in "The knob-press path (corp D39)" below.
 
 ### Patches (37)
 
@@ -456,6 +479,81 @@ which would make a stock p-lock. The 0008-only builds now have their own guard t
 point at it (base 0x4019a7ac+0x7c and SAMP 0x401b0a84+0x7c among them) and nothing points
 into its first 8 bytes past the entry. No stock page lists ids 1..15 (python read of all
 eleven descriptors), so every other id goes down the stock path unchanged.
+
+**The knob-press path (corp D39, 2026-10-08) - now gated too.** D10 used to cover the
+TURN only. Stock has a second held-trig lock path, the knob PRESS: page-view slot 0x80
+(MK1 0x400384f8, MK2 0x400387ba), which the base key handler (MK1 0x4003a320, MK2
+0x4003a544; vtable slot 0x8) calls on every fresh press of a knob that has an id (MK1
+dis:75842-75846, MK2 dis:75888-75892). Stock: slot 0x6c (0x40037728: `param_info(id)+0`
+bit 8 clear) says whether the id can be locked - if not, it returns `d0.b = 0` at once
+(MK1 dis:73169 `beqw 0x4003864c`, epilogue dis:73266-73269); else a scene/perf lock
+source takes the press, or, with a trig held, it runs `hold_set_edited(S, 1)` (dis:73236-73238)
+and writes the knob's shown value (page_get_value) as a p-lock on every held step through
+invoker 0x40037ccc and the sound set's vt+0x40 writer. For CHOP's ids (and 0008's 1..2)
+that lock goes to lock slot 0, because the ROM renames set their container index to 0:
+the sound's free word, which SMP CUT reads as LCT/HCT (corp MK2 gate opus G1, which found
+it; MK1 has the identical routine). Nothing in D10's lock_gate saw it.
+
+`press_gate` (detour at the entry; displaced `lea %sp@(-48),%sp; moveml
+%d2-%d5/%a2-%a4,%sp@` = `4fefffd048d71c3c` on both devices, rejoin entry + 8 =
+`press_lock_body`) returns `d0 = 0` for every id `chop_knob` maps - CHOP's 3, 4, 5, 11,
+12, 13, 14, and in image B 0008's 1, 2 (K_CUT) - and re-emits the prologue and rejoins
+for every other id (ids above 15 and negative ones included: chop_knob's unsigned bound
+gives -1). The `d0 = 0` exit is stock's own "cannot be locked" exit: no lock, no
+lock-source call, and no `hold_set_edited` - stock does not call it on that exit, and
+lock_gate (the turn path for the same ids, D10) does not either, so a press and a turn of
+a CHOP knob with a trig held now behave alike: nothing is written and the hold is not
+marked edited. (Calling it would keep the held trig from toggling on release, but it is
+a side effect stock's exit does not have; the card rows say what the release does.)
+The gate does not read `chop_on`: the renames that make slot 0 reachable are in the
+image whatever CHP is, so the press is gated with CHOP off too.
+
+Why `d0 = 0` is safe for the caller: the only page-view method that calls slot 0x80 is the
+base key handler (every slot-0x80 call site in the stock images classified by enclosing
+function: 18 on MK1, 19 on MK2, `corp/press-fixer/callers2.out`); it only stores the low
+byte as the knob's "press locked" flag (MK1 `moveb %d0,%a0@(0,%d5:l)` at 0x4003a6f4 into
+0x40a074f2[knob], MK2 0x4003a918 into 0x417e3242[knob]), which the release path reads
+(MK2 0x4003a9ae, 0x4003aa8c, 0x4003aa9c) and clears (0x4003a9f4, 0x4003aa54). Stock stores 0 there for
+every knob press with no trig held (slot 0x80's `hold_any_in_length == 0` exit,
+0x400385d0 `beqw 0x40038542` -> `clrb %d2`), so after a gated press the flag is what a
+plain press leaves - the state CHOP's knobs are already in on every press without a trig
+(H7 (a)'s press and turn). The frame is stock's: the gate reads 8(sp), calls chop_knob
+(which writes only d0/d1/a0 and touches no stack) and either `rts` at the entry sp or
+re-emits the 48-byte prologue and jumps to entry + 8 with sp - 48 and d2-d5/a2-a4 saved,
+stock's own state there.
+
+Where it is called from, and nothing else: seven vtable words hold the routine at +0x80,
+and they are exactly the seven page-view vtables that hold view_lock_delta at +0x7c (MK1
+0x4019a7ac base, 0x401b0a84 SAMP, 0x401aec78, 0x401aedb0, 0x401b070c, 0x401b0958,
+0x401b0c90; MK2 0x401e3170 SAMP, 0x401e32c4 FILTER, 0x401cc0c0, 0x401e11a8,
+0x401e12e0, 0x401e2e98, 0x401e34fc); no jsr, bsr, lea, pea or other operand in either
+disassembly names it, nothing points into its first 8 bytes past the entry, and no
+branch, call, pc-relative switch case (91 tables on MK1, 113 on MK2) or 32-bit word in the
+stock images lands in 0x400384f9..0x400384ff / 0x400387bb..0x400387c1
+(`corp/press-fixer/vtscan.out`, `pfcheck2.out`). MK1 <-> MK2: `tools/xmatch.py` (guest)
+0x400387ba -> 0x400384f8 (vote 46.5), 0x400387c2 -> 0x40038500, caller 0x4003a908 ->
+0x4003a6e4 (37.4); entry to rts 112/112 instructions identical once absolute addresses are
+masked, the calls being the hold_* twins (`corp/press-fixer/xmatch.txt`, `twin.out`).
+
+Space: press_gate is 30 B, appended at the end of `.cave2` (MK1 0x402a2fd6 in cave2, MK2
+0x402ccfaa in cave), so every earlier label keeps its address; `.cave2` is 464 of its
+476-B claim on both devices (12 B left). Proof on the built images (MK1 A' and B, MK2 A'
+and B; `corp/press-fixer/tools/pfcheck.py`, host, read-only, output `pfcheck2.out`, 70
+checks, PASS): the press host holds `jmp press_gate` and stock bytes after it; press_gate
+decoded from each image is `movel %sp@(8),%d0; bsrw chop_knob; tstl %d0; bmis; moveq
+#0,%d0; rts; lea %sp@(-48),%sp; moveml %d2-%d5/%a2-%a4,%sp@; jmp entry+8`; chop_ktab read
+from each image maps exactly the ids above; the pre-D39 image and the D39 image differ
+ONLY in the 6-byte jmp at the host and press_gate's 30 B (32 / 32 / 33 / 33 differing
+bytes, A' / B on MK1 / MK2), so every other path - CHOP off, the pads, the other gates,
+every stock id - is byte for byte the image the earlier panels and gates read; every
+changed byte against stock lies inside an active claim; 0 bytes changed in the never-write
+range (MK1 bootstrap 0x4028c708..0x402a1b24, MK2 0x402c8754..0x402cc91c).
+
+Not covered here: the 0008-only default build (`make`, 0000 0002 0003 0008, own_pages = 1)
+patches ids 1..2's container index to 0 too (0x4018e03c, 0x4018e070 in its manifest) and
+its manifest has no detour at 0x400384f8, so the same press lock is expected there for
+LCT/HCT (into slot 0, their own word; not traced further). Outside D39's scope (not a
+Sample Focus image; its hash 0d51f7cb... is unchanged); a CEO decision.
 
 ### The step lock (D15-D15d, round 4)
 
@@ -1054,9 +1152,23 @@ withdrawn (r5b offsets O12).
   knobs. What CHOP wrote into patterns and kits (STA/END p-locks, LAY's trigs, base
   STA/END/LFO values) is ordinary stock data and stays (stock plays it).
 
-Files verified on 2026-10-06 in round 7 after D29 (guest VM, `make samplefocus`, `make
-samplefocus-cut`, `make chop-min`, `make control`, `make verify`, `make random`, `make
-guard-check`, `make elemod`, all PASS; logs in `corp/r7b-builder/b5/` and `b3/`), sha256:
+**Current files - corp D39 (2026-10-08, press_gate)**: guest VM `make samplefocus`, `make
+samplefocus-cut`, `make control`, `make verify`, `make random`, all PASS (logs
+`corp/press-fixer/b1_*.log` .. `b8_*.log`), sha256:
+`AR1_OS1.73_control.syx` 3407638c3f450daba0faedbddc0d4f08b154925a3ba162172346f51ef9ed6a8d
+(unchanged),
+`AR1_OS1.73_0000_0001.syx` (image A') 76a2f4d058daadd0629d44cb62f2608a17f7a66e8f1e95357880b15f1c481422
+(MAIN OS 7c4eb00cd1cd1875fa840cfca9c190863a780e03dd2d0ea54ebfccada3a3af76),
+`AR1_OS1.73_0000_0001_0008.syx` (image B) 0ec86d0ed118b8ba7eb0f43d4add9105bd0fa99bc39ca4710bdf2b3e6052977e
+(MAIN OS ab37bac3b73083f0c3235a17851abed5d921c51b0b0ec89cf21e7ee27637bd39).
+The default build (`AR1_OS1.73_0000_0002_0003_0008.syx` 0d51f7cb...) and `random`
+(3dafc0bd...) are unchanged. Each D39 image differs from its round-7 predecessor below only
+in the 6-byte jmp at 0x400384f8 and press_gate's 30 B ("The knob-press path").
+
+Superseded by D39 (never run; no press gate) - files verified on 2026-10-06 in round 7
+after D29 (guest VM, `make samplefocus`, `make samplefocus-cut`, `make chop-min`, `make
+control`, `make verify`, `make random`, `make guard-check`, `make elemod`, all PASS; logs
+in `corp/r7b-builder/b5/` and `b3/`), sha256:
 `AR1_OS1.73_control.syx` 3407638c3f450daba0faedbddc0d4f08b154925a3ba162172346f51ef9ed6a8d,
 `AR1_OS1.73_0000_0001.syx` (image A') 23a20937c06fe856abcd1013bda03a14eb775dbcccb9329145d0d808c5157915
 (MAIN OS daff5f4ad0e8324913b7b143e2175f8354b59f4c9c2a6c19a656095c131c66c9),
@@ -1176,7 +1288,8 @@ and e19703af... do not pair note-offs.)
 - **H7 Hi-res markers (D18).** Global setting SAMPLE POS RES = HI first. On the CHOP page:
   (a) turn STA slowly: fine steps, the popup shows `40.` when there is a fraction and
   `40` without, as the SAMP page's STA does; turn it fast: it accelerates like stock STA;
-  press and turn: big steps. Compare side by side with the SAMP page's STA knob.
+  press and turn, with no trig held: big steps. Compare side by side with the SAMP page's
+  STA knob. (With a trig held, a press writes nothing since D39: H14 (b).)
   (b) FUNC + turn STA: one whole step per detent (a fractional marker first rounds down),
   at stock's pace (the FUNC lockout).
   (c) SAMPLE POS RES = LO: whole steps; a marker with a fraction floors on its next turn.
@@ -1254,6 +1367,18 @@ and e19703af... do not pair note-offs.)
   path, and lock_gate returns 0 for ids 3, 4, 5, 11, 12, 13). Release the trig key and
   note what it does (stock after a hold with no edit). Repeat once with CHOP OFF: the
   same. G (RND) with a trig held is H11; H is empty in image A'.
+  (b) **Press with a trig held (corp D39, press_gate; D39 builds only).** Same
+  precondition, on a spare step of T that holds a trig. Hold its trig key and PRESS (push
+  down, no turn) each of A..G once, letting go of the knob each time: nothing changes -
+  the knob values stay, and no p-lock appears on the held step (SAMP page while holding:
+  STA/END as noted). Then, still holding, press and turn A..F: as (a), nothing. Release
+  the trig key and note what it does (after presses alone, stock's no-edit release; it
+  may remove the trig). Repeat once with CHOP OFF and once with the trig key released
+  BEFORE the knob: the same, and the knob's own press-release behaves as a plain press
+  (H7 (a)). On image B, afterwards: FILTER x2 while holding that step - LCT/HCT read the
+  track's own values, not a lock (before D39 each of those presses wrote the knob's shown
+  value into that step as a hidden lock in the word SMP CUT reads as LCT/HCT; on image A'
+  such a lock would be invisible, so image B is where this row can see a regression).
 
 Also unknown, low priority in image A': whether external MIDI CC reaches CHOP's ids
 through PARAM_ROM +0x18 (ids 3..5: CC 6/38, 7, 10; 11..14: CC 99/98, 120, 121, 123; lead
@@ -1438,8 +1563,9 @@ kHz (`1.2k`, `12k`).
 
 ### Image B test card (S1-S10 and the H rows on B; never run)
 
-File: `build/AR1_OS1.73_0000_0001_0008.syx`, sha256 86e1dd1b...fa9a1 (full hash under
-"Before you flash"). Flash it only after image A' passed H13 (Flash order, item 4).
+File: `build/AR1_OS1.73_0000_0001_0008.syx`, sha256 0ec86d0e...977e since corp D39 (full
+hash under "If it does not boot"; the round-7 file 86e1dd1b...fa9a1 has no press gate).
+Flash it only after image A' passed H13 (Flash order, item 4).
 
 **First-run cautions.** No 0008 image has ever run on an MK1; the old one was
 crash-prone (O8) and these offsets are proven only statically. Image B is also the first
@@ -1455,7 +1581,7 @@ fractional-marker repeats), H14, then one pass each of H7 (a)-(c), (e) (and (d):
 is id 4's own), H8 (a)-(d), H9, H10 (a)-(d), H11. Every result as on image A'; with SMP
 CUT set on the chop track (LCT 40, HCT 90, say) for the second half of the pass.
 
-Note: image A' and image B are the first MK1 images to place bytes in cave3 (CHOP constants; in B also 0008 tables and coefs, which the audio interrupt calls); stock's SAMPLE page now depends on cave3 contents.
+Note: image A' and image B are the first MK1 images to place bytes in cave3 (CHOP constants; in B also 0008 tables and coefs, which the audio interrupt calls); stock's SAMPLE page now depends on cave3 contents. Stock also reads the tables just above cave3 with sign-extended bytes bounded only above or not at all (0x401063da, 0x40106338; the MK2 twins are described under "MK2 placement"): if such an index ever goes negative, it reads these bytes instead of stock's zeros as a sound value. Reachability is UNKNOWN; in S5, also take the FX track's LFO and delay / reverb parameters to their extremes and listen for artefacts.
 
 **Run order: S1-S6, S9, S10, then S7 and S8 last** (they are listed in that order below).
 S7 and S8 do on purpose what H3 (f) and the first-run cautions forbid, so if one of them
@@ -1489,10 +1615,12 @@ goes wrong it cannot alter the state the other rows run on.
   cycle, reload: the values come back and still act (ids 1..2 reach kit_param_changed
   on MK1 for the first time; what the drain does with them is UNKNOWN).
 - **S9 Held trig.** GRID REC, hold a trig of T, turn LCT/HCT: nothing changes, no p-lock
-  (lock_gate returns 0 for ids 1..2). Nothing marks the hold as edited, so when you let
-  go the held trig behaves as after any hold with no edit (stock's pending toggle may
-  remove an existing trig, as a plain press and release does). Use a spare step; this is
-  not a failure.
+  (lock_gate returns 0 for ids 1..2). Then, still holding, PRESS LCT and HCT (push, no
+  turn) and press-and-turn them: nothing changes either (press_gate returns 0 for ids
+  1..2, corp D39); on this step and the others, LCT/HCT stay as set. Nothing marks the
+  hold as edited, so when you let go the held trig behaves as after any hold with no edit
+  (stock's pending toggle may remove an existing trig, as a plain press and release does).
+  Use a spare step; this is not a failure.
 - **S10 Both in one session (D28).** CHOP on T: pads, live REC and step lock. With CHP
   still ON, FILTER x2 and set LCT/HCT on T (the selected track is T: while CHP is ON the
   pads cannot select another track). Then CHP OFF, TRK + pad to select another track U,
@@ -1512,11 +1640,395 @@ of these misbehaves):
   LCT/HCT must not change (CC 120/121/123 are channel-mode messages - note any
   stock reaction separately).
 
+## MK2 - Analog Rytm MKII 1.73 (corp MK2 port, TRUTH D34-D38) - built: `make DEVICE=mk2 ...`
+
+The same Sample Focus feature set as MK1 image B, for the **Analog Rytm MKII on OS 1.73**,
+built from this tree with a device parameter. Built and verified in the guest VM, step by
+step, each committed on branch `chop` with the MK1 outputs proven byte-identical after it:
+
+1. **47ea4ef - device parameter, MK2 control** (`make DEVICE=mk2 control`: PASS).
+2. **bed4aa5 - MK2 CHOP only** (`make DEVICE=mk2 samplefocus`: PASS).
+3. **fd3b07b - MK2 CHOP + SMP CUT** (`make DEVICE=mk2 samplefocus-cut`: PASS, layout A).
+4. **Integrator pass** (corp `mk2-integrator`, after the MK2 panels): e2f447a makes layout,
+   build and verify refuse a symbol map that lacks its device's never-write range (before,
+   the range checks passed with nothing to check); this section's placement notes, flashing
+   notes and test card were corrected. Every image, MK1 and MK2, is byte for byte as before.
+5. **Corp D39 - press_gate** (MK2 gate opus G1; corp `press-fixer`): the knob-press lock
+   path, slot 0x80, gated on both devices (detour MK2 0x400387ba, MK1 0x400384f8);
+   `make DEVICE=mk2 control` (f3f6aad0..., unchanged), `samplefocus` and `samplefocus-cut`,
+   and MK1 `samplefocus`, `samplefocus-cut`, `control` (3407638c..., unchanged), `verify`,
+   `random`: all PASS. "The held-trig path (D10)" has the proof.
+
+**Nothing of this has run on an MK2.** Sources: `corp/mk2-re/results.json` (lanes
+mk2-addrA, mk2-addrB, mk2-geometry, mk2-space and their skeptics; a skeptic's correction
+wins), the stock MKII 1.73 image (`stock/Analog-Rytm_MKII_OS1.73.syx`, sha256
+8ad671087ec30433d5407c7380d2396e0915ab931c5d3dd18a78bf284d3d1e52, MAIN OS 28d9ef40...85d6)
+and its disassembly `/Users/creative/analog rytm firmware/build/mk2-1.73/mainos_mk2_1.73_emac.dis`
+("MK2 dis:N" below). Build logs, the built files, the ELFs and the read-only checks are in
+`corp/mk2-builder/` (`step1_*.log` .. `step3_*.log`, `out/`, `mk2check.out`, `elfdiff.out`,
+`tools/`).
+
+### MK2 build
+
+```
+make DEVICE=mk2 control          # stock MKII MAIN OS repacked by our tool
+                                 # -> build/mk2/ARMK2_OS1.73_control.syx
+make DEVICE=mk2 samplefocus      # 0000-shared (lean) + 0001-chop: CHOP only
+                                 # -> build/mk2/ARMK2_OS1.73_0000_0001.syx
+make DEVICE=mk2 samplefocus-cut  # + 0008-sample-cut (own_pages = 0): CHOP + SMP CUT
+                                 # -> build/mk2/ARMK2_OS1.73_0000_0001_0008.syx
+```
+
+`DEVICE` defaults to `mk1`, and every MK1 target is byte for byte what it was: after each
+step the guest rebuilt `samplefocus` 23a20937..., `samplefocus-cut` 86e1dd1b..., `control`
+3407638c... (the hashes before corp D39 added press_gate to both CHOP images), the default build 0d51f7cb... and `random` 3dafc0bd..., with identical MAIN OS
+hashes and manifests and `guard-check` PASS (`corp/mk2-builder/step*_mk1_*.log`,
+`step3_hashes.txt`). What `DEVICE=mk2` changes (`tools/device.py`):
+
+- its own files: stock `stock/Analog-Rytm_MKII_OS1.73.syx` (checked against
+  `stock/SHA256SUMS.mk2`; the MK1 file and `stock/SHA256SUMS` are untouched),
+  `re/symbols_mk2.toml` (every MKII address with its evidence and the lane that proved it),
+  `registry/allocations_mk2.toml`, and the build directory `build/mk2/` - no MK2 build reads
+  or writes an MK1 build file. Outputs are named `ARMK2_OS1.73_<tag>.syx` (MK1:
+  `AR1_...`): **never send an ARMK2 file to the MK1 or an AR1 file to the MKII.**
+- the container: ELE3 with five sections (FPGA, bootstrap, MAIN OS, meta, section 8);
+  only MAIN OS (section 3) is rebuilt. verify.py also checks that the four others come back
+  byte-identical to stock's and to the checksums they were analysed with.
+- the never-write range: the MKII has no embedded bootstrap in MAIN OS (its bootstrap is
+  container section 2). Where MK1 embeds it, MK2 embeds two firmware images for another
+  device, sent at startup by an MKII-only updater; the exact bounds are immediates in it
+  (MK2 dis:409329-409333: `movel #0x402cc91c; subil #0x402cb47c`, and dis:409348-409352:
+  `movel #0x402cb47c; subil #0x402c8754`). [0x402c8754, 0x402cc91c) may not be touched: layout.py refuses any
+  claim, patch or detour in it, and build.py and verify.py hold it to its stock sha256
+  (eea39227...6b52). Which device receives it is UNKNOWN; the rule holds regardless.
+- the stubs are assembled with `DEVICE_MK2` defined; every MKII difference sits under
+  `.ifdef DEVICE_MK2`, so MK1 assembles exactly as before.
+- MK1-only targets (`make`, `verify`, `random`, `chop-min`, `guard-check`, `elemod`,
+  `disasm`) refuse `DEVICE=mk2`. 0000-shared is always lean on MK2 (its one claim is sized
+  for it: a lean = 0 build is refused by size), and 0008 builds only as image B's provider
+  (own_pages = 0; with own_pages = 1 its claims are gated out and the build stops at its
+  first from_symbol patch).
+
+### Pages on MK2
+
+**CHOP: SAMPLE x3.** The MKII's SAMPLE view already has two stock pages, SAMPLE (page 4)
+and SMPL WAVEFORM (page 5), and stock MK2 pages are 0..11 (page_info `moveq #11`). So CHOP
+is page 12 and the third entry: SAMPLE -> SMPL WAVEFORM -> CHOP -> SAMPLE (the SAMP list
+becomes {4, 5, 12}: count 0x400caf12 `7202` -> `7203`, list word 0x400caf18). Every MK2
+SAMPLE-key event reaches the base page cycle (corp mk2-sk-addrA: every code-50 path ends in
+0x400d2bde -> 0x4003a544), and that cycle is generic modulo the list length (MK2 dis:76078-76096:
+`(view+128 - view+124)/4`, `remsl`, then invalidate and slot 0x50), so **there is no SAMPLE-key gate on MK2**
+(its MK1 symbols and code are not assembled).
+
+**The SAMP draw gate (MK2 only, D36).** The MKII SAMP view draws (vtable 0x401e3170 slot
+0x10 = 0x400d1f98) page *index* 0 as a knob page and every other index with SMPL
+WAVEFORM's layout (a fixed 8-knob grid plus the waveform object at view+400). Without a
+gate CHOP, at index 2, would draw as a waveform page. `samp_draw_gate` replaces the index
+test at 0x400d1fa8, `tstl %a2@(140); bnes 0x400d1fbc` (exactly the 6 bytes of the jmp):
+
+| state | goes to | |
+|---|---|---|
+| index 0 (SAMPLE) | 0x400d1fae, `jsr 0x400d2e1a` (knob page draw) | stock |
+| page id at the index == 12 (CHOP) | 0x400d1fae | new |
+| anything else (SMPL WAVEFORM) | 0x400d1fbc, the waveform layout | stock |
+
+The page id is read as the view's own slot 0x68 reads it (0x40037660: `view+124` the page
+list, `view+140` the index; it touches d0/a0 only). Proof on the built images: the gate
+neither pushes nor pops; it writes d0, d1, a0, which neither continuation reads before
+writing (0x400d1fae pushes a4/a2 and calls; 0x400d1fbc pushes constants and a4 and calls),
+and neither reads the condition codes; both continuations are at the host's frame (its
+prologue `lea -60; moveml d2-d7/a2-fp` already ran, MK2 dis:272122-272125). The
+pc-relative `bne.s` is re-implemented (registry `reemit = false`), the rejoin is the
+default 0x400d1fae (verify: "rejoins 0x400d1fae"). The draw 0x400d1f98 is referenced
+only by that vtable slot (raw word scan: one hit, 0x401e3180), and the vtable is stored
+only by the SAMP view's ctor (0x400d2410) and at 0x401a405e (inside the routine in its slot
+0, 0x401a4026), so the gate runs for the SAMP view alone; no branch, jump-table case or 32-bit word in the image targets 0x400d1fa9..0x400d1fad
+(below). The other SAMP overrides test the page **id**, not the index (slot 0x30
+0x400d1e8a: id 5; slot 0x48 0x400d29cc: ids 41, 43, 44), so CHOP's ids get the base
+encoder path, as on MK1.
+
+**SMP CUT: FILTER x2.** FILTER is page 6 on MK2 (5 is SMPL WAVEFORM): FILTER -> SMP CUT
+(page 13) -> FILTER (FILTER list {6, 13}: count 0x400caf82 `7201` -> `7202`, list word
+0x400caf88). The FILTER view (ctor 0x400d2d34, vtable 0x401e32c4) draws with 0x400d2e1a,
+which adds its extras only for page ids 6 and 7 (MK2 dis around 0x400d2e42 and 0x400d3140),
+so page 13 gets the plain knob page and needs no gate. corp mk2-geometry found that the
+generic (FILTER) view does not re-push the header title after a page cycle (the MKII
+peer's LFO RND needed a title hook for that), so **the header may keep showing "FILTER"
+on SMP CUT**. No title hook is built, and **D36's condition for accepting that ("if a
+title hook does not fit") is not shown**: no hook was designed or sized, and space does
+not rule one out (unclaimed after the registry's claims: 124 B in cave2, 44 B in cave,
+84 B in cave3). Such a hook is a new detour in the page-cycle draw the FILTER view
+inherits (its vtable slot 0x50, 0x401e3314 -> 0x40039b48, MK2 dis:74830-74850; four
+words in the image hold that address), so it would run on every page cycle of every view
+that shares it; it was left out of this never-run image as a risk choice, not for lack of
+space. Pending the CEO: waive D36's condition for v1, or build and prove the hook in a
+later round. What the SAMP view's header shows on CHOP is UNKNOWN (its own slot 0x50,
+0x400d2cb2, re-pushes a title). Both are hardware rows (M1, M3). The MKII also shows a knob's ROM long name in the header on each
+turn (corp mk2-sk-geometry), so CHOP's and SMP CUT's long names ("Chop Pad", "Pad Start",
+"Chop Mode", "Slice End", "Divide", "Lay Out", "Shuffle", "Low Cut", "High Cut") will
+appear there; whether they fit is UNKNOWN.
+
+### What differs from MK1
+
+| | MK1 1.73 | MKII 1.73 | where |
+|---|---|---|---|
+| active kit | project + 232 | project + 352 | 0000 `PROJ_KIT`; 0008 `SOUND0` 328 -> 448 |
+| stock pages | 0..10 (page_info `moveq #10`) | 0..11 (`moveq #11`) | both page_info gates re-emit `PAGE_LAST` |
+| CHOP / SMP CUT page | 11 / 12 | 12 / 13 | `PAGE_CHOP`, `PAGE_CUT` |
+| SAMP list | {4, 11} (count 1 -> 2) | {4, 5, 12} (count 2 -> 3) | 0001 patches |
+| FILTER list | {5, 12} | {6, 13} | 0008 patches |
+| SAMPLE key | sample_key_gate, detour 0x400ce4b8 | none (stock cycles) | `.ifndef DEVICE_MK2` |
+| SAMP draw | one stock page, no gate | samp_draw_gate, detour 0x400d1fa8 | `.ifdef DEVICE_MK2` |
+| id 4 encoder template | 12 B: {2, 0x800, 8} HI / {0x100, 0x800, 0} LO | 16 B: {1, 0x40, 0, curve 0x417e3800} HI (0x401ed03c) / {1, 2, 0, curve 0x417e37e4} LO (0x401ed07c) | page_info_gate copies 4 longs to 0x419a49dc |
+| RAM records | 0x416a6aa4, 88 B | 0x419a4888, 84 B | `PARAM_INFO_BASE`/`_STRIDE` |
+| STA popup text | `%d.` with a fraction, else `%d` | `%d.%02d` with a fraction, else `%d` | stock's sta_value_text 0x400fbad8 |
+| never-write range | embedded bootstrap 0x4028c708..0x402a1b24 | embedded device firmware 0x402c8754..0x402cc91c | symbols `[meta]` |
+| bootstrap | inside MAIN OS | container section 2, never rebuilt | verify: byte-identical |
+| container | ELE2, MAIN OS only | ELE3, 5 sections | tools/device.py |
+| pad note-off expect | `...4eb94008022e` | `...4eb940081bbc` (MK2 is_key_held) | registry |
+| ROM renames | 0x4018e004 + 52*id | + 0x31914 (0x401bf918 + 52*id); strings 0x402405ea / 0x4024084f / 0x40236f0d | registry |
+| voice mixer | 0x4010795e, calls 0x401189ea / 0x40119d8c | 0x4010ea2c, calls 0x4011fdb8 / 0x40121230 | 0008 patches |
+| voice_owner, project | 0x40254e2c, 0x416c70c0 | 0x40290dd8, 0x419f28a8 | symbols |
+
+Everything else - the Sound layout (kit + 0x60, stride 352, live + 16, the free word at
++0x14), the UIStates offsets, the held-step iterator and its functor protocol, the
+SoundParameterSet writer (vt + 0x40), the lockable test (bit 8), the param_apply_delta
+frame (view, id, delta, FUNC, &lockout), the UI-loop pad cases, the 469 ROM records, the
+DAC ring (8 voices x 32 frames, 64-byte stride, txbase 0x80000000 + slot << 11, MACSR 0x20
+after the mixer) - is MK1's (the lanes' skeptics, entry-to-rts compares).
+
+**Hi-res STA on MK2.** The MKII encoder reads the RAM record's +4, +8 and the curve at
++0x10 (MK2 dis:75219, 75223; it copies 0x1c B from the curve, dis:75258-75261) after the
+knob-to-id call that runs page_info (slot 0x9c 0x4003795a, dis:72047); under SAMPLE POS
+RES = LO it forces +4 = 1, +8 = 2 and the default curve 0x417e37e4 on ids 43..44 (dis:75235-75236,
+75327-75328). page_info_gate therefore
+copies all 16 bytes: STA's own template under HI (the CHOP STA knob turns like stock STA),
+id 4's boot template under LO (the static ctor's own copy for record 4, MK2
+dis:534504-534569; what stock forces on STA under LO). A 12-byte copy would have left
+id 4's default curve in place, so HI would not have turned like STA (mk2-sk-geometry's
+correction). The 8.8 delta units the other knobs' `asr #8` relies on were checked
+statically (mk2-sk-geometry: whole-step deltas for default-template knobs); hardware row M2.
+
+### MK2 detours and patches
+
+9 detours (0001; 8 before corp D39): page_info 0x400ff574 (`720b202f0004`), page_get_value 0x40038462
+(`4feffff448d7040c`), param_apply_delta 0x400378b6 (`77832f2a0074`), param_value_text
+0x400a85f0 (`242f0020262f0024`), samp_draw 0x400d1fa8 (`4aaa008c660e`, reemit = false), pad
+note-on 0x400a472a (`48780080767e`), pad note-off 0x400a476e (`487800804eb940081bbc`), lock
+0x400385f8 (`4fefffd048d70cfc`), and since D39 press 0x400387ba (`4fefffd048d71c3c`,
+press_gate, rejoin 0x400387c2; "The knob-press path" under D10). Patches: 37 for CHOP (the SAMP list, 7 ROM records x 5),
+51 with SMP CUT (+ the FILTER list, the two voice_out call words, 2 ROM records x 5).
+Every expect was re-read from the MK2 MAIN OS (`corp/mk2-builder/tools/gen_reg.py` from
+mk2-addrB's sites, asserting raw == expect; build.py asserts them again).
+
+### MK2 placement (layout A, D37) and sizes
+
+| pool | range | CHOP + SMP CUT (samplefocus-cut) | CHOP only (samplefocus) |
+|---|---|---|---|
+| cave | 0x402cc928..0x402cd000 (1752 B) | 0008 .text 810 (claim 812), .cutst 128 (128), 0001 .chst 280 (292), .cave2 464 (476; 434 before D39): 1682 B used, 70 free | .chst 280, .cave2 464 |
+| cave2 | 0x402cd8a0..0x402ce000 (1888 B) | 0001 .text 1406 (claim 1536), 0000 lean 140 (140), 0001 .cave3 81 (88): 1627 B used, 261 free | .text 1354, 0000 140, .cave3 81 |
+| cave3 | 0x40289ab8..0x40289eb8 (1024 B) | 0008 .tab 937 (claim 940): 87 free | unused |
+
+`cave` ends exactly at 0x402cd000 (the USB string block's first byte is written at run
+time) and starts 12 B after the never-write range; `cave2` ends at __bss_start 0x402ce000.
+All run-time state is in `cave`: CHOP's 48 B (chop_state 0x402ccdbc..0x402ccdec, at the end
+of .chst) and 0008's filter state (cut_state 0x402ccc54, 128 B). cave3 holds constants and
+code, never run-time state: 0008's `.tab` - the cutoff table and cut_mant, the helpers
+word_sync, value_of, put_u3, fmt_hz and coefs (cut_process calls coefs from the audio
+interrupt), the page data and strings. TRUTH D37's text says cave3 is "constants only";
+layout A, which D37 adopts, puts 0008's whole `.tab` there, as MK1 image B does, and the
+helpers (306 B of code, 0x40289ce2..0x40289e14) do not fit elsewhere in one piece (100 B
+free in cave before D39, 70 B since; 261 B in cave2). The wording is the CEO's to settle (corp mk2-panel-crash F2,
+mk2-panel-brick b2).
+
+**Stock reads that can reach cave3.** No stock write into cave3 was found (mk2-sk-space's
+scan, not exhaustive), but the stock routine
+0x4010d3c8 (its one caller 0x4010e7b2) reads the table just above it with sign-extended
+SRAM bytes: 0x4010d49e `movel %a0@(0,%d1:l:4),%d5` (a0 = 0x40289eb8, d1 from `mvsb
+0x8000fbc0`, bounded only above by `cmpil #63`) and 0x4010d3fa (a0 = 0x40289fb8, d0 from
+`mvsb 0x8000fbc2`, not bounded); a negative byte reads 0x40289cb8..0x40289eb4 and
+0x40289db8..0x40289eb4 (MK2 dis:347071-347120). Two more reads (0x4010d43e, 0x4010da64)
+index the table at 0x4028a7b8 by a sum of two signed words >> 6 with no lower bound and
+could reach all of cave3 (mk2-sk-space). Stock has zeros there; samplefocus-cut has
+0008's cut_mant, helper code and page data. So **if one of those indices ever goes
+negative, the routine loads mod bytes instead of 0** - for 0x4010d49e into d5, the
+multiplier of its `macl` loop at 0x4010d4b4 (signal processing; corp mk2-panel-crash reads
+the 0x8000fbc0 block as FX parameters). That would be a wrong sound value, not a write and
+not a crash. Whether an index can go negative is UNKNOWN (the panel: those FX parameters
+have ROM range 0..0x7f00, so it would probably take unclamped modulation); M3 listens for
+it. samplefocus (CHOP only) leaves cave3 as stock. MK1 images A' and B have the same
+exposure (MK1 0x401063da / 0x40106338 read above 0x4024df0c / 0x4024e00c, the top of MK1's
+cave3, where CHOP's constants and 0008's `.tab` sit).
+
+### Proof on the built MK2 images (host, read-only)
+
+Files: `build/mk2/ARMK2_OS1.73_0000_0001.syx` (CHOP only) and
+`ARMK2_OS1.73_0000_0001_0008.syx` (CHOP + SMP CUT); hashes under "MK2 flashing". Each was
+built twice in the guest with the same hashes. `corp/mk2-builder/tools/mk2check.py`
+(output `mk2check.out`) re-reads the stock MK2 MAIN OS, both images, their manifests and
+the registry, independently of verify.py:
+
+- every active detour and patch expect equals the stock MK2 MAIN OS, and every written
+  word equals the manifest (8 detours + 37 patches; 8 + 51 - since corp D39 9 + 37 and
+  9 + 51, `corp/press-fixer/pfcheck2.out`);
+- every changed byte lies inside an active claim of that build (2089 bytes; 3693 bytes -
+  since D39 2122 and 3726),
+  and each assembled section sits in the image byte for byte;
+- **0 bytes changed** in the embedded device firmware 0x402c8754..0x402cc91c, sha256
+  eea39227... in both images; verify: the bootstrap, FPGA, meta and section-8 sections
+  byte-identical to stock in both `.syx`;
+- no branch, call, pc-relative jump-table case (113 tables) or raw 32-bit word in the stock
+  image lands inside any of the 8 displaced ranges past its first byte (since D39 9:
+  the press host 0x400387ba+8 too, pfcheck2.out);
+- every store in the stubs (objdump of the ELFs, all non-stack destinations) goes either
+  to the mods' own run-time state in `cave` - the absolute chop_on / chop_track / chop_pad
+  / chop_end / chop_div stores, chop_marks and chop_route through their `lea`, chop_rng
+  through shared_rnd, cut_state through a6/a2 - or to a stock-owned place by design, as on
+  MK1: id 4's encoder template (0x419a49dc..+0x13, page_info_gate), the UI message's pad
+  field (the pad rewrite), the popup text buffer, the encoder's FUNC-lockout byte through
+  the apply pointer, the live sound's free word (SMP CUT's setting) and the DAC ring words
+  (SMP CUT's in-place filter); everything else is stack frames or writes made by the stock
+  routines CHOP calls. No mod state is kept outside `cave`.
+
+`corp/mk2-builder/tools/elfdiff.py` (output `elfdiff.out`) compares the MK1 image-B ELFs
+with the MK2 ones, instruction by instruction with addresses masked, per label: **every
+label is identical** except 0000's `shared_sound_of` (`pea %a0@(352)`), 0001's
+`page_info_gate` (pages 12/13, `moveq #11`, the fourth template long), `sample_key_gate`
+(MK1 only), `samp_draw_gate` (MK2 only), and 0008's `cut_process` (`%a0@(464)`, SOUND0 +
+16) and its page data. So every path's stack and registers are MK1's as proven in the
+MK1 rounds (`corp/r7b-builder`: the stack walk of image B), on MK2 hosts whose frames
+the address skeptics found identical (prologues and displaced bytes, the param_apply_delta
+caller's argument layout, the text and lock routines entry-to-rts); the two new pieces
+are the draw gate (above) and one more `move.l (%a0)+,abs` in page_info_gate (d0/a0, as
+before). The dispatch, read from the built image: page_info_gate answers 12 with CHOP's
+descriptor (after the template copy), 13 with 0008's (0x40289e1c, image B only) and
+everything else through stock with `moveq #11`; `chop_ktab` maps ids 1, 2 -> 0008 (K_CUT,
+image B only), 3, 4, 5, 11, 12, 13, 14 -> PAD STA CHP END DIV LAY RND, every other id
+(and ids above 15) -> stock; get / delta / text jump to 0008's handler for K_CUT and to
+CHOP's for its own knobs; lock_gate sends RND to the held-step writer and returns 0 for
+every other CHOP id and for 1..2; press_gate (D39) returns 0 for every id chop_ktab maps
+(3, 4, 5, 11..14, and 1, 2 in image B) and sends every other id to stock at 0x400387c2.
+
+### MK2 flashing and recovery
+
+**Before you flash.** Back up the MKII's projects (Transfer). The MKII must run **stock OS
+1.73** first: the founder's unit is on 1.72; install Elektron's 1.73 by the normal route
+(Transfer > DROP, `[YES]` on the device), the same file as
+`stock/Analog-Rytm_MKII_OS1.73.syx` (sha256 8ad67108...1e52). **Do not install 1.74**:
+Elektron's release notes list one ("List of changes from OS 1.73 to 1.74"; a text copy of
+the page as read on 2026-10-05 is kept at
+`corp-audits/2026-10-05-rytm-chop/corp/evidence/elektron_analog-rytm-mkii_os-release-notes_read-2026-10-05.txt`,
+sha256 a7cfae1c...8040); these images are 1.73, so from 1.74 they would be a downgrade,
+which the same notes say is not supported. Keep the stock 1.73 file and a **DIN** MIDI
+interface at hand. The three files, the stock recovery file, their checksums and a short
+start page are staged in `/Users/creative/analog rytm firmware/flash/MKII/`
+(`START_HERE_MKII.md`).
+
+**Order** (normal route each time; the unit restarts by itself; do not power off during
+the first boot):
+
+1. **Control first:** `build/mk2/ARMK2_OS1.73_control.syx` - stock MKII code, only repacked
+   by our tool (0 differing regions). It proves the packer and the same-version install on
+   this unit: if it boots and plays, a later problem is a mod, not the file.
+2. **CHOP only:** `build/mk2/ARMK2_OS1.73_0000_0001.syx` - test card M1, M2.
+3. **CHOP + SMP CUT, only after 2 behaved:** `build/mk2/ARMK2_OS1.73_0000_0001_0008.syx` -
+   M3. If it misbehaves, go back to 2.
+
+If Transfer refuses a file as the same version, nothing has been written: either stop, or
+send that file through the STARTUP-menu route below (FUNC at power-on, TRIG 4, LEGACY OS
+UPGRADE over DIN), as on the MK1.
+
+**Recovery = the same STARTUP-menu route as the MK1, DIN only** (Elektron's MKII release
+notes, "Upgrading from the STARTUP Menu"): MIDI interface into the MKII's DIN MIDI IN (not
+USB); hold `[FUNC]` while powering on; `[TRIG 4]` enters OS UPGRADE; Transfer > CONNECTION:
+"LEGACY OS UPGRADE mode", select `stock/Analog-Rytm_MKII_OS1.73.syx`, UPGRADE. It is
+served by the MKII's bootstrap, which is a **separate container section**: every MK2 file
+here carries stock 1.73's bootstrap section byte for byte (verify), and no MK2 build
+changes it, so the recovery path is the stock one. Back to stock from a booting build: the
+normal route with the stock file (a same-version reinstall; control, step 1, tests it).
+Nothing CHOP keeps is saved; what it writes into patterns and kits is stock data.
+
+Files since corp D39 (guest, 2026-10-08, `make DEVICE=mk2 control|samplefocus|samplefocus-cut`
+all PASS, logs `corp/press-fixer/b4_*.log` .. `b6_*.log`; copies in `corp/press-fixer/obj/`), sha256:
+`ARMK2_OS1.73_control.syx` f3f6aad0cad09a7c3d531fb36a34fc78ed45bee126b9aab84cfed93e51d99c04
+(unchanged; MAIN OS = stock, 28d9ef40c895e03f17dfce096543109adaf708947392db72818fc2a412d685d6),
+`ARMK2_OS1.73_0000_0001.syx` (CHOP only) 016be9ea4b4cf963d194c250e9e2af68d0a2afc20103b67fe842fe1b19535cc4
+(MAIN OS 98fbc0885fb8c6879a902674d9e95ff2235468b512c0a4ba6f77f59a7a455939),
+`ARMK2_OS1.73_0000_0001_0008.syx` (CHOP + SMP CUT) 0ce2fe92539bfc551ce6a28a36e8efa60e4848beec695143957f9e0a8d929280
+(MAIN OS 733c8588b600fb9b8d4f41389db4cacc05a750ce998822f94e39f5b0809cc0e3).
+Superseded by D39 (no press gate; never run - do not flash; `corp/mk2-builder/out/`, 2026-10-07):
+CHOP only 48fa678c15b4d5c7b977f517062de01949ff572c8826521d1a179025b64756f3 (MAIN OS
+ad46d220...), CHOP + SMP CUT 128b952ef082303c04790a6ecae33562089505336f1b072c1056c818a3ccc7f6
+(MAIN OS c7cc6bd9...). Each D39 image differs from it only in the 6-byte jmp at 0x400387ba
+and press_gate's 30 B.
+
+### MK2 test card (never run)
+
+Normal pad mode throughout (D14). Stop at the first deviation and go back one file.
+
+- **M0 Control** (`..._control.syx`): the install is accepted (a same-version 1.73
+  reinstall over stock 1.73 - record it; if Transfer refuses it as the same version,
+  nothing was written: stop, or send it through the STARTUP-menu route, DIN only, "MK2
+  flashing and recovery"); the unit boots and plays a project; SAMPLE
+  cycles SAMPLE <-> SMPL WAVEFORM as stock; FILTER has one page. Note how stock MK2's
+  SAMPLE behaves: on press or on release, and what a quick double-tap does (the sample
+  list) - M1 compares against it.
+- **M1 The CHOP page** (`..._0000_0001.syx`): on the SAMPLE view, SAMPLE cycles SAMPLE ->
+  SMPL WAVEFORM -> CHOP -> SAMPLE. SMPL WAVEFORM still draws its waveform exactly as in M0;
+  **CHOP draws as a knob page** (no waveform): A..G PAD STA CHP END DIV LAY RND, H empty;
+  popups with values (PAD 1..12, CHP/END OFF/ON, DIV 1..12, LAY/RND a dash). Record: the
+  header title on CHOP; whether the long names fit the header on a knob turn; the
+  double-tap compared with M0 (does it open the sample list, does it also step the page);
+  leaving the view on CHOP and coming back (which page it opens on). Do not use FUNC +
+  SAMPLE (page copy/paste/clear) on CHOP (untraced, as H3 (f)).
+- **M2 CHOP behaviour**: every H row of image A' on the MKII, same expectations - H1, H2,
+  H4 (a)-(f), H6 (a)-(e), (g), (i) (GRID REC), H7 (a)-(f), H8 (a)-(f), H9, H10 (a)-(h),
+  H11, H14 (a) and (b) - (b) is the knob-press row (corp D39: press each CHOP knob with
+  a trig held, nothing is written) - with M1 in place of H3 (H5 is M0 and the recovery
+  route; H12 is gone with STR; H13 is MK1's regression against the round-4 image and has
+  no MKII counterpart).
+  This is a first run on new hardware, so the crash rows count most: H4, H6 (i), H10 (g).
+  MKII differences: STA popups print two decimals with a fraction (`40.25`), whole values
+  without (`40`), as the SAMP page's STA; with SAMPLE POS RES = HI the CHOP STA knob turns
+  like the SAMP page's STA (fine steps, same acceleration, FUNC = one whole step); with
+  LO, whole steps (H7 (a)-(c), (e)); H7 (d): note what id 4's knob graphic shows (display
+  only). The other knobs move one value per detent (the 8.8 delta units, checked only
+  statically).
+- **M3 SMP CUT** (`..._0000_0001_0008.syx`, after M1-M2 passed): first M1 and H13 (H1, H3
+  as M1, H4, H6 (a)-(e), (g), (i)) again on this file; then S1-S10 as on MK1, with M1 in
+  place of H3 in S1 (S9 includes pressing LCT/HCT with a trig held, D39; so does H14
+  (b)'s LCT/HCT check after pressing CHOP knobs with a trig held), and FILTER x2 -> SMP
+  CUT (LCT, HCT; other knobs empty), FILTER again -> FILTER. Record the header title on SMP CUT (it may read "FILTER"; whether that is
+  accepted is pending, "Pages on MK2"). **Before S2:** SMP CUT keeps its setting in the
+  sound word the MKII project's LFO RND mod (rytm-mods 0004) kept its settings in (all 0
+  at LFO RND's defaults), so a sound saved under that build with its LFO RND settings
+  changed can load with LCT and/or HCT on. If this MKII ever ran an LFO RND build, open
+  each project saved under it and check LCT/HCT on every track before saving; where they
+  are not OFF, set LCT 0 and HCT 127. (Whether any project here was
+  saved under it is UNKNOWN; S2's first-boot check catches an untouched sound only.) S4
+  (load) matters more here: the MKII's mixer is different code and the filters' interrupt
+  cost on the MKII is not measured. **S5 on the MKII also:** with SMP CUT set on a few
+  tracks, take the FX track's LFO and its delay / reverb parameters to their extremes and
+  listen to the delay / reverb for artefacts (the cave3 read case, "MK2 placement"); on
+  any, stop and report. Run S7, S8 last, as on MK1.
+
+**MK2-only unknowns** (static work cannot settle them): whether page ids 12/13 reach a
+stock per-page table outside page_info (the FUNC + key page operations 0x400b1414 etc.
+receive them; MK1 ran page 11 on hardware, never 12); the header title and long-name fit;
+the MKII encoder's delta units on the hardware; that voice_owner's index v is DAC ring
+column v (carried from MK1); the MKII audio interrupt's headroom with the filters on; the
+MKII pad producer (pad ids 0..11, velocity, pressure) - only the UI-loop consumer was
+compared; whether the stock reads that can reach cave3 with a negative index ever do -
+if one does, it multiplies by 0008's bytes instead of zero ("MK2 placement"; M3's S5 listen);
+the identity of the device that receives the never-write range. The pools themselves have
+never held mod code on an MK2 in this project (the MKII peer's hardware runs are notes,
+not re-checked here).
+
 ## Next steps (out of scope for image A' and image B)
 
-- Image B: the hardware run (its test card). The layout leaves 126 B free inside the
-  claims (cave 14, cave2 102 - of which 60 in CHOP's `.text` claim and 42 in `.cave2` -
-  cave3 10), so a later CHOP or SMP CUT feature needs more compaction or cave4..6 (r5b
+- Image B: the hardware run (its test card). The layout leaves 96 B free inside the
+  claims since corp D39 (126 B before; cave 14, cave2 72 - of which 60 in CHOP's `.text`
+  claim and 12 in `.cave2` after press_gate's 30 B - cave3 10), so a later CHOP or SMP CUT feature needs more compaction or cave4..6 (r5b
   space lane; candidates that only a probe may claim). The SMP CUT measuring build (0008
   `diag = 1`) does not fit image B's `.cutst` claim and is not laid out.
 - A pad press selects the PAD knob on screen (redraw the CHOP page when a pad sets
@@ -1526,3 +2038,8 @@ of these misbehaves):
   sample-accurate stretch (r5c "B") stays research.
 - Optional: restore the chop track's base STA when CHOP ends (sta lane: param_set_value
   with record 0, notify 1).
+- MK2: the hardware run (M0-M3, control first). A header-title hook for SMP CUT (and CHOP):
+  not built, and D36's "does not fit" is not shown (space exists; "Pages on MK2") - the CEO
+  decides between a waiver for v1 and a proven hook (the MKII peer's LFO RND had one).
+  Room left on MK2: 70 B in `cave` (100 before D39's press_gate), 261 B in `cave2`, 87 B in
+  `cave3` inside and around the claims (samplefocus-cut); unclaimed: 44 B, 124 B, 84 B.

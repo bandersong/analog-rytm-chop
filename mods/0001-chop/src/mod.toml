@@ -64,6 +64,11 @@ stub = "stub.s"
 shared_lean = 0
 
 [requires]
+# MK2 (`make DEVICE=mk2 samplefocus|samplefocus-cut`, corp MK2 port): the same list from
+# re/symbols_mk2.toml, minus the SAMPLE-key gate's (samp_key_resume, samp_key_to_base,
+# page_cycle_arm, ev_is_down, ev_is_held, ev_bit4, weak_ptr_expired - no such gate on
+# MK2), plus samp_draw_knobs and samp_draw_wave (the SAMP draw gate). The sound writes go
+# through the active kit at project + 352 there (project_kit 0x400ae45e).
 # CHOP calls shared_rnd (RND, knob G) and nothing else in 0000-shared; its sound
 # writes go through the active kit at project + 232 (project_kit), never through
 # 0000-shared's sound helpers. With 0008 as a provider it also jumps to 0008's
@@ -92,6 +97,7 @@ symbols = [
   "ev_bit4",
   "weak_ptr_expired",
   "lock_delta_body",
+  "press_lock_body",
   "ui_states",
   "hold_lock_source",
   "hold_any_in_length",

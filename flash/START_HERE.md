@@ -38,6 +38,7 @@ While CHP is ON every pad goes to the chop track (TRK + pad won't select other t
 2. Pads, live REC (trig + STA lock), step-lock in GRID REC: all as before.
 3. END ON: a pad plays only its slice. DIV 4: markers 0/30/60/90. LAY fills only empty steps. RND re-rolls held steps.
 4. Turning a knob other than RND while holding a step then letting go: stock may toggle that step (as after any hold with no edit).
+5. The fix: GRID REC, hold a step that has a trig, **press** (don't turn) each knob A–G: nothing changes, no p-lock appears on that step.
 
 ## SMP CUT (file 5 only): FILTER, let go, pause, FILTER again
 LCT (low cut) and HCT (high cut) on the sample layer, per track, saved with the sound. **First run of SMP CUT on any MK1** — its filter runs inside the audio engine. For this test: MIDI OUT disconnected, nothing on MIDI IN.
@@ -49,8 +50,10 @@ LCT (low cut) and HCT (high cut) on the sample layer, per track, saved with the 
 4. **In a copy of your project** (backup from "Before you flash" confirmed): set cuts on two tracks, save kit + project, power-cycle — the values must come back.
 5. CHOP and SMP CUT in one session: CHOP on a track; to use SMP CUT on another track, turn CHP OFF, select the track, FILTER ×2.
 6. Known quirk: turning HCT then LCT very quickly can make LCT jump back — just turn LCT again.
+7. Hold a trig and press LCT and HCT: nothing changes.
+8. If you ever pressed a CHOP knob while holding steps on file 2/2b, those steps may carry a hidden lock that file 5 plays as LCT/HCT: check LCT/HCT while holding those steps before saving.
 
-Full test card: `../mods/0001-chop/src/design.md` (H rows and S1–S10).
+Full test card: `../upstream/rytm1_mods/mods/0001-chop/design.md` (also copied to `../mods/0001-chop/src/design.md`) (H rows and S1–S10).
 
 ## If it won't boot
 Hold **FUNC** while powering on → **TRIG 4** (OS UPGRADE) → Transfer > CONNECTION > LEGACY OS UPGRADE → send `RECOVERY_stock_Analog-Rytm_OS1.73.syx` over **DIN MIDI**. The recovery code in flash is never touched by these files (checked byte for byte).
