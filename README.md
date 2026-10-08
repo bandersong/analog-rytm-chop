@@ -70,7 +70,7 @@ Needs SAMPLE POS RES = HI for decimals. LAY has no undo.
 You build the firmware yourself from Elektron's own OS file. This repo never ships Elektron's code.
 
 ### You need
-- An Analog Rytm **MK1 on OS 1.73**. The Rytm can't go back to an older OS, so update with Elektron's official 1.73 first.
+- An Analog Rytm **MK1 on OS 1.73**. **Don't install OS 1.74**: these builds are for 1.73. Note: as of October 2026 Elektron's support pages offer only 1.74 for the MK1 and MKII, so if your unit is not already on 1.73 you need Elektron's 1.73 file from elsewhere (check it against the sha256 below). A 1.74 port is not done yet.
 - A Mac or Linux machine with `git`, `make`, a C compiler and **Python 3.11+**.
 - **m68k binutils**: `brew install m68k-elf-binutils` (macOS) or `sudo apt install binutils-m68k-linux-gnu` (Debian/Ubuntu).
 - Elektron Transfer (free, from elektron.se) for flashing.
