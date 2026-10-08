@@ -1,5 +1,7 @@
 # 0010 CHORD - chord memory for the Analog Keys (OS 1.56)
 
+> Internal shorthand: "corp", "TRUTH Kn", "CEO" and the `keys-*` names refer to this project's own review rounds and decision log, kept for traceability.
+
 Corp Keys chord memory, TRUTH K1-K5 and K7 (CEO 2026-10-08; founder: "the mix, start with
 hold and capture"). Sources: corp `keys-re/results.json` (lanes notes, osc, arp and
 platform, with their skeptics; a skeptic correction wins), corp `keys-gesture` and
