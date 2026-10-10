@@ -7,9 +7,10 @@ Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and M
 | Status | |
 |---|---|
 | MK1, OS 1.73 | ✅ Working on hardware |
-| Builds reproducibly | ✅ Fresh clone + patch gives the same files (`0ec86d0e…977e`, `76a2f4d0…1422`) |
+| Builds reproducibly | ✅ Fresh clone + patch gives the same files (`ac094b30…c3b4`, `dda5a4f8…8c6f`) |
 | Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
 | Sample Focus (hi-res, END, DIV, LAY, RND) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
+| First-hit fix (a pad hit plays its marker at once, MK1 + MKII) | 🧪 Built 2026-10-09, reviewed, reproducible; not yet hardware-tested (`flash/START_HERE.md` section D) |
 | MKII (OS 1.73): CHOP + SMP CUT | 🧪 Built, reviewed, reproducible (`make DEVICE=mk2 samplefocus-cut`); not yet hardware-tested |
 | SMP CUT (FILTER ×2: low/high cut), fixed for MK1 | 🧪 Built, reviewed, reproducible; first MK1 run pending |
 | STR (time-stretch) | ❌ Removed: didn't work on hardware |
@@ -19,8 +20,8 @@ Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and M
 
 ## Sample Focus + SMP CUT (newest, `make samplefocus-cut`)
 CHOP's page (below, minus STR) plus rytm1_mods' **SMP CUT** page on **FILTER ×2** (LCT low cut / HCT high cut on the sample layer), fixed for the MK1: the original uses the MK2's kit and sound offsets, which can crash an MK1. CHOP owns the shared page hooks and hands SMP CUT's knobs to its code. Fitted by code compaction; no features dropped except STR. **SMP CUT has not run on an MK1 yet**: see the test card (S1–S10).
-Expected sha256 of `build/AR1_OS1.73_0000_0001_0008.syx`: `0ec86d0ed118b8ba7eb0f43d4add9105bd0fa99bc39ca4710bdf2b3e6052977e`.
-Without SMP CUT: `make samplefocus` → `build/AR1_OS1.73_0000_0001.syx`, `76a2f4d058daadd0629d44cb62f2608a17f7a66e8f1e95357880b15f1c481422`.
+Expected sha256 of `build/AR1_OS1.73_0000_0001_0008.syx`: `ac094b30e7ea68022d00cd06c057229284df36dbc3176423fdd34b26dfffc3b4`.
+Without SMP CUT: `make samplefocus` → `build/AR1_OS1.73_0000_0001.syx`, `dda5a4f8b63c58359da3f8f3f3fa70567273df74cd8d4ea136fd62bcd82a8c6f`.
 
 ## Sample Focus (previous build; STR has since been removed)
 `make samplefocus` builds CHOP plus a full 8-knob page (0000-shared + CHOP only; no euclid/velocity):
@@ -107,9 +108,9 @@ PASS
 Then check your build is the same file this repo was tested with:
 ```bash
 shasum -a 256 build/AR1_OS1.73_0000_0001_0008.syx
-# 0ec86d0ed118b8ba7eb0f43d4add9105bd0fa99bc39ca4710bdf2b3e6052977e   (samplefocus-cut)
+# ac094b30e7ea68022d00cd06c057229284df36dbc3176423fdd34b26dfffc3b4   (samplefocus-cut)
 shasum -a 256 build/AR1_OS1.73_0000_0001.syx
-# 76a2f4d058daadd0629d44cb62f2608a17f7a66e8f1e95357880b15f1c481422   (samplefocus)
+# dda5a4f8b63c58359da3f8f3f3fa70567273df74cd8d4ea136fd62bcd82a8c6f   (samplefocus)
 ```
 
 ### 3. Flash (Transfer)
@@ -129,8 +130,8 @@ Not yet run on an MKII. Order and first-run checks: [`flash/MKII/START_HERE_MKII
 2. Build:
 ```bash
 make DEVICE=mk2 control           # build/mk2/ARMK2_OS1.73_control.syx            f3f6aad0cad09a7c3d531fb36a34fc78ed45bee126b9aab84cfed93e51d99c04
-make DEVICE=mk2 samplefocus       # build/mk2/ARMK2_OS1.73_0000_0001.syx          016be9ea4b4cf963d194c250e9e2af68d0a2afc20103b67fe842fe1b19535cc4
-make DEVICE=mk2 samplefocus-cut   # build/mk2/ARMK2_OS1.73_0000_0001_0008.syx     0ce2fe92539bfc551ce6a28a36e8efa60e4848beec695143957f9e0a8d929280
+make DEVICE=mk2 samplefocus       # build/mk2/ARMK2_OS1.73_0000_0001.syx          2ff96af2f5ed05f5884e0dfa74f806091a867be46254250c4b404da609de792d
+make DEVICE=mk2 samplefocus-cut   # build/mk2/ARMK2_OS1.73_0000_0001_0008.syx     782955769d2f199af5937eb8c945de659f1dad497b66aef07180c004089f6e8a
 ```
 3. Flash control → CHOP → CHOP + SMP CUT. On the MKII, CHOP is the **third** SAMPLE page (SAMPLE already has two) and SMP CUT is FILTER ×2.
 4. Recovery: same STARTUP-menu route (FUNC at power-on, TRIG 4, DIN MIDI) with the MKII stock file; the MKII bootstrap is a separate section these builds never touch.
@@ -157,7 +158,7 @@ This route runs from the Rytm's recovery code in flash, which CHOP never touches
 **Do not flash rytm1_mods' SMP CUT or RANDOM builds on an MK1.** They use an MK2 memory offset that is wrong for the MK1.
 
 ## Tested on hardware (MK1, OS 1.73)
-- ✅ A pad hit plays from its marker on the first hit.
+- ⚠️ A pad hit plays from its marker on the first hit: passed on 2026-10-05 (file 2, build `3ea80d31…b00b`), but on 2026-10-09 every CHOP build, step-lock included, was heard landing between markers and locking in after repeats. Likely cause traced in the stock code (the engine glides a start point set like a knob turn; p-locks don't glide); fix built into `make samplefocus` / `make samplefocus-cut` (MK1 and MKII), not yet hardware-tested.
 - ✅ Under live REC, the STA p-lock lands on the trig's step.
 - ✅ The CHOP page draws and switches back to the sample page.
 - ✅ No crashes or stuck notes under mashing and fast retriggers.

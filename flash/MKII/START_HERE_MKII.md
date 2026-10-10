@@ -1,4 +1,6 @@
-> **Fixed 2026-10-08:** files 2 and 3 are rebuilt so that pressing a CHOP or SMP CUT knob while holding steps is ignored (no hidden lock). The earlier files are in `../_superseded/`.
+> **Fixed 2026-10-09:** files 2 and 3 are rebuilt so that a pad hit plays its own marker on the **first** hit (before, the engine glided the start point from the previous marker over ~100 ms, so hits landed between markers and "locked in" after repeats - what you heard on the MK1). The pad now sets the start at once, as a sequencer p-lock does. The earlier files 2 and 3 are in `../_superseded/2026-10-09-pre-snap/MKII/`. Check each file's sha256 against `SHA256SUMS` (file 2 `2ff96af2…`, file 3 `78295576…`).
+>
+> **Fixed 2026-10-08 (still in these files):** pressing a CHOP or SMP CUT knob while holding steps is ignored (no hidden lock). The files before that are in `../_superseded/2026-10-08-pre-press-gate/MKII/`.
 
 # CHOP / Sample Focus for your MKII (OS 1.73) — start here
 
@@ -18,8 +20,8 @@
 |---|---|---|---|
 | 0 | `0_STOCK-1.73_and_RECOVERY_…` | Elektron's stock 1.73 | it boots and plays |
 | 1 | `1_CONTROL_stock-code_…` | stock MKII code, only repacked by our tool | M0: accepted, boots, plays; SAMPLE flips SAMPLE ↔ SMPL WAVEFORM; FILTER has one page. Note what a quick SAMPLE double-tap does. |
-| 2 | `2_CHOP_…` | the CHOP page | M1, M2 |
-| 3 | `3_CHOP+SMP-CUT_…` | CHOP plus SMP CUT | M3 — read "SMP CUT" below first |
+| 2 | `2_CHOP_…` | the CHOP page | M1, then **D rows 1–4** (below), then M2, then D rows 5–10 |
+| 3 | `3_CHOP+SMP-CUT_…` | CHOP plus SMP CUT | M3 — read "SMP CUT" below first; then D rows 1–10 |
 
 Fallbacks: 3 → 2 → stock (file 0) → recovery.
 
@@ -38,6 +40,18 @@ On the MKII the SAMPLE key cycles **SAMPLE → SMPL WAVEFORM → CHOP → SAMPLE
 | H | blank |
 
 Write down: the header title on CHOP; whether the long knob names fit the header when you turn a knob; what a quick SAMPLE double-tap does compared with file 1; which page SAMPLE opens on after you leave the view on CHOP.
+
+## D. The first-hit fix (files 2 and 3)
+Same rows as the MK1's section D (`../START_HERE.md`; full card: design.md "D41 rows", with the one run order). In short:
+**Clean kit first:** a fresh kit with only your sample on the chop track (or on that track: LFO DEP 0, no velocity / aftertouch / performance / scene modulation of STA or END, LOP OFF, the machine's own LEV at 0, no trigs or STA/END locks on its steps). A sample whose start and late part sound different; CHOP ON, END OFF, power-on markers (pad 1 = 0, pad 12 = 110).
+1. Sequencer stopped: pad 1, wait 2 s, pad 12, wait 2 s … eight hits — **every hit plays its own slice, the first one included.**
+2. Alternate pad 1 / pad 12 at 16ths, then as fast as you can: own slice every time (judge only where each sounding hit starts; count silent hits under 7).
+3. Hit pad 12 a few times, then roll pad 1 fast, six hits: every hit starts at 0.
+4. Control: LAY the slices onto empty steps and play the pattern: every step exact. If this is smeared too, stop and tell me.
+5–6. Row 1 with the sequencer running another track; with live REC on (the next loop plays the recorded locks exactly).
+7. Count silent hits: 32 staccato vs 32 legato alternating hits, CHOP page on screen and off (not fixed yet — just count).
+8. Long decay; hold pad 1, hit pad 12, let go of pad 1: does pad 12 cut? Report with row 7 (same planned fix; not a failure of this one).
+9. (Low priority) marker 55.50 vs 56 at SAMPLE POS RES = HI. 10. END ON once: each pad plays only its slice, first hit included.
 
 ## SMP CUT (file 3 only): FILTER, then FILTER again
 LCT (low cut) and HCT (high cut) on the sample layer, per track, saved with the sound. The header may still say **FILTER** on this page (no title fix is built). First run of SMP CUT on any MKII — its filter runs inside the audio engine. MIDI OUT disconnected, nothing on MIDI IN.

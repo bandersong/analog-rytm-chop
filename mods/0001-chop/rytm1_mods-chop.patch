@@ -1,7 +1,7 @@
 From b6a448febf881ca3e75d080d9d41ad5339f99864 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:01:29 -0400
-Subject: [PATCH 01/46] 0001 CHOP: a second SAMPLE page that turns the pads
+Subject: [PATCH 01/49] 0001 CHOP: a second SAMPLE page that turns the pads
  into sample-start markers
 
 New mod mods/0001-chop (enabled = false; excludes 0004 and 0008) and the
@@ -1292,7 +1292,7 @@ index 4912597..87b6106 100644
 From 01c5e5d21befaabca342eaa8ba4df7c684cca720 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:38:11 -0400
-Subject: [PATCH 02/46] 0001 CHOP: keep the sample list open on a SAMPLE
+Subject: [PATCH 02/49] 0001 CHOP: keep the sample list open on a SAMPLE
  double-tap; document the double-tap, note-off routing and first-flash order
 
 A quick second SAMPLE press is stock's double-tap (bit2) and opens the sample
@@ -1650,7 +1650,7 @@ index 28a9543..d13bf46 100644
 From 7d22ee045ff390a3a18c70f1ba55be3afecfdc57 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 18:46:54 -0400
-Subject: [PATCH 03/46] 0001 CHOP: send each pad's note-off to the track its
+Subject: [PATCH 03/49] 0001 CHOP: send each pad's note-off to the track its
  note-on went to
 
 The note-on now records, per pad, whether it was rewritten to the chop
@@ -2168,7 +2168,7 @@ index 87b6106..86288b7 100644
 From 58ca59b3f9b6df01eb3598fc61e84bc3ed5ad39b Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 19:19:52 -0400
-Subject: [PATCH 04/46] 0001 CHOP: test card - final-gate P2 disclosures
+Subject: [PATCH 04/49] 0001 CHOP: test card - final-gate P2 disclosures
  (same-version refusal, modifier+pad, pressure, FUNC+SAMPLE, never flash
  0004/0008 builds)
 
@@ -2245,7 +2245,7 @@ index 04030ab..13866c4 100644
 From a3119cf4da36f57b4f252b2af0bc7b6496876c56 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 21:51:12 -0400
-Subject: [PATCH 05/46] 0001 CHOP: hold trig keys + pad = STA p-lock of that
+Subject: [PATCH 05/49] 0001 CHOP: hold trig keys + pad = STA p-lock of that
  pad's marker on every held step
 
 In CHOP, a pad hit with trig key(s) of the chop track held now does what stock
@@ -2897,7 +2897,7 @@ index 2250266..0bd9c66 100644
 From e4ae24b91401055c4f4a00c189bbe6c842a5c5c0 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 22:15:57 -0400
-Subject: [PATCH 06/46] 0001 CHOP: round-4 panel corrections to design.md and
+Subject: [PATCH 06/49] 0001 CHOP: round-4 panel corrections to design.md and
  the registry cave note (text only)
 
 - design.md: the success-path stack tally of chop_held_lock now includes the
@@ -3072,7 +3072,7 @@ index 86288b7..e4da1df 100644
 From 6672e37af595211e0fe064f397908a5e37adcbb6 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Mon, 5 Oct 2026 22:36:50 -0400
-Subject: [PATCH 07/46] 0001 CHOP: test card H6 - GRID REC precondition, FX-key
+Subject: [PATCH 07/49] 0001 CHOP: test card H6 - GRID REC precondition, FX-key
  reachability, live-REC row fixed, MIDI-note unknown (final-gate P1/P2)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -3138,7 +3138,7 @@ index fb33755..a8e37bb 100644
 From ee8665ed0992702168d14c09d6a2f93af79df58d Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 07:35:49 -0400
-Subject: [PATCH 08/46] 0001 CHOP: step lock confirmed on hardware (founder,
+Subject: [PATCH 08/49] 0001 CHOP: step lock confirmed on hardware (founder,
  MK1 1.73)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -3165,7 +3165,7 @@ index a8e37bb..ae888c2 100644
 From f50dd304c844d8760fd9371c2f8ab2fa5f3b9c73 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 08:43:09 -0400
-Subject: [PATCH 09/46] Sample Focus step 1: 0000-shared PROJ_KIT = 232, and
+Subject: [PATCH 09/49] Sample Focus step 1: 0000-shared PROJ_KIT = 232, and
  the samplefocus target
 
 - 0000-shared: the active kit on MK1 1.73 is project + 232 (project_kit
@@ -3251,7 +3251,7 @@ index 0bd9c66..53c66c0 100644
 From ad157ce7fc81748cd70a8d9130a36cd10ee0e370 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 08:55:23 -0400
-Subject: [PATCH 10/46] Sample Focus step 2: hi-res CHOP markers (D18)
+Subject: [PATCH 10/49] Sample Focus step 2: hi-res CHOP markers (D18)
 
 - chop_marks become 12 x .word 8.8 (0, 10.0 ... 110.0); every load is a word
   load with a *2 index; chop_set_sta and chop_held_lock take V as 8.8.
@@ -3971,7 +3971,7 @@ index e4da1df..6a3a497 100644
 From d9b0302e26973c2701dcb10b8be48eec8e57bdff Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:05:10 -0400
-Subject: [PATCH 11/46] Sample Focus step 3: knob ids proven dead, END and DIV
+Subject: [PATCH 11/49] Sample Focus step 3: knob ids proven dead, END and DIV
  (D19, D20)
 
 - Knob ids: 11..14 proven dead (Error-class ROM record, on no stock page,
@@ -4810,7 +4810,7 @@ index 6a3a497..00d8cbe 100644
 From 449b935670e46cf22ff356fa55dd282015e2c088 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:08:00 -0400
-Subject: [PATCH 12/46] Sample Focus step 4: RND, random markers on held steps
+Subject: [PATCH 12/49] Sample Focus step 4: RND, random markers on held steps
  (D20)
 
 - G RND (id 14, proven dead in step 3): turned while trig key(s) of the chop
@@ -5102,7 +5102,7 @@ index 00d8cbe..847f570 100644
 From 90500f4689681f5caa3ea573d0f78e0d03ed2e2a Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:12:34 -0400
-Subject: [PATCH 13/46] Sample Focus step 5: LAY, lay the slices out on empty
+Subject: [PATCH 13/49] Sample Focus step 5: LAY, lay the slices out on empty
  steps (D20)
 
 - F LAY (id 13, proven dead in step 3): turned right, with CHOP on, the chop
@@ -5496,7 +5496,7 @@ index 847f570..0d4d241 100644
 From 5a3e44b2196b97a3298155108ea33fdb92f1280c Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:20:40 -0400
-Subject: [PATCH 14/46] Sample Focus step 6: STR, EXPERIMENTAL stretch macro
+Subject: [PATCH 14/49] Sample Focus step 6: STR, EXPERIMENTAL stretch macro
  (D21)
 
 - H STR (id 2: an Error-class record, 0008's HCT, not in image A; id 7 was
@@ -5822,7 +5822,7 @@ index 0d4d241..a76960b 100644
 From 5ecdce622aa8dfd71a017691bec7c1a9d45bc046 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:22:31 -0400
-Subject: [PATCH 15/46] Sample Focus step 7 (D18 optional): the CHOP STA dial
+Subject: [PATCH 15/49] Sample Focus step 7 (D18 optional): the CHOP STA dial
  draws as stock STA
 
 - dial_gate at param_knob_draw's entry 0x400a587c (expect 4fefffe848d7047c,
@@ -5911,7 +5911,7 @@ index a76960b..797b957 100644
 From 1d12bc11e789a223588d29b1bb1e60722ec6ef9d Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 09:31:12 -0400
-Subject: [PATCH 16/46] 0001 CHOP: design.md and summary for Sample Focus image
+Subject: [PATCH 16/49] 0001 CHOP: design.md and summary for Sample Focus image
  A
 
 - design.md: status, a README-level summary, the knob table A..H (what each
@@ -6882,7 +6882,7 @@ index feeac9c..7c6d009 100644
 From 7e0752ad5be154bc1a31c7388620fbc74f4c4fe7 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 10:07:53 -0400
-Subject: [PATCH 17/46] 0001 CHOP: r6 panel corrections (text only; image A
+Subject: [PATCH 17/49] 0001 CHOP: r6 panel corrections (text only; image A
  unchanged)
 
 - Test card: the round-4 fallback is named by its real path
@@ -7298,7 +7298,7 @@ index 797b957..50339f4 100644
 From 688dff3df4ed3b384b1606e7779db8bd03f01c84 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 13:26:55 -0400
-Subject: [PATCH 18/46] Image B step 1: remove STR from CHOP (D24); image A' =
+Subject: [PATCH 18/49] Image B step 1: remove STR from CHOP (D24); image A' =
  image A minus STR
 
 Knob H is blank (id 0 in the CHOP descriptor). Gone: chop_str_held/turn/apply,
@@ -7767,7 +7767,7 @@ index 50339f4..2764568 100644
 From 50874ea8bfedba61329e4a4eff79c2978635c227 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 13:28:40 -0400
-Subject: [PATCH 19/46] Image B step 2: 0008 SMP CUT fixed for MK1 1.73 (D25)
+Subject: [PATCH 19/49] Image B step 2: 0008 SMP CUT fixed for MK1 1.73 (D25)
 
 SOUND0 = 232 + 96 (328): the kit is at project + 232 and kit_track_sound adds
 0x60 (96), so cut_process now reads the live sound at Sound_T + 16
@@ -7866,7 +7866,7 @@ index 18665c4..8ba8511 100644
 From 7ccd9c25d4c16856841abedecfd0ace5d7ae46bd Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 13:37:04 -0400
-Subject: [PATCH 20/46] Image B step 3: one owner for the page hosts; 0008 as a
+Subject: [PATCH 20/49] Image B step 3: one owner for the page hosts; 0008 as a
  provider (D26)
 
 0008-sample-cut: page id 12 (CHOP keeps 11); provides_shared, exporting
@@ -8493,7 +8493,7 @@ index 1b820a6..116e175 100644
 From cef0828591b44bde7259ff2e55000c76a80bbcbb Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 13:56:26 -0400
-Subject: [PATCH 21/46] Image B step 4: measured fit - image B does not fit;
+Subject: [PATCH 21/49] Image B step 4: measured fit - image B does not fit;
  design.md and registry notes
 
 A guest trial (uncommitted registry, receipts in corp/r7-builder/trial/) linked
@@ -9320,7 +9320,7 @@ index d2ed46e..f7903a0 100644
 From bcdc3a97d36f74ca1702342a5e404470197a9176 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 14:21:02 -0400
-Subject: [PATCH 22/46] Image B step 5 (D29 option 4, part a):
+Subject: [PATCH 22/49] Image B step 5 (D29 option 4, part a):
  behaviour-identical compaction of CHOP
 
 Image A' (make samplefocus) shrinks by 186 B with the same stock calls and the
@@ -9694,7 +9694,7 @@ index f7903a0..3fb881d 100644
 From dd84b6c8a37ecc3898c5e95d94d7b276669202b5 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 14:39:57 -0400
-Subject: [PATCH 23/46] Image B step 6 (D29 option 4, part b): image B fits -
+Subject: [PATCH 23/49] Image B step 6 (D29 option 4, part b): image B fits -
  make samplefocus-cut
 
 Image B = 0000-shared (lean) + 0001-chop + 0008-sample-cut (own_pages = 0), tag
@@ -10456,7 +10456,7 @@ index 116e175..9ff6a02 100644
 From 1b0f2b618a1a8511cf728177eb3d087b1ec4982b Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 14:48:35 -0400
-Subject: [PATCH 24/46] Image B step 7: design.md - image B built, its layout,
+Subject: [PATCH 24/49] Image B step 7: design.md - image B built, its layout,
  proofs and test card
 
 design.md: status (image A' since D29 = A minus STR minus the STA dial
@@ -11172,7 +11172,7 @@ index 8082f9c..5804875 100644
 From 2293ae87698826dde3c88bdd8891a4b288ef309b Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 15:25:33 -0400
-Subject: [PATCH 25/46] r7b integrator: panel corrections (verify gate-aware,
+Subject: [PATCH 25/49] r7b integrator: panel corrections (verify gate-aware,
  image B card, cave3 notes)
 
 Every image is unchanged; rebuilt in the guest with the same hashes (image B
@@ -11528,7 +11528,7 @@ index cf7846b..4762d01 100644
 From f5093f3425f4b97f29784ce8ad7f70ef8ea98bb5 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Tue, 6 Oct 2026 16:00:31 -0400
-Subject: [PATCH 26/46] r7b gate P2s: MANUAL no longer claims image B works;
+Subject: [PATCH 26/49] r7b gate P2s: MANUAL no longer claims image B works;
  card adds first-boot LCT/HCT check, HCT-then-LCT quirk, CC 1/33 2/34; cave3
  note
 
@@ -11596,7 +11596,7 @@ index a2b3f23..c0a5d08 100644
 From 47ea4ef679826d2710d9bc727902d354c57a3f97 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 22:17:31 -0400
-Subject: [PATCH 27/46] MK2 step 1: DEVICE parameter and the MK2 control build
+Subject: [PATCH 27/49] MK2 step 1: DEVICE parameter and the MK2 control build
  (TRUTH D34, D35, D38)
 
 make DEVICE=mk2 control builds the Analog Rytm MKII 1.73 stock MAIN OS back into
@@ -12696,7 +12696,7 @@ index 4762d01..9c53d84 100644
 From bed4aa55776cb3cf4960a7eac8580a2e2871c80d Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 22:21:21 -0400
-Subject: [PATCH 28/46] MK2 step 2: Sample Focus CHOP on the MKII (make
+Subject: [PATCH 28/49] MK2 step 2: Sample Focus CHOP on the MKII (make
  DEVICE=mk2 samplefocus; TRUTH D36, D37)
 
 0000-shared lean (PROJ_KIT 352 on MK2) + 0001-chop for Analog Rytm MKII 1.73,
@@ -13384,7 +13384,7 @@ index db85280..b1b18dd 100644
 From fd3b07b5a7042bc5af2d8bbf97246f1fbc6fbb4e Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 22:23:45 -0400
-Subject: [PATCH 29/46] MK2 step 3: Sample Focus + SMP CUT on the MKII (make
+Subject: [PATCH 29/49] MK2 step 3: Sample Focus + SMP CUT on the MKII (make
  DEVICE=mk2 samplefocus-cut; D36, D37)
 
 0000-shared lean + 0001-chop + 0008-sample-cut (own_pages = 0, diag = 0) for
@@ -13644,7 +13644,7 @@ index b1b18dd..aef074e 100644
 From 348e89996f8a2713ac5a93011a26ff4482947425 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 22:33:53 -0400
-Subject: [PATCH 30/46] MK2 step 4: design.md - the MKII build, its pages,
+Subject: [PATCH 30/49] MK2 step 4: design.md - the MKII build, its pages,
  differences, proofs and test card
 
 New section "MK2" in mods/0001-chop/design.md: the device parameter and what
@@ -14049,7 +14049,7 @@ index beb8241..5cf96ab 100644
 From 9e3e5f40ab0cad2aa3b2e97481fbfca5d874ac4c Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 22:36:26 -0400
-Subject: [PATCH 31/46] MK2 design.md: list every store target precisely (the
+Subject: [PATCH 31/49] MK2 design.md: list every store target precisely (the
  MK2 proof's state-in-cave bullet)
 
 The proof bullet said every indexed store went to cave; the full objdump list of
@@ -14093,7 +14093,7 @@ index 7b9baf2..41125cb 100644
 From e2f447a1380deb78cd02602eb60851a86bbcb8b7 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 23:16:05 -0400
-Subject: [PATCH 32/46] MK2 integrator: refuse a symbol map without its
+Subject: [PATCH 32/49] MK2 integrator: refuse a symbol map without its
  device's never-write range
 
 corp mk2-panel-brick b1. tools/device.py protected(meta) returns [] when [meta]
@@ -14223,7 +14223,7 @@ index 9c53d84..de2fe46 100644
 From ab17f4ecc54fa2b4588295a7eec80a1ccd2e258f Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 23:21:58 -0400
-Subject: [PATCH 33/46] MK2 integrator: panel corrections to the MK2 notes,
+Subject: [PATCH 33/49] MK2 integrator: panel corrections to the MK2 notes,
  test card and entry points
 
 corp mk2-panel-crash F1-F3, mk2-panel-purpose F1-F5, mk2-panel-brick b2-b3.
@@ -14526,7 +14526,7 @@ index aef074e..460ae6c 100644
 From 083d9e78c2ce7563e98d4ffa0b860b1832229a7e Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Wed, 7 Oct 2026 23:26:06 -0400
-Subject: [PATCH 34/46] MK2 integrator: LFO RND note - only changed LFO RND
+Subject: [PATCH 34/49] MK2 integrator: LFO RND note - only changed LFO RND
  settings switch LCT/HCT on
 
 The second opinion on corp mk2-panel-crash F3 disagreed, and the re-read agrees
@@ -14587,7 +14587,7 @@ index 580ac44..96be6bd 100644
 From d68141f65bf9eaeac2bf9a3e7a5e8637022b8001 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 00:26:21 -0400
-Subject: [PATCH 35/46] D39 press_gate: pressing a CHOP or SMP CUT knob with
+Subject: [PATCH 35/49] D39 press_gate: pressing a CHOP or SMP CUT knob with
  trigs held no longer writes hidden p-locks (MK1 + MK2)
 
 Stock's knob-PRESS lock path (page-view slot 0x80: MK1 0x400384f8, MK2 0x400387ba)
@@ -15274,7 +15274,7 @@ index 460ae6c..a30ac06 100644
 From 33ee7634d2e66b16aa1617f8120a2ae4350ff060 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 08:20:55 -0400
-Subject: [PATCH 36/46] Keys step 1: DEVICE=keys profile and the Analog Keys
+Subject: [PATCH 36/49] Keys step 1: DEVICE=keys profile and the Analog Keys
  control build (TRUTH K1, K5)
 
 make DEVICE=keys control rebuilds the Analog Keys / Analog Four MK1 OS 1.56 stock
@@ -15811,7 +15811,7 @@ index de2fe46..f9def7f 100644
 From 58105f43a5e96e617b97fd266f6499d52a8940d3 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 08:36:54 -0400
-Subject: [PATCH 37/46] Keys step 2: 0010-chord, chord memory for the Analog
+Subject: [PATCH 37/49] Keys step 2: 0010-chord, chord memory for the Analog
  Keys (make DEVICE=keys chord; TRUTH K2-K4)
 
 Hold 2..4 keybed keys, then FUNCTION + OCTAVE UP (code 164, no stock function: corp
@@ -16413,7 +16413,7 @@ index 2ca483b..f1a59b6 100644
 From 207dc4deea87cd8528a3ef9e1ac9aa40445b6ac3 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 08:39:25 -0400
-Subject: [PATCH 38/46] Keys step 3: 0010-chord design.md - what it does, the
+Subject: [PATCH 38/49] Keys step 3: 0010-chord design.md - what it does, the
  gesture, limits, proofs and the K test card
 
 mods/0010-chord/design.md: capture rules (kind 1, state 1, the active track, per
@@ -16775,7 +16775,7 @@ index 0000000..f011eb1
 From 29656766833a299e0b780a5c2aa08e91271fdd33 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 08:40:40 -0400
-Subject: [PATCH 39/46] Keys 0010-chord design.md: the message-load limit
+Subject: [PATCH 39/49] Keys 0010-chord design.md: the message-load limit
  (keys-sk-notes plan problem 7)
 
 Each chord tone posts one recorder note message (128-slot ring 0x408e3c20, UI
@@ -16812,7 +16812,7 @@ index f011eb1..c76d38a 100644
 From 5f77e62137c61ffc5d1e478a5bdd66d8b232fde1 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 09:27:37 -0400
-Subject: [PATCH 40/46] Keys integrator: 0010-chord latch guard, capture by key
+Subject: [PATCH 40/49] Keys integrator: 0010-chord latch guard, capture by key
  root, no OFF with keys held (Keys panel)
 
 Panel failures re-derived on the stock 1.56 dis and fixed:
@@ -17788,7 +17788,7 @@ index f1a59b6..890957e 100644
 From 52a611a4f4e2589ae9682204a47f3c68ec4efb03 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 10:30:10 -0400
-Subject: [PATCH 41/46] Keys 0010-chord K7: no chords around HOLD, orphan
+Subject: [PATCH 41/49] Keys 0010-chord K7: no chords around HOLD, orphan
  guard, OFF only when empty
 
 TRUTH K7 (CEO 2026-10-08) after the keys-chord-v1 gate:
@@ -19083,7 +19083,7 @@ index 890957e..6b4a554 100644
 From 8fc96b6f53a9429dac934aa7a73fabfbe44a1615 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 10:33:53 -0400
-Subject: [PATCH 42/46] Keys 0010-chord design.md: exact wording of the
+Subject: [PATCH 42/49] Keys 0010-chord design.md: exact wording of the
  octave-run result (hung tones only from stock's own path)
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -19119,7 +19119,7 @@ index 342f2e3..e3ea392 100644
 From 634bd9072908fa7e6e2baa5d906b84698fa0e923 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 11:17:08 -0400
-Subject: [PATCH 43/46] Keys 0010-chord: HOLD release-all read from the key
+Subject: [PATCH 43/49] Keys 0010-chord: HOLD release-all read from the key
  scanner, stuck-note recovery, card order (K7 fix panel)
 
 Corp keys-fix-integrator, on the K7 fix panel (keys-fix-panel-hold, keys-fix-panel-purpose).
@@ -19401,7 +19401,7 @@ index e3ea392..e5e701c 100644
 From 0048acd9aa2ab8cc84a2abf433d0a8d273ed3c44 Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 11:44:19 -0400
-Subject: [PATCH 44/46] Keys 0010-chord: CEO decisions K8 (orphan guard
+Subject: [PATCH 44/49] Keys 0010-chord: CEO decisions K8 (orphan guard
  ratified, 5+ keys stay out, stuck-note capture note); files staged
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
@@ -19489,7 +19489,7 @@ index e5e701c..050a18a 100644
 From a6f0521f0b21d7f68f3fef892a80dfcab482aaca Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 13:13:38 -0400
-Subject: [PATCH 45/46] Keys 0011-joyrand: FUNCTION + OCTAVE DOWN rolls the
+Subject: [PATCH 45/49] Keys 0011-joyrand: FUNCTION + OCTAVE DOWN rolls the
  joystick assignments (TRUTH K9)
 
 New Analog Keys mod 0011-joyrand. FUNCTION + OCTAVE DOWN (key code 165) rolls the
@@ -20395,7 +20395,7 @@ index 6b4a554..80c395a 100644
 From f3e093c64ceff10a6c048a641c98046428ee7d0f Mon Sep 17 00:00:00 2001
 From: bandersong <134746909+bandersong@users.noreply.github.com>
 Date: Thu, 8 Oct 2026 13:43:18 -0400
-Subject: [PATCH 46/46] Keys 0011-joyrand design.md: panel fixes to the limits
+Subject: [PATCH 46/49] Keys 0011-joyrand design.md: panel fixes to the limits
  and the J test card (no image change)
 
 Text-only fixes from the 0011 panel (joy-panel-safety S1-S3, joy-panel-purpose F1-F4). The
@@ -20546,6 +20546,1126 @@ index e00e655..e47e7f8 100644
  
  ## Next steps (not v1)
  
+-- 
+2.47.1
+
+
+From d5ee951a83b3b78f8e8709933157f7ce1915ff08 Mon Sep 17 00:00:00 2001
+From: bandersong <134746909+bandersong@users.noreply.github.com>
+Date: Fri, 9 Oct 2026 20:57:40 -0400
+Subject: [PATCH 47/49] D41 chop_snap: a pad hit takes its marker at once (MK1
+ + MK2)
+
+The engine glides a parameter set through param_set_value 3% of the way per
+audio-interrupt run, and the pad's own trig is posted right after the write,
+so the first hit started near the previous marker (corp chop-timing-re, fix
+F-1). chop_put now ends with chop_snap(T): for STA and END of the chop track it
+stores STATE = v << 16, then EFFECTIVE = v, v = the TARGET word param_set_value
+just wrote - what the interrupt's per-trig lock pass does for a p-lock.
+
+- stub.s: chop_snap (48 B) after chop_put, hook move.l %d2,%d0 / bsr.s (4 B)
+- symbols: ENG_TARGET, ENG_STATE, SND_CIDX_STA (MK1, MK2), PARAMS_EFF (MK2),
+  re-derived from the stock bytes (corp snap-builder derive_constants)
+- Makefile: MK1 samplefocus and chop-min build 0000-shared lean (image B's
+  layout without 0008): CHOP's .text no longer fits its own slot
+- design.md: D41 section (mechanism, constants, proofs, interrupts), test card
+  rows H-T1..H-T10 and the rows to re-run, new hashes; mod.toml, registry notes
+
+New: MK1 samplefocus dda5a4f8, samplefocus-cut ac094b30; MK2 samplefocus
+2ff96af2, samplefocus-cut 78295576. Unchanged: MK1/MK2/Keys control, chord,
+joy, joy-min, verify, random. F-4 not built. Never run on hardware.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ Makefile                            |  14 +-
+ mods/0001-chop/design.md            | 311 ++++++++++++++++++++++++++--
+ mods/0001-chop/mod.toml             |  20 +-
+ mods/0001-chop/stub.s               |  61 +++++-
+ re/ghidra/scripts/ApplySymbols.java |   4 +-
+ re/symbols.toml                     |  27 +++
+ re/symbols_mk2.toml                 |  31 +++
+ registry/allocations.toml           |   4 +-
+ registry/allocations_mk2.toml       |   2 +-
+ 9 files changed, 443 insertions(+), 31 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 210ee0d..ab6a1bf 100644
+--- a/Makefile
++++ b/Makefile
+@@ -21,8 +21,10 @@ ifeq ($(DEVICE),mk1)
+ MK1_ONLY :=
+ RYTM_ONLY :=
+ KEYS_ONLY = @echo "make $@ is Analog Keys only: make DEVICE=keys $@" >&2; exit 2
+-# image A' on MK1: 0000-shared full, CHOP's .text in its own slot
+-SAMPLEFOCUS_PARAMS :=
++# image A' on MK1: since corp D41 (chop_snap) CHOP's .text no longer fits its own slot,
++# so 0000-shared is lean (what CHOP calls: shared_rnd) and CHOP's .text runs on into the
++# rest of that slot - image B's layout, without 0008
++SAMPLEFOCUS_PARAMS := --param 0000-shared:lean=1 --param 0001-chop:shared_lean=1
+ else ifeq ($(DEVICE),keys)
+ MK1_ONLY = @echo "make $@ is Analog Rytm MK1-only; DEVICE=keys builds control, chord, joy and joy-min" >&2; exit 2
+ RYTM_ONLY = @echo "make $@ is Analog Rytm only; DEVICE=keys builds control, chord, joy and joy-min" >&2; exit 2
+@@ -93,16 +95,18 @@ chop:
+ 	@echo "Build 'make samplefocus' (0000 0001); round 4 is commit ee8665e." >&2
+ 	@exit 2
+ 
+-# The CHOP bisection build: the shared runtime and CHOP alone.
++# The CHOP bisection build: the shared runtime and CHOP alone (the same composition,
++# params and tag as `make samplefocus` on MK1; lean since corp D41).
+ CHOP_MIN_MODS := 0000-shared 0001-chop
+ chop-min: symbols layout
+ 	$(MK1_ONLY)
+-	$(PY) tools/build.py --mods $(CHOP_MIN_MODS) --tag 0000_0001
++	$(PY) tools/build.py --mods $(CHOP_MIN_MODS) $(SAMPLEFOCUS_PARAMS) --tag 0000_0001
+ 	$(PY) tools/verify.py --tag 0000_0001
+ 
+ # Sample Focus image A: the shared runtime and CHOP, nothing else (no euclid
+ # accents, no velocity humanise, no SMP CUT). The same composition and tag as
+-# chop-min, so both write build/AR1_OS1.73_0000_0001.syx.
++# chop-min, so both write build/AR1_OS1.73_0000_0001.syx. 0000-shared is lean on every
++# device (MK1 since corp D41: CHOP's .text with chop_snap needs the slot's head).
+ SAMPLEFOCUS_MODS := 0000-shared 0001-chop
+ samplefocus: symbols layout
+ 	$(RYTM_ONLY)
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+index 73691ef..5a90782 100644
+--- a/mods/0001-chop/design.md
++++ b/mods/0001-chop/design.md
+@@ -29,6 +29,22 @@ into the sound's free word (MK2 gate opus G1); `press_gate` (detour MK1 0x400384
+ (D10)" below). All four CHOP images were rebuilt (new hashes under "If it does not boot"
+ and "MK2 flashing"); MK1 and MK2 control, the default build and `random` are unchanged.
+ Receipts: `corp/press-fixer/`.
++**Corp D41 (2026-10-09): a pad hit takes its marker at once (`chop_snap`), MK1 and MK2.**
++The founder heard pad hits land between markers and lock in after repeats (all builds,
++2b included). Root cause (corp `chop-timing-re`, mechanism verified in stock code, the
++match to the symptoms inferred until H-T1..H-T4 run): CHOP sets STA through
++param_set_value, which only changes the engine's TARGET word; the audio interrupt glides
++the value the sample voices read 3% of the way per run, and the pad's own trig is posted
++right after the write, so the first hit started near the previous marker. Sequencer
++p-locks never glide: the interrupt's lock pass sets TARGET, the smoother's state and the
++effective value together. `chop_put` now ends with `chop_snap`, which does that lock
++pass's two extra stores for the chop track's STA and END ("D41 - the first-hit snap"
++below). Image A' (`make samplefocus`) is now built with 0000-shared lean, as image B is,
++to make room. All four CHOP images were rebuilt (new hashes under "If it does not boot"
++and "MK2 flashing"); MK1, MK2 and Keys control, `chord`, `joy`, `joy-min`, the default
++build and `random` are byte-identical. Never run on hardware: test card rows H-T1..H-T10.
++F-4 (note-off only for the last chop pad) is not built (D41: deferred until H-T7 shows
++drops). Receipts: `corp/snap-builder/`.
+ Local only: this tree has no license and is never pushed or published. Nothing here
+ flashes a device; the founder flashes.
+ Commit hashes in this file are those after the 2026-10-06 re-author of branch `chop` to
+@@ -167,7 +183,8 @@ Consequences to know (by design):
+ ## Build
+ 
+ ```
+-make samplefocus      # Sample Focus image A' (A minus STR): 0000-shared 0001-chop
++make samplefocus      # Sample Focus image A' (A minus STR): 0000-shared (lean = 1 since
++                      # corp D41) 0001-chop (shared_lean = 1 since D41)
+                       # -> build/AR1_OS1.73_0000_0001.syx
+ make samplefocus-cut  # Sample Focus image B: 0000-shared (lean = 1) 0001-chop
+                       # (shared_lean = 1) 0008-sample-cut (own_pages = 0)
+@@ -225,7 +242,15 @@ standalone `make layout` (default params: 0008's image-B claims) and in every bu
+ instructions as the full build) in a lean claim at the end of 0000-shared's slot
+ (0x402a2d98 + 0x8c); `0001-chop:shared_lean = 1` gives CHOP's `.text` the other claim of
+ the pair, 0x402a2780 + 0x618, which runs on into the slot's head. Both default to 0
+-(image A', and every other build, is unchanged by them). With shared_lean = 1 and a full
++(every non-CHOP build is unchanged by them). **Since corp D41 image A' passes both too**
++(`SAMPLEFOCUS_PARAMS` on MK1, and `make chop-min`): with `chop_snap` CHOP's `.text` (1500 B
++in A', 1552 B in B) no longer fits the shared_lean = 0 claim (0x5b8 = 1464 B), and CHOP
++calls nothing in 0000-shared but `shared_rnd`, which the lean build keeps (the stub's only
++0000-shared reference is `jsr shared_rnd` in chop_rnd_step; the built `0001-chop.o` has no
++undefined symbol and sees only the lean exports - `corp/snap-builder`). The lean block in
++image A' is byte-identical to image B's (`leancheck.out`); the 60 B it frees at
++0x402a2d5c..0x402a2d98 are zero, as in stock. A build left at the defaults is refused by
++build.py's size check, never built short. With shared_lean = 1 and a full
+ 0000-shared the two claims overlap and the build is refused (`make guard-check`, third
+ case); with lean = 1 and shared_lean = 0 the head is simply unused. `tools/mkelemod.py`
+ now skips a claim, detour or patch whose gate leaves it out of the build it exports from
+@@ -248,12 +273,13 @@ Since D29 (step 6, commit dd84b6c) image A' and image B use **one layout**, four
+ | claim | section | holds | A' | B |
+ |---|---|---|---|---|
+ | `cave` 0x402a1edc + 0x124 | `.chst` | pad_on_gate, pad_off_gate, chop_value, then the 48 B of RAM state (read pc-relative by the code beside it) | 280 B | 280 B |
+-| `cave2` 0x402a2780 + 0x5b8 (shared_lean = 0) / + 0x618 (shared_lean = 1) | `.text` | page_info / get / delta / text gates, sample_key_gate, lock_gate, chop_set_sta, chop_knob, clamp, the knob tables, chop_put, chop_set_of, chop_locked, chop_next_above, the END helpers, chop_delta_more, chop_rechop, chop_lay, the long knob names | 1448 of 1464 B | 1500 of 1560 B |
++| `cave2` 0x402a2780 + 0x618 (shared_lean = 1; A' and B since D41) | `.text` | page_info / get / delta / text gates, sample_key_gate, lock_gate, chop_set_sta, chop_knob, clamp, the knob tables, chop_put, chop_snap (D41), chop_set_of, chop_locked, chop_next_above, the END helpers, chop_delta_more, chop_rechop, chop_lay, the long knob names | 1500 of 1560 B (1448 of 1464 before D41) | 1552 of 1560 B (1500 before D41) |
+ | `cave2` 0x402a2e24 + 0x1dc (0003's space) | `.cave2` | the step lock (chop_held_lock / chop_held_with, chop_lock_step, chop_lock_one, chop_fn_mgr), chop_rnd_held, chop_rnd_step, then (corp D39) press_gate, 30 B appended last | 464 of 476 B (434 before D39) | 464 of 476 B (434 before D39) |
+ | `cave3` 0x4024deb8 + 0x54 | `.cave3` | constants only: chop_pages, page_chop, "CHOP" and the short knob names | 77 B | 77 B |
+ 
+-(Sizes from the step-6 build logs, "0001-chop: stub 0x402a2780 (1448 B)" for A' and
+-"(1500 B)" for B; image B's `.text` carries the 52 B of dispatch to 0008. Before round 7
++(Sizes from the D41 build logs, "0001-chop: stub 0x402a2780 (1500 B)" for A' and
++"(1552 B)" for B (`corp/snap-builder/logs/post_mk1_samplefocus*.log`); D41 added 52 B
++(chop_snap 48 B, the hook 4 B); image B's `.text` carries the 52 B of dispatch to 0008. Before round 7
+ A' was `.text` 1128 B in `cave` (0x402a1b30) + `.cave2` 1305 B in cave2.) In image A' the
+ 0x402a1b30..0x402a1edc part of `cave` and 0x4024db0c..0x4024deb8 of cave3 are left unused
+ - they are 0008's image-B claims, which a standalone `make layout` checks against CHOP's.
+@@ -261,8 +287,8 @@ cave and cave2 are within `bsr.w` range of each other (0x402a2780 - 0x402a1edc =
+ and every call between them is a 16-bit displacement the linker resolved (a miss fails at
+ link time); nothing branches to or from cave3. Both cave and cave2 have hardware
+ evidence: the round-4 image ran CHOP's code and state in cave, and 0002/0003's code in
+-cave2. 0000-shared stays at 0x402a2d38 (234 B) in image A'; in image B it is the lean
+-140 B at 0x402a2d98.
++cave2. 0000-shared is the lean 140 B at 0x402a2d98 in image B and, since D41, in image A'
++(before D41 image A' had the full 234 B at 0x402a2d38).
+ 
+ The state sits at the end of `.chst`, after every entry point (build.py refuses an odd
+ entry); addresses from `m68k-elf-nm` of the built `obj/0001-chop.elf` (image A' and
+@@ -1067,6 +1093,177 @@ every one lies in a claim of 0000-shared or 0001-chop (0 unclaimed); **0 bytes d
+ "null repack" ok; claims: cave 1232 B claimed / 1216 placed, cave2 1700 claimed (0001
+ 1464 + 0000 236) / 1695 placed, cave3 0, cave4..6 none.
+ 
++## D41 - the first-hit snap (`chop_snap`), corp 2026-10-09
++
++**Why.** Founder, on hardware (every CHOP build, 2b included): pad hits land between
++markers, lock in after repeats, some retriggers are missing. Corp `chop-timing-re`
++(report findings t1-t15) traced the first two to the engine's parameter smoother: a pad
++hit sets STA (and, END on, END) through param_set_value, the call a knob turn ends in,
++and that call changes only the engine's TARGET word for the track. Every audio-interrupt
++run the engine moves a 32-bit STATE 3% of the way to TARGET and rounds STATE into the
++EFFECTIVE word the sample voices start from; the pad's own trig is posted right after the
++write and acted on one or two runs later, so it starts 3-6% of the way from the previous
++marker, and repeated hits converge. A sequencer p-lock never glides: the interrupt's
++per-trig lock pass writes TARGET, STATE = v << 16 and EFFECTIVE = v at once. The engine
++mechanism is verified in stock code; that it is what the founder hears is inferred until
++H-T1..H-T4 run. The missing retriggers are a separate, CHOP-only cause (H-b1: a rerouted
++note-off can overwrite the one live slot of the chop track before the interrupt has taken
++the next pad's note-on); its fix, F-4, is **not built** (D41: only if H-T7 shows drops).
++
++**The change (fix F-1).** `chop_put` - the body of every CHOP STA/END write: the pad's
++STA (`chop_set_sta`), the pad's END (`chop_end_hit`) and END's restore to 120
++(`chop_end_restore`) - now ends with `move.l %d2,%d0; bsr.s chop_snap` (d2 = T, already
++guarded to 0..11). `chop_snap(d0 = T)`:
++
++```
++chop_snap:  moveq #11,%d1; cmp.l %d1,%d0; bhi.s 9f       | T > 11 unsigned: nothing
++            moveq #84,%d1; mulu.w %d1,%d0                | 84T
++            movea.l %d0,%a0; adda.l #ENG_TARGET+2*21,%a0 | &TARGET[T][STA]
++            movea.l %d0,%a1; adda.l %d0,%a1              | 168T
++            adda.l #ENG_STATE+4*21,%a1                   | &STATE[T][STA]
++            bsr.w 1f                                     | STA; its rts lands on 1: for END
++1:          move.w (%a0)+,%d1; swap %d1; clr.w %d1        | v = TARGET; v << 16
++            move.l %d1,(%a1)+                            | STATE = v << 16, first
++            swap %d1; move.w %d1,PARAMS_EFF-ENG_TARGET-2(%a0)   | EFFECTIVE = v
++9:          rts
++```
++
++It writes exactly four places - STATE[T][STA], STATE[T][END] (longs) and
++EFFECTIVE[T][STA], EFFECTIVE[T][END] (words) - in the lock pass's order (state before
++effective). TARGET and the slide word stay as param_set_value's engine writer left them
++(it stores TARGET and zeroes the slide, nothing else), so the end state of an entry is the
++lock pass's end state for the same value: TARGET = STATE >> 16 = EFFECTIVE = v, slide 0.
++v is copied from TARGET, never computed, so the writer's clamp and LO's floor carry over,
++and a write the writer refused leaves the snap completing the old glide (harmless). 48 B
++plus the 4 B hook. Clobbers d0/d1/a0/a1 only (chop_put's contract already allowed that;
++none of its callers reads d0/d1/a0/a1 after it). Runs in the UI task (pad gate, encoder).
++
++**The constants, re-derived from the stock bytes** (`corp/snap-builder/derive_constants.py`,
++output `derive_constants.out`: every instruction it reads is matched byte for byte in the
++stock MAIN OS of each device; the symbols are in `re/symbols.toml` / `re/symbols_mk2.toml`):
++
++| | MK1 1.73 | MK2 1.73 | from |
++|---|---|---|---|
++| param_set_value -> engine | vt[0x70] 0x400a72b4 -> vt[0x30] 0x400a7094 -> 0x401185fa | vt[0x70] 0x400a9f9e -> vt[0x30] 0x400a9d7e -> 0x4011f3fa | SoundParameterSet vtable (MK1 0x401aa6b4, MK2 0x401dcb74); writer(value, set->track, cidx) |
++| cidx of STA / END (ids 43 / 44) | 21 / 22 | 21 / 22 | ROM record + 4 (MK1 0x4018e004 + 52*id, MK2 0x401bf918 + 52*id) via 0x40006d88 / 0x40006ea8 (`SND_CIDX_STA`) |
++| entry i of track T, param c | 26 + 42T + c | 26 + 42T + c | writer `movew %a1@,%a0@(0x34,%d0:l:2)`, ext 0a34; 572 = 26 + 13 x 42 |
++| TARGET words | 0x800050b8 + 2i; row 0 `ENG_TARGET` 0x800050ec | 0x8000e57c + 2i; 0x8000e5b0 | writer, smoother, lock pass |
++| STATE longs | 0x8000599c + 4i; `ENG_STATE` 0x80005a04 | 0x8000ee84 + 4i; 0x8000eeec | smoother `lea`, lock pass index + 569 / + 578 |
++| EFFECTIVE words | 0x8000628c + 2i; `PARAMS_EFF` 0x800062c0 | 0x8000f774 + 2i; 0x8000f7a8 | smoother `lea`, lock pass index + 2282 / + 2300 |
++| STA of T: TARGET / STATE / EFFECTIVE | 0x80005116 / 0x80005a58 / 0x800062ea (+84T / +168T / +84T) | 0x8000e5da / 0x8000ef40 / 0x8000f7d2 | computed |
++| EFFECTIVE - TARGET | 0x11d4 | 0x11f8 | computed |
++| slide words (not written by the snap) | 0x80004830 + 2(42T + c) | 0x80005f10 + 2(42T + c) | writer, lock pass |
++
++**MK2 voice re-trace (the report's open item).** The MK2 sample voices read the EFFECTIVE
++STA and END of the track that owns the voice, exactly as on MK1: the interrupt's scan
++writes `voice_owner[voice(T)] = T` on T's note-on (`moveb %d0,%a1@(0,%d1:l)` at
++0x40121046, map 0x40290dd8, track -> voice table 0x4025a070) and then calls the voice
++routine 0x4011c174 (0x401210c8); voice 0 (0x4011c1aa..0x4011c238) and voices 1..7
++(0x4011c73e..0x4011c7e0) form a2 = 0x8000f776 + 84 * (owner + 1) and push `a2@(8)` (=
++EFFECTIVE[T][21], STA) and `a2@(10)` (EFFECTIVE[T][22], END) to 0x4011bed8, which turns
++them into start / end (byte-identical to MK1's 0x401150a4); the start is stored as the
++play position only under the voice's trigger bit. On MK1 the same chain was traced
++(0x40119bae, 0x40254e2c, 0x4022200a, 0x40115340): a voice two tracks share (tracks 2/3,
++6/7, 8/9, 10/11, 0-based, by that table) reads the row of the track whose note-on the scan
++took last, so the snap of row T reaches the voice for every chop track 0..11.
++
++**Proof on the built images** (host, read-only; `corp/snap-builder/`):
++- `textcmp.out`: each image's CHOP `.text` is the pre-D41 `.text` plus exactly 20
++  instructions (the 2-instruction hook and chop_snap's 18), every other instruction
++  identical once addresses past the insertion are moved by 4 / 52 B; the long knob names
++  are byte-identical, 0x34 B up. `chst_cave2_diff.txt`: in `.chst` and `.cave2` only the
++  `bsr.w` displacements to labels after chop_snap changed (+0x34), and in image A' the
++  `jsr shared_rnd` (0x402a2d72 -> 0x402a2d98, the lean shared_rnd). `claimcheck.out`: the
++  9 detour targets are unchanged; the only changed patches are the 7 long-name pointers
++  (+0x34); every byte that differs from the pre-D41 image is in a 0001-chop block or
++  patch (image A' also: 0000-shared's slot, re-laid lean, and its freed 60 B now zero);
++  every changed byte vs stock is in an applied region inside an active claim; 0 bytes
++  differ in the never-write range (MK1 bootstrap, MK2 device firmware), as verify also
++  reports. chop_put + chop_snap are the same instructions in A' and B, and MK1 vs MK2
++  differ only in the four operands of the table above (`mk1_vs_mk2_snap_diff.txt`).
++- `snapsim.out` (an interpreter of the integer ColdFire subset, `cfsim.py`, running the
++  built bytes): **part A**, chop_snap alone, 1050 runs per image (T = 0..11 and 9
++  out-of-range values incl. 12, 0xffffffff, 0x80000000 and 0x1000b; TARGET words 0,
++  1, 0x7800, 0x7fff, 0x8000, 0x8001, 0xffff, 0x00ff, 0xff00, 0x5a5a and random ones;
++  random engine RAM and registers): the engine RAM after chop_snap equals, byte for
++  byte, the RAM after **the stock lock pass executed from the stock image's own bytes**
++  (MK1 0x40119528.., MK2 0x40120944..) on the same RAM with the entries {T, 21, TARGET,
++  slide} and {T, 22, TARGET, slide}; its writes are exactly STATE STA, EFFECTIVE STA,
++  STATE END, EFFECTIVE END in that order plus its own return slot; d2-d7, a2-a6 and the
++  stack pointer as on entry; out of range: no write at all and a0/a1 untouched. **Part B**,
++  468 runs per image of chop_put, chop_set_sta, chop_end_restore and chop_end_hit (T,
++  id 43/44, record 0/1, values incl. negative and > 0x7800; chop_on / chop_end
++  combinations) with the stock calls stubbed (param_set_value modelled as its engine
++  writer: clamp, TARGET, slide 0): stack balanced and callee-saved registers kept on every
++  path; the RAM equals "the writer, then the stock lock pass" after every call; no call
++  for T > 11 or with CHOP / END off where the code says so. All four images PASS. The
++  same harness FAILS the pre-D41 image B (no snap: 336 of 468 part-B runs) and three
++  mutants of the D41 image (EFFECTIVE one word off: parts A and B; STATE one long off:
++  parts A and B; the hook made a `nop`: part B), and on the fourth (the guard's `bhi`
++  made `bcs`) the run stops at its first access outside the mapped RAM (a read at
++  0x805450c2 for T = 0x7fffffff) - the interpreter refuses unmapped accesses
++  (`mutants.out`).
++- `smoother_fixpoint.out`: for all 65536 words v, one smoother run on TARGET = v,
++  STATE = v << 16 gives STATE = v << 16 and EFFECTIVE = v (alpha + beta = 0x03d7 + 0x7c29
++  = 0x8000 = 1.0; computed with both truncated and rounded products, since the EMAC's own
++  rounding is not taken from a manual here).
++
++**Interrupts (the report's risk 1).** The audio interrupt can run between any two of
++chop_snap's instructions (it runs in the UI task); each store is one aligned long or word
++(STATE 4-aligned, EFFECTIVE 2-aligned for every T, `smoother_fixpoint.out`), so it never
++sees a torn value. Per parameter: (a) interrupt before the TARGET read - nothing to say;
++(b) between the TARGET read and the STATE store - it moves STATE/EFFECTIVE one step, then
++both are overwritten with v: the lock pass's state; (c) between the STATE store and the
++EFFECTIVE store - its smoother computes from TARGET = v, STATE = v << 16 and writes
++EFFECTIVE = v itself (the fixpoint above) before its voices read it, and the snap then
++writes the same v; (d) after - done. Between the STA and END halves a voice could see STA
++snapped and END not yet, which only matters for a trig already pending on the chop track:
++the pad's own trig is posted after chop_put returns (pad_on_gate's rewrite, then stock's
++continuation writes the live slot, report t6), so it always sees both. The interrupt's
++other writers of these entries are its smoother, its lock pass, a per-run pass over
++EFFECTIVE with the slide words right after the smoother (0x401199c8..0x40119a0e, read as
++effective minus a per-track factor times the slide; param_set_value's writer zeroes the
++slide of the parameter it writes, and the snap leaves the other one's slide as it is, as a
++lock entry with that slide would) and the whole-row snap 0x40116c1e (called from the
++interrupt for a trig that carries a sound, inferred from its callers). The smoother
++recomputes EFFECTIVE from STATE every run, so EFFECTIVE alone would be undone on the next
++run - that is why STATE is written, and first; the lock pass and the whole-row snap write
++whole entries, after which the snap is simply overwritten (the residual below). **Residual (accepted):** if the interrupt's lock pass applies a
++sequencer STA/END p-lock to the chop track inside the same few instructions (between the
++TARGET read and the EFFECTIVE store), the snap writes the pad's value over that lock's
++STATE/EFFECTIVE and the lock glides back in from there; and a sequencer trig of the chop
++track picked up within one interrupt run (0.67 ms) before a pad hit can start from the
++pad's marker instead of its lock - in both cases the pad's own trig retriggers the same
++voice one or two runs later. Stock UI-side code already writes these engine words (the
++writer from param_set_value, and the whole-row snap from 0x400ac4d2 / 0x400ac672, report
++t12).
++
++**Not changed.** The held-step path (chop_held_lock, D15) never calls chop_put, so it does
++not snap; its preview plays the held step's lock block, which the lock pass snaps itself
++(report t13, t5). Note-off routing (D8a), pages, knobs, LAY / RND, press_gate, SMP CUT:
++byte-identical code (above). LFO / velocity modulation of STA is added to EFFECTIVE after
++the smoother every run (report risk 3, not re-derived here). The MK2 live-slot writer
++(H-b1 on MK2) is not traced.
++
++**Space.** MK1 image B: CHOP `.text` 1552 of 1560 B (8 B left), `.chst` and `.cave2` 12 B
++each, as before. MK1 image A': 1500 of 1560 B (lean 0000-shared, above). MK2 (layout A,
++`.text` claim 0x600): 1406 B CHOP only, 1458 B with SMP CUT (130 / 78 B left).
++
++**Hashes, before -> after (guest builds, `corp/snap-builder/pre_build_hashes.txt` and
++`post_build_hashes.txt`; every target PASS, logs in `logs/`):**
++
++| target | before (HEAD f3e093c, rebuilt) | after (D41) |
++|---|---|---|
++| MK1 `make samplefocus` (= `chop-min`) | 76a2f4d0... | dda5a4f8... |
++| MK1 `make samplefocus-cut` | 0ec86d0e... | ac094b30... |
++| MK2 `make DEVICE=mk2 samplefocus` | 016be9ea... | 2ff96af2... |
++| MK2 `make DEVICE=mk2 samplefocus-cut` | 0ce2fe92... | 78295576... |
++| MK1 / MK2 / Keys `control` | 3407638c... / f3f6aad0... / 6981fd94... | the same |
++| Keys `chord` / `joy` / `joy-min` | 02a4c784... / ebc9a6ce... / 7797f974... | the same |
++| MK1 default `make verify` / `make random` | 0d51f7cb... / 3dafc0bd... | the same |
++| MK1 `make chop` (round 4) | retired: exit 2, no file | the same |
++| MK1 `make guard-check` | PASS | PASS |
++
+ ## Hardware-only unknowns (the founder's test card)
+ 
+ Nothing below can be proven offline. H1-H6 passed on the founder's MK1 with the round-3
+@@ -1152,7 +1349,22 @@ withdrawn (r5b offsets O12).
+   knobs. What CHOP wrote into patterns and kits (STA/END p-locks, LAY's trigs, base
+   STA/END/LFO values) is ordinary stock data and stays (stock plays it).
+ 
+-**Current files - corp D39 (2026-10-08, press_gate)**: guest VM `make samplefocus`, `make
++**Current files - corp D41 (2026-10-09, chop_snap)**: guest VM `make samplefocus`, `make
++chop-min`, `make samplefocus-cut`, `make control`, `make verify`, `make random`, `make
++guard-check`, all PASS (logs `corp/snap-builder/logs/post_mk1_*.log`), sha256:
++`AR1_OS1.73_control.syx` 3407638c3f450daba0faedbddc0d4f08b154925a3ba162172346f51ef9ed6a8d
++(unchanged),
++`AR1_OS1.73_0000_0001.syx` (image A', 0000-shared lean since D41) dda5a4f8b63c58359da3f8f3f3fa70567273df74cd8d4ea136fd62bcd82a8c6f
++(MAIN OS 5ea7d86bbed7915b8e296898538ee77f7944f8cdd4270a5fb1c0d2b2ab9c1359),
++`AR1_OS1.73_0000_0001_0008.syx` (image B) ac094b30e7ea68022d00cd06c057229284df36dbc3176423fdd34b26dfffc3b4
++(MAIN OS 81c5904b3ea8f862eb1293a046405354fee5ca2ed4ee86c4b82692cfbc183864).
++The default build (0d51f7cb...) and `random` (3dafc0bd...) are unchanged. Each D41 image
++differs from its D39 predecessor below only in CHOP's blocks and its seven long-name
++pointer patches ("D41 - the first-hit snap"; image A' also in 0000-shared's slot, now
++lean). Never run on hardware: run "D41 rows" first.
++
++Superseded by D41 (no chop_snap: the first pad hit starts near the previous marker) -
++**corp D39 (2026-10-08, press_gate)**: guest VM `make samplefocus`, `make
+ samplefocus-cut`, `make control`, `make verify`, `make random`, all PASS (logs
+ `corp/press-fixer/b1_*.log` .. `b8_*.log`), sha256:
+ `AR1_OS1.73_control.syx` 3407638c3f450daba0faedbddc0d4f08b154925a3ba162172346f51ef9ed6a8d
+@@ -1191,9 +1403,61 @@ rebuild 4847571b92a036ca03cb50adcef3c200180b59dc4da4d7ee53bc755bc829271f, now in
+ round-3 files 3ea80d31... and 3c77f43b... have no step lock; the round-2 files 5614a93e...
+ and e19703af... do not pair note-offs.)
+ 
++### D41 rows: the first-hit snap (H-T1..H-T10) - run these first on the D41 files
++
++Normal pad mode, CHOP ON for track T, END OFF unless a row says otherwise. Use a sample
++whose start (0) and late part (110) sound clearly different, and the power-on markers:
++pad 1 = 0, pad 12 = 110 (DIV 12). "Pre-D41" is any earlier CHOP file (2b, 4b
++76a2f4d0..., 5 0ec86d0e...): running a row there too is the control - the RE predicts
++what it gives, and if a pre-D41 file already plays the first hit right, the root cause is
++wrong; report that.
++- **H-T1 (the core, slow).** Sequencer stopped, no REC. Hit pad 1, wait 2 s, pad 12, wait
++  2 s, eight hits in all. D41: every hit plays its own slice, the first one included.
++  Pre-D41 (predicted): each hit plays (almost) the OTHER pad's slice, and the same pad again
++  0.2 s later plays its own.
++- **H-T2 (rate).** Alternate pad 1 / pad 12 at 125 ms (16ths at 120 BPM), then as fast as
++  you can (30-50 ms). D41: own slice at every rate. Pre-D41: the previous slice at 125 ms,
++  in-between starts when fast.
++- **H-T3 (lock-in).** With pad 12 settled, roll pad 1 at about 30 ms, six hits. D41: every
++  hit at 0. Pre-D41: about 110, then 27, 7, 2 (converging).
++- **H-T4 (sequencer locks, the control).** LAY (F right) the slices onto the empty steps
++  of a 16-step pattern, hands off the pads, play it. Every step plays its exact slice on
++  every file (p-locks were always snapped). If this is smeared too, stop and report: the
++  RE is wrong.
++- **H-T5.** H-T1 with the sequencer running another track (no REC): as H-T1.
++- **H-T6 (live REC).** H-T1 with live REC on and the sequencer running: live hits play
++  their own slice (D41); the next loop plays the recorded locks exactly, provided lock and
++  trig landed on the same step (H2).
++- **H-T7 (missing retriggers, H-b1 - NOT fixed by D41).** 32 staccato hits (let go before
++  the next press) against 32 legato rolls (press the next pad, let go of the previous
++  within about 20 ms), alternating pads. Count silent hits in each set, once with the CHOP
++  page on screen and once on another page. Drops only (or mostly) in the legato set =
++  H-b1, which F-4 would fix (D41: built only if this row shows drops).
++- **H-T8 (H-b2, not changed by D41).** Give the chop track a long decay (1 s or more).
++  Hold pad 1, hit pad 12, let go of pad 1: does pad 12's sound cut at that release?
++- **H-T9 (low priority).** SAMPLE POS RES = HI, marker 55.50 against 56: no difference
++  in reliability expected.
++- **H-T10 (acceptance).** On each D41 file: H-T1..H-T3 pass (the first hit plays its own
++  slice at any rate) and H-T4 and the live-REC locks are as before; then END ON once (H8
++  (a) and (f): END snaps with STA, no click expected beyond stock's). Then the same rows
++  on the MK2 D41 files.
++
++**Rows to re-run on the D41 files** (chop_put changed for every pad and END write; in
++image A' 0000-shared is now lean, so RND's `shared_rnd` moved):
++- image A' (`..._0000_0001.syx`, dda5a4f8...): H13 (H1, H3, H4, H6 (a)-(e), (g), (i)),
++  H7 (e), H8 (a)-(d), (f), H11, H14 (a)-(b), then H-T1..H-T10;
++- image B (`..._0000_0001_0008.syx`, ac094b30...): S1, S10 and the H rows on B ("Image B
++  test card"), then H-T1..H-T3 and H-T10. SMP CUT's own bytes, the page gates and every
++  0008 path are byte-identical to 0ec86d0e... ("D41 - the first-hit snap", proof), so
++  results of S2-S9 on 0ec86d0e carry over; re-run them only if a CHOP row misbehaves;
++- MK2: M2 with H-T1..H-T10 added, and in M3 the H13/S1/S10 part plus H-T1..H-T3.
++
+ ### The unknowns (test in the normal pad mode, D14)
+ 
+-- **H1** Does a pad hit play from the new STA on that same hit? (Voice latch timing: the
++- **H1** Does a pad hit play from the new STA on that same hit? (**Answered by corp D41:**
++  the voices start from the smoothed PARAMS_EFF, not from the target word, so before
++  chop_snap the first hit started near the previous marker; on the D41 files run H-T1..H-T3
++  for this row. Earlier text: voice latch timing: the
+   audio target word 0x80005116 + 0x54*T is written synchronously, but whether the voice
+   latches STA from it or from the smoothed PARAMS_EFF is unknown. The 1.72 host prototype,
+   CC 28 then note, says yes for that path.)
+@@ -1563,8 +1827,9 @@ kHz (`1.2k`, `12k`).
+ 
+ ### Image B test card (S1-S10 and the H rows on B; never run)
+ 
+-File: `build/AR1_OS1.73_0000_0001_0008.syx`, sha256 0ec86d0e...977e since corp D39 (full
+-hash under "If it does not boot"; the round-7 file 86e1dd1b...fa9a1 has no press gate).
++File: `build/AR1_OS1.73_0000_0001_0008.syx`, sha256 ac094b30...c3b4 since corp D41 (full
++hash under "If it does not boot"; the D39 file 0ec86d0e...977e has no chop_snap, the
++round-7 file 86e1dd1b...fa9a1 no press gate either). D41: run "D41 rows" on it too.
+ Flash it only after image A' passed H13 (Flash order, item 4).
+ 
+ **First-run cautions.** No 0008 image has ever run on an MK1; the old one was
+@@ -1826,7 +2091,7 @@ mk2-addrB's sites, asserting raw == expect; build.py asserts them again).
+ | pool | range | CHOP + SMP CUT (samplefocus-cut) | CHOP only (samplefocus) |
+ |---|---|---|---|
+ | cave | 0x402cc928..0x402cd000 (1752 B) | 0008 .text 810 (claim 812), .cutst 128 (128), 0001 .chst 280 (292), .cave2 464 (476; 434 before D39): 1682 B used, 70 free | .chst 280, .cave2 464 |
+-| cave2 | 0x402cd8a0..0x402ce000 (1888 B) | 0001 .text 1406 (claim 1536), 0000 lean 140 (140), 0001 .cave3 81 (88): 1627 B used, 261 free | .text 1354, 0000 140, .cave3 81 |
++| cave2 | 0x402cd8a0..0x402ce000 (1888 B) | 0001 .text 1458 (claim 1536; 1406 before D41), 0000 lean 140 (140), 0001 .cave3 81 (88): 1679 B used, 209 free | .text 1406 (1354 before D41), 0000 140, .cave3 81 |
+ | cave3 | 0x40289ab8..0x40289eb8 (1024 B) | 0008 .tab 937 (claim 940): 87 free | unused |
+ 
+ `cave` ends exactly at 0x402cd000 (the USB string block's first byte is written at run
+@@ -1948,7 +2213,16 @@ changes it, so the recovery path is the stock one. Back to stock from a booting
+ normal route with the stock file (a same-version reinstall; control, step 1, tests it).
+ Nothing CHOP keeps is saved; what it writes into patterns and kits is stock data.
+ 
+-Files since corp D39 (guest, 2026-10-08, `make DEVICE=mk2 control|samplefocus|samplefocus-cut`
++Files since corp D41 (guest, 2026-10-09, `make DEVICE=mk2 control|samplefocus|samplefocus-cut`
++all PASS, logs `corp/snap-builder/logs/post_mk2_*.log`), sha256:
++`ARMK2_OS1.73_control.syx` f3f6aad0cad09a7c3d531fb36a34fc78ed45bee126b9aab84cfed93e51d99c04 (unchanged),
++`ARMK2_OS1.73_0000_0001.syx` (CHOP only) 2ff96af2f5ed05f5884e0dfa74f806091a867be46254250c4b404da609de792d
++(MAIN OS fc99a93b2fa59b1ab776862e85542fecc8bc0dbbb727e8a561d4d7dd864c390e),
++`ARMK2_OS1.73_0000_0001_0008.syx` (CHOP + SMP CUT) 782955769d2f199af5937eb8c945de659f1dad497b66aef07180c004089f6e8a
++(MAIN OS 881ab3071f40f7275acf427bcf184c46f5850db5ba1d87616c30a228b3d5854d).
++Each differs from its D39 predecessor only in CHOP's `.text`, the `bsr.w` displacements
++into it and the seven long-name pointers ("D41 - the first-hit snap"). Never run.
++Superseded by D41 (no chop_snap) - files since corp D39 (guest, 2026-10-08, `make DEVICE=mk2 control|samplefocus|samplefocus-cut`
+ all PASS, logs `corp/press-fixer/b4_*.log` .. `b6_*.log`; copies in `corp/press-fixer/obj/`), sha256:
+ `ARMK2_OS1.73_control.syx` f3f6aad0cad09a7c3d531fb36a34fc78ed45bee126b9aab84cfed93e51d99c04
+ (unchanged; MAIN OS = stock, 28d9ef40c895e03f17dfce096543109adaf708947392db72818fc2a412d685d6),
+@@ -1988,6 +2262,7 @@ Normal pad mode throughout (D14). Stop at the first deviation and go back one fi
+   route; H12 is gone with STR; H13 is MK1's regression against the round-4 image and has
+   no MKII counterpart).
+   This is a first run on new hardware, so the crash rows count most: H4, H6 (i), H10 (g).
++  **Since corp D41** M2 also runs H-T1..H-T10 ("D41 rows", MK1 section) on the D41 file.
+   MKII differences: STA popups print two decimals with a fraction (`40.25`), whole values
+   without (`40`), as the SAMP page's STA; with SAMPLE POS RES = HI the CHOP STA knob turns
+   like the SAMP page's STA (fine steps, same acceleration, FUNC = one whole step); with
+@@ -2026,10 +2301,12 @@ not re-checked here).
+ 
+ ## Next steps (out of scope for image A' and image B)
+ 
+-- Image B: the hardware run (its test card). The layout leaves 96 B free inside the
+-  claims since corp D39 (126 B before; cave 14, cave2 72 - of which 60 in CHOP's `.text`
+-  claim and 12 in `.cave2` after press_gate's 30 B - cave3 10), so a later CHOP or SMP CUT feature needs more compaction or cave4..6 (r5b
+-  space lane; candidates that only a probe may claim). The SMP CUT measuring build (0008
++- Image B: the hardware run (its test card). The layout leaves 44 B free inside the
++  claims since corp D41 (96 B after D39, 126 B before; cave 14, cave2 20 - 8 in CHOP's
++  `.text` claim after chop_snap's 52 B and 12 in `.cave2` after press_gate's 30 B - cave3
++  10), so a later CHOP or SMP CUT feature (F-4 among them: about 8-10 B in `.chst`, which
++  has 12 B) needs more compaction or cave4..6 (r5b space lane; candidates that only a probe
++  may claim). The SMP CUT measuring build (0008
+   `diag = 1`) does not fit image B's `.cutst` claim and is not laid out.
+ - A pad press selects the PAD knob on screen (redraw the CHOP page when a pad sets
+   chop_pad; today it shows at the next redraw).
+diff --git a/mods/0001-chop/mod.toml b/mods/0001-chop/mod.toml
+index 2ffd323..32ec183 100644
+--- a/mods/0001-chop/mod.toml
++++ b/mods/0001-chop/mod.toml
+@@ -50,6 +50,15 @@ Focus only image A's STR has a hardware report (it did not sweep, so round 7 rem
+ it); image A' and its rows (design.md H7-H11, H13, H14) have not run. Round 7 (D29)
+ also removed image A's STA dial graphic (the CHOP STA dial is id 4's own) to fit image B,
+ `make samplefocus-cut`: image A' plus 0008 SMP CUT, built, never run (design.md S1-S10).
++
++Corp D41 (2026-10-09): a pad hit used to start near the PREVIOUS marker (the founder's
++"hits land between markers, lock in after repeats"): the engine glides a sound parameter
++written through param_set_value - STA and END among them - 3% of the way per audio-interrupt
++run, and the pad's own trig is posted right after the write. chop_put now ends with chop_snap, which snaps the
++chop track's STA and END (the smoother's state and the effective value the sample voices
++read) to the value param_set_value has just written, exactly as the interrupt's lock pass
++does for a sequencer p-lock. MK1 and MK2. Image A' (`make samplefocus`) is built with
++0000-shared lean since D41, as image B is. Not yet run on hardware (design.md H-T1..H-T10).
+ """
+ 
+ [sources]
+@@ -60,7 +69,10 @@ stub = "stub.s"
+ # claim is the lean one at the end of its slot, and CHOP's .text claim runs on into
+ # the slot's head (registry, 0001-chop). It must match 0000-shared's lean: with lean = 0
+ # the two claims overlap and the build is refused; with lean = 1 and shared_lean = 0
+-# the head is simply unused. Image A' (`make samplefocus`, `make chop-min`) is 0.
++# the head is simply unused. Since corp D41 (chop_snap) every CHOP target passes 1 with
++# 0000-shared lean = 1 (`make samplefocus`, `make chop-min`, `make samplefocus-cut`, and
++# MK2 always): CHOP's .text no longer fits the shared_lean = 0 claim (0x5b8), so a build
++# left at this default is refused by build.py ("widen the claim"), never built short.
+ shared_lean = 0
+ 
+ [requires]
+@@ -73,6 +85,8 @@ shared_lean = 0
+ # writes go through the active kit at project + 232 (project_kit), never through
+ # 0000-shared's sound helpers. With 0008 as a provider it also jumps to 0008's
+ # shared_cut_* handlers (assembled only when build/shared.inc defines them).
++# Corp D41 (chop_snap): ENG_TARGET, ENG_STATE, PARAMS_EFF and SND_CIDX_STA, the
++# engine's per-track TARGET / smoother STATE / EFFECTIVE rows and STA's container index.
+ shared = true
+ symbols = [
+   "page_info_resume",
+@@ -120,4 +134,8 @@ symbols = [
+   "step_flag_test",
+   "trig_create",
+   "view_refresh_request",
++  "ENG_TARGET",
++  "ENG_STATE",
++  "PARAMS_EFF",
++  "SND_CIDX_STA",
+ ]
+diff --git a/mods/0001-chop/stub.s b/mods/0001-chop/stub.s
+index 3b6a941..3484583 100644
+--- a/mods/0001-chop/stub.s
++++ b/mods/0001-chop/stub.s
+@@ -36,7 +36,11 @@
+         | p-lock; and the pad's id in the UI message is rewritten to the chop track,
+         | so stock plays (and records) the chop track exactly as if its own pad had
+         | been hit. Pads never switch the selected track away from it, and no fire
+-        | call is hand-built.
++        | call is hand-built. Since corp D41 every such write (chop_put: the pad's
++        | STA and END, END's restore) is followed by chop_snap, which makes the
++        | engine take the new STA and END at once, as the interrupt's lock pass
++        | does for a sequencer p-lock; before it, the interrupt's parameter
++        | smoother let the pad's own trig start near the previous marker.
+         | With trig key(s) of the chop track held (D15), the STA call is replaced
+         | by what stock's hold-trig + turn-STA does: an STA p-lock = marker k on
+         | every held step (chop_held_lock); the base STA is then left alone.
+@@ -636,8 +640,9 @@ lock_gate:
+         | Since corp round 7 (D29) it is a tail into chop_put (cave2) with id 43
+         | and record 1: chop_put is this routine's body for any id and either
+         | record flag (same guard, same calls, same arguments), so the two
+-        | copies became one. UI task only. Clobbers d0/d1/a0/a1, keeps
+-        | everything else.
++        | copies became one. Since corp D41 chop_put ends with chop_snap(T) (the
++        | engine takes STA and END at once). UI task only. Clobbers d0/d1/a0/a1,
++        | keeps everything else.
+         | ------------------------------------------------------------------
+         .align  2
+ chop_set_sta:
+@@ -913,7 +918,9 @@ chop_fn_mgr:
+         | chop_put(d0 = T, d1 = V 8.8, a0 = param id, a1 = record 0/1):
+         | param_set_value(kit_track_param_set(project_kit(project), T), id, V,
+         | T, record, notify 1) - stock's STA-style writer call, for any id and
+-        | either record flag (chop_set_sta is its tail with 43 and record 1).
++        | either record flag (chop_set_sta is its tail with 43 and record 1) -
++        | then (corp D41) chop_snap(T): the engine takes the new STA/END at once,
++        | as a sequencer p-lock does, instead of gliding to it.
+         | T > 11 returns without writing (12+ is the FX set).
+         | UI task only. Clobbers d0/d1/a0/a1, keeps everything else.
+         | ------------------------------------------------------------------
+@@ -937,10 +944,56 @@ chop_put:
+         move.l  %d0,-(%sp)                        | set
+         jsr     param_set_value
+         lea     24(%sp),%sp
++        move.l  %d2,%d0                           | T, 0..11 (guarded above)
++        bsr.s   chop_snap                         | D41: STA and END snap to TARGET
+         movem.l (%sp),%d2-%d3/%a2-%a3
+         lea     16(%sp),%sp
+ 9:      rts
+ 
++        | ------------------------------------------------------------------
++        | chop_snap(d0 = T) (corp D41, chop-timing-re fix F-1): for track T, STA
++        | and then END, do what the audio interrupt's per-trig lock pass does
++        | for a p-locked parameter (MK1 0x40119538.., MK2 0x40120954..): STATE =
++        | v << 16 first, then EFFECTIVE = v, with v = the TARGET word that
++        | param_set_value has just written (its engine writer, MK1 0x401185fa /
++        | MK2 0x4011f3fa, stores TARGET and zeroes the slide word, nothing else).
++        | Without it the interrupt's smoother moves EFFECTIVE - what the sample
++        | voices start from - only 3% of the way to TARGET per run, so the
++        | pad's own trig (posted right after) started near the previous marker.
++        | Writes exactly four places: STATE[T][STA], STATE[T][END] (longs) and
++        | EFFECTIVE[T][STA], EFFECTIVE[T][END] (words); TARGET and the slide
++        | word are left as param_set_value wrote them. v is copied, never
++        | computed, so LO's floor and the writer's clamp carry over. Engine
++        | rows (symbols ENG_TARGET, ENG_STATE, PARAMS_EFF): entry T, cidx c at
++        | +84T+2c (TARGET, EFFECTIVE) and +168T+4c (STATE); STA is cidx
++        | SND_CIDX_STA (21), END the next one. T > 11 unsigned: nothing.
++        | The `bsr.w 1f` runs the body for STA and returns into it for END.
++        | UI task only. Clobbers d0/d1/a0/a1, keeps everything else.
++        | ------------------------------------------------------------------
++        .equ    SNAP_TGT,       ENG_TARGET + 2 * SND_CIDX_STA
++        .equ    SNAP_STATE,     ENG_STATE + 4 * SND_CIDX_STA
++        .equ    SNAP_EFF,       PARAMS_EFF - ENG_TARGET   | EFFECTIVE - TARGET
++        .align  2
++chop_snap:
++        moveq   #PADS-1,%d1
++        cmp.l   %d1,%d0
++        bhi.s   9f                                | T > 11 unsigned: nothing
++        moveq   #84,%d1                           | the row stride (TARGET, EFFECTIVE)
++        mulu.w  %d1,%d0                           | 84T
++        movea.l %d0,%a0
++        adda.l  #SNAP_TGT,%a0                     | &TARGET[T][STA]
++        movea.l %d0,%a1
++        adda.l  %d0,%a1                           | 168T, STATE's row stride
++        adda.l  #SNAP_STATE,%a1                   | &STATE[T][STA]
++        bsr.w   1f                                | STA; its rts lands on 1: for END
++1:      move.w  (%a0)+,%d1                        | v = TARGET
++        swap    %d1
++        clr.w   %d1                               | v << 16
++        move.l  %d1,(%a1)+                        | STATE = v << 16, first
++        swap    %d1                               | v
++        move.w  %d1,SNAP_EFF-2(%a0)               | EFFECTIVE = v
++9:      rts
++
+         | chop_set_of(d0 = T) -> d0 = kit_track_param_set(project_kit(
+         | project_singleton()), T), track T's SoundParameterSet: the three
+         | calls chop_put and chop_held_with each made inline until corp round 7
+diff --git a/re/ghidra/scripts/ApplySymbols.java b/re/ghidra/scripts/ApplySymbols.java
+index 75d8d8f..491fe8b 100644
+--- a/re/ghidra/scripts/ApplySymbols.java
++++ b/re/ghidra/scripts/ApplySymbols.java
+@@ -137,8 +137,10 @@ public class ApplySymbols extends GhidraScript {
+         name(0x416a6aa4L, "PARAM_INFO_BASE", false);
+         name(0x416c6d90L, "boolop_icon_set", false);
+         name(0x416c70c0L, "project_instance", false);
++        name(0x800050ecL, "ENG_TARGET", false);
++        name(0x80005a04L, "ENG_STATE", false);
+         name(0x800062c0L, "PARAMS_EFF", false);
+         name(0x8000a9e8L, "TRIG_FLAGS", false);
+-        println("applied 122 symbols");
++        println("applied 124 symbols");
+     }
+ }
+diff --git a/re/symbols.toml b/re/symbols.toml
+index b31ec63..15cde91 100644
+--- a/re/symbols.toml
++++ b/re/symbols.toml
+@@ -516,6 +516,33 @@ mk2 = 0x8000f7a8
+ status = "verified"
+ evidence = "The per-track effective parameter array the LFO modulates: lfo_block reads it as a3 + 4616 from 0x800050b8, and the interrupt rebuilds it at 0x401199c8 (lea 0x800062c0,%a0, MKII lea 0x8000f7a8 at 0x40120dea). 42 words per track, stride 0x54."
+ 
++# ---- 0001-chop corp D41 (chop-timing-re fix F-1, chop_snap): the engine's per-track
++# parameter rows. Three arrays, each 572 entries = 26 leading + 13 rows x 42 (12 tracks +
++# FX); entry i = 26 + 42*T + cidx. TARGET (words, 0x800050b8 + 2i) is what param_set_value
++# writes; the audio interrupt filters every TARGET into STATE (longs, 0x8000599c + 4i,
++# STATE = 0.03*TARGET + 0.97*STATE, 'movel #0x03d70000,%d7' / 'movel #0x7c290000,%d6',
++# dis:361697-361724) and STATE into EFFECTIVE = PARAMS_EFF (words, 0x8000628c + 2i,
++# rounded), which the sample voices read; its per-trig lock pass writes all three at once
++# (a snap, dis:361469-361498). Re-derived from the stock bytes by
++# corp/snap-builder/derive_constants.py (derive_constants.out).
++
++[data.ENG_TARGET]
++addr = 0x800050ec
++mk2 = 0x8000e5b0
++status = "verified"
++evidence = "Track 0's row of the engine TARGET words (row T at +84*T, cidx c at +2*c): the writer param_set_value reaches through SoundParameterSet vt[0x70] 0x400a72b4 -> vt[0x30] 0x400a7094 (vtable 0x401aa6b4) is 0x401185fa(value, T, cidx): 'lea 0x800050b8,%a0 / mulsl #42 / addl cidx / movew %a1@,%a0@(0x34,%d0:l:2)' (ext 0a34: disp 0x34 = 26 words) then zeroes the slide word W at 0x80004830 + 2i and nothing else (dis:360334-360344). 0x800050b8 + 0x34 = 0x800050ec. The lock pass writes TARGET with the same indexing (0x4011955c 'movew %d4,%a1@(0x34,%d6:l:2)')."
++
++[data.ENG_STATE]
++addr = 0x80005a04
++mk2 = 0x8000eeec
++status = "verified"
++evidence = "Track 0's row of the smoother's 32-bit state (row T at +168*T, cidx c at +4*c): the interrupt's smoother 'lea 0x8000599c,%a2' with a1 = 0x800050b8 walks 572 entries, STATE[i] at 0x8000599c + 4i (dis:361701-361724); the lock pass stores v<<16 at 0x800050b8 + 4*(i + 569) = 0x8000599c + 4i ('addil #569 / swap / clrw / movel %d4,%a1@(0,%d7:l:4)', 0x40119578-0x40119586). 0x8000599c + 4*26 = 0x80005a04."
++
++[const.SND_CIDX_STA]
++value = 21
++status = "verified"
++evidence = "Container index of id 43 (STA): SoundParameterSet vt[0x30] takes cidx = 0x40006d88(id) = *(long *)(0x4018e004 + 52*id + 4) (dis 0x400a70cc-0x400a70d6, 0x40006d88-0x40006da8) = 21 for id 43 and 22 for id 44 (END), read from build/stock_mainos.bin. The sample voices read EFFECTIVE[T][21] and [22] as STA and END: a2 = 0x8000628e + 84*(track + 1), 'movew %a2@(8)' / 'movew %a2@(10)' into 0x401150a4 (start/end), dis:357044-357092 (voices 1..7) and 356655-356698 (voice 0); the track is the one the interrupt's scan wrote into the voice map 0x40254e2c on its note-on ('moveb %d0,%a1@(0,%d1:l)' at 0x40119bae) before it calls the voices (0x40119c2a)."
++
+ [data.param_knob_draw_body]
+ addr = 0x400a5884
+ mk2 = 0x400a8584
+diff --git a/re/symbols_mk2.toml b/re/symbols_mk2.toml
+index 583e18c..47a9300 100644
+--- a/re/symbols_mk2.toml
++++ b/re/symbols_mk2.toml
+@@ -331,3 +331,34 @@ addr = 0x40290dd8
+ mk1 = 0x40254e2c
+ status = "verified"
+ evidence = "mk2-sk-addrB CONFIRMED: byte per physical voice -> owning track; five MK1 references map to MK2 references of 0x40290dd8 by reverse xmatch (46-48 votes); default bytes 0004010508060a02 identical. That index v is DAC ring column v is carried from MK1, not re-proven (UNKNOWN on MK2 hardware)."
++
++# ======================================================= the engine's parameter rows
++# 0001-chop corp D41 (chop-timing-re fix F-1, chop_snap). The same three arrays as MK1
++# (re/symbols.toml ENG_TARGET): 572 entries = 26 leading + 13 rows x 42, entry i = 26 +
++# 42*T + cidx; TARGET words (0x8000e57c + 2i, written by param_set_value), the
++# smoother's STATE longs (0x8000ee84 + 4i) and EFFECTIVE words (0x8000f774 + 2i = what
++# the sample voices read). Re-derived from the stock MK2 MAIN OS bytes by
++# corp/snap-builder/derive_constants.py (derive_constants.out), not ported by xmatch.
++
++[data.ENG_TARGET]
++addr = 0x8000e5b0
++mk1 = 0x800050ec
++status = "verified"
++evidence = "Track 0's TARGET row (row T at +84*T, cidx c at +2*c): param_set_value 0x400a9000 -> SoundParameterSet vt[0x70] 0x400a9f9e -> vt[0x30] 0x400a9d7e (vtable 0x401dcb74) -> 0x4011f3fa(value, T, cidx): 'lea 0x8000e57c,%a0 / mulsl #42 / addl cidx / movew %a1@,%a0@(0x34,%d0:l:2)', then W at 0x80005f10 + 2i = 0, nothing else (dis 0x4011f3fa-0x4011f422). 0x8000e57c + 0x34 = 0x8000e5b0. The lock pass 0x40120968 writes it with the same indexing."
++
++[data.ENG_STATE]
++addr = 0x8000eeec
++mk1 = 0x80005a04
++status = "verified"
++evidence = "Track 0's row of the smoother's 32-bit state (row T at +168*T, cidx c at +4*c): smoother 'lea 0x8000ee84,%a2', 572 entries, 'movel #0x03d70000,%d7' / 'movel #0x7c290000,%d6' (dis 0x40120c7c-0x40120ce0); the lock pass stores v<<16 at 0x8000e57c + 4*(i + 578) = 0x8000ee84 + 4i (0x40120994-0x401209a2). 0x8000ee84 + 4*26 = 0x8000eeec."
++
++[data.PARAMS_EFF]
++addr = 0x8000f7a8
++mk1 = 0x800062c0
++status = "verified"
++evidence = "Track 0's EFFECTIVE row (row T at +84*T): the smoother writes the rounded STATE to 0x8000f774 + 2i ('lea 0x8000f774,%a4', dis 0x40120c8e), the lock pass writes v at 0x8000e57c + 2*(i + 2300) = 0x8000f774 + 2i (0x4012099a-0x401209aa); 0x8000f774 + 0x34 = 0x8000f7a8 (re/symbols.toml PARAMS_EFF's MKII value). The sample voices read it: a2 = 0x8000f776 + 84*(track + 1), 'movew %a2@(8)' (STA) / 'movew %a2@(10)' (END) into 0x4011bed8 (voices 1..7 0x4011c73e-0x4011c7e0, voice 0 0x4011c1aa-0x4011c238); the track is the one the interrupt's scan wrote into voice_owner 0x40290dd8 on its note-on ('moveb %d0,%a1@(0,%d1:l)' at 0x40121046) before the voice call 0x401210c8."
++
++[const.SND_CIDX_STA]
++value = 21
++status = "verified"
++evidence = "Container index of id 43 (STA): vt[0x30] takes cidx = 0x40006ea8(id) = *(long *)(0x401bf918 + 52*id + 4) (0x400a9db6-0x400a9dc0) = 21 for id 43 and 22 for id 44 (END), read from the stock MK2 MAIN OS; the voices read EFFECTIVE[T][21] / [22] as STA / END (PARAMS_EFF)."
+diff --git a/registry/allocations.toml b/registry/allocations.toml
+index 9b466d8..8d98f28 100644
+--- a/registry/allocations.toml
++++ b/registry/allocations.toml
+@@ -950,7 +950,7 @@ addr    = 0x402a2780
+ size    = 0x5b8
+ section = ".text"
+ gate    = "!shared_lean"
+-note    = "Image A' (0000-shared full): the page_info / get / delta / text gates, the SAMPLE key gate, lock_gate, chop_set_sta, chop_knob, clamp, the knob tables, chop_put and its helpers, the END helpers, chop_delta_more, chop_rechop, chop_lay. Ends where 0000-shared's full claim starts."
++note    = "Image A' before corp D41 (0000-shared full): the page_info / get / delta / text gates, the SAMPLE key gate, lock_gate, chop_set_sta, chop_knob, clamp, the knob tables, chop_put and its helpers, the END helpers, chop_delta_more, chop_rechop, chop_lay. Ends where 0000-shared's full claim starts. Since D41 (chop_snap, +52 B) CHOP's .text is larger than this claim, so every CHOP target builds with shared_lean = 1 (the claim below); a build left at shared_lean = 0 is refused by build.py's size check."
+ 
+ [[cave]]
+ owner   = "0001-chop"
+@@ -958,7 +958,7 @@ addr    = 0x402a2780
+ size    = 0x618
+ section = ".text"
+ gate    = "shared_lean"
+-note    = "Image B (0000-shared lean = 1): the same section, which also takes 0x402a2d38..0x402a2d98, the head of 0000-shared's full slot; ends where 0000-shared's lean claim starts. A build with shared_lean = 1 and 0000-shared full overlaps here and is refused by the layout check."
++note    = "Image B, and since corp D41 image A' too (0000-shared lean = 1): the same section, which also takes 0x402a2d38..0x402a2d98, the head of 0000-shared's full slot; ends where 0000-shared's lean claim starts. Since D41 it also holds chop_snap (after chop_put). A build with shared_lean = 1 and 0000-shared full overlaps here and is refused by the layout check."
+ 
+ [[cave]]
+ owner   = "0001-chop"
+diff --git a/registry/allocations_mk2.toml b/registry/allocations_mk2.toml
+index a30ac06..5368ce9 100644
+--- a/registry/allocations_mk2.toml
++++ b/registry/allocations_mk2.toml
+@@ -284,7 +284,7 @@ owner   = "0001-chop"
+ addr    = 0x402cd8a0
+ size    = 0x600
+ section = ".text"
+-note    = "The page_info / get / delta / text gates, samp_draw_gate (MK2 only), lock_gate, chop_set_sta, chop_knob, clamp, the knob tables, chop_put and its helpers, the END helpers, chop_delta_more, chop_rechop, chop_lay, the long knob names. No SAMPLE-key gate on MK2. MK1: 0x402a2780 (cave2)."
++note    = "The page_info / get / delta / text gates, samp_draw_gate (MK2 only), lock_gate, chop_set_sta, chop_knob, clamp, the knob tables, chop_put and (corp D41) chop_snap, its helpers, the END helpers, chop_delta_more, chop_rechop, chop_lay, the long knob names. No SAMPLE-key gate on MK2. MK1: 0x402a2780 (cave2)."
+ 
+ [[cave]]
+ owner   = "0001-chop"
+-- 
+2.47.1
+
+
+From f78520fdef2ea8c171db95d763a9569459f93c66 Mon Sep 17 00:00:00 2001
+From: bandersong <134746909+bandersong@users.noreply.github.com>
+Date: Fri, 9 Oct 2026 21:38:46 -0400
+Subject: [PATCH 48/49] D41 card fixes (snap panel): one run order, clean-sound
+ setup, scoring rules, END-restore residual
+
+No image change: design.md only; every target rebuilt by the integrator from a VM-local
+copy of this tree, every MK1, MK2 and Keys hash as at d5ee951.
+
+- One run order on the D41 files (panel P-3): boot check, H-T1..H-T3 and H-T4, then the
+  regression rows, then H-T5..H-T10; Flash order, the Image B card and the MK2 card point
+  to it. Image B (ac094b30) may follow file 5 (0ec86d0e) directly if file 5 behaved: the
+  D41 B differs from it only in 0001-chop claim bytes.
+- Setup for the D41 rows (P-2): a fresh kit, or LFO DEP 0, no velocity / aftertouch /
+  performance / scene modulation of STA or END, LOP OFF, machine LEV 0, no STA/END locks;
+  never a kit saved under image A's STR.
+- H-T2/H-T3 judge only where sounding hits start, silent hits go to H-T7; H-T8 says what
+  a cut means (H-b2, F-4) (P-4).
+- The END-restore knob path (CHP off, END off, CHP to another track) snaps STA and END
+  too, with no trig after it: added to the accepted residual (SPE-1).
+- Flash-folder status (P-1): the D41 files are drafted for flash/ (4c, 5b; MKII 2, 3) in
+  corp snap-integrator/handoff; until staged, flash/4b, 5 and MKII 2, 3 are the D39 files.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ mods/0001-chop/design.md | 140 +++++++++++++++++++++++++++++----------
+ 1 file changed, 106 insertions(+), 34 deletions(-)
+
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+index 5a90782..5a116fb 100644
+--- a/mods/0001-chop/design.md
++++ b/mods/0001-chop/design.md
+@@ -1234,9 +1234,18 @@ TARGET read and the EFFECTIVE store), the snap writes the pad's value over that
+ STATE/EFFECTIVE and the lock glides back in from there; and a sequencer trig of the chop
+ track picked up within one interrupt run (0.67 ms) before a pad hit can start from the
+ pad's marker instead of its lock - in both cases the pad's own trig retriggers the same
+-voice one or two runs later. Stock UI-side code already writes these engine words (the
+-writer from param_set_value, and the whole-row snap from 0x400ac4d2 / 0x400ac672, report
+-t12).
++voice one or two runs later. **The END-restore knob path snaps too, with no trig after
++it:** chop_end_restore (CHP turned OFF, END turned OFF, or CHP latched to another track,
++each only while CHOP and END are both on; stub.s `chop_delta_more` and the CHP branch)
++writes END = 120 through chop_end_put -> chop_put, so it also snaps STA and END of the
++(old) chop track. A chop-track trig whose END p-lock the lock pass applied within one
++interrupt run before that knob turn, or an END-locked chop note still sounding (the voices
++re-read END every block, report t4), takes END = 120 at once instead of gliding there
++(stock: 3% per run, about 50% in 15 ms); STA's snap copies its own TARGET, so it only
++completes a STA glide already under way. Nothing is corrupted (TARGET and the slide are
++param_set_value's), and the turn is meant to restore the base END anyway. Stock UI-side
++code already writes these engine words (the writer from param_set_value, and the whole-row
++snap from 0x400ac4d2 / 0x400ac672, report t12).
+ 
+ **Not changed.** The held-step path (chop_held_lock, D15) never calls chop_put, so it does
+ not snap; its preview plays the held step's lock block, which the lock pass snaps itself
+@@ -1307,17 +1316,24 @@ byte compare: 0 differing bytes).
+    round 2). It already proved the packer on this unit before round 3.
+ 2. **Sample Focus image A':** `build/AR1_OS1.73_0000_0001.syx` (`make samplefocus`: CHOP
+    with 0000 shared only - no euclid accents, no velocity humanise, no SMP CUT, no STR;
+-   sha256 below). Check it boots and plays, run H13 (the round-4 regression) first, then
+-   H7-H11 and H14. (Image A, 734607ae..., with STR, was under this name before round 7;
++   sha256 below). Run the rows in the one order under "D41 rows" ("Run order on the D41
++   files": boot check, H-T1..H-T3 and H-T4, then the regression rows, then the rest).
++   (Image A, 734607ae..., with STR, was under this name before round 7;
+    a copy is in `corp/r7-builder/baseline-imageA/`; the pre-D29 image A', f0220e4c..., is
+    in `corp/r7b-builder/b0/out/`.)
+-3. If image A' misbehaves in H13: go back to the round-4 file,
++3. If image A' misbehaves in a regression row (H13 and the rows after it): go back to the
++   round-4 file,
+    `flash/2b_CHOP+STEPLOCK_AR1_OS1.73_0000_0001_0002_0003.syx` (a96657b4...caf6; Before you
+    flash, item 4), and report which row failed.
+-4. **Sample Focus image B, only after image A' behaved:**
++4. **Sample Focus image B, after image A' behaved - or directly after the D39 image B
++   (file `5`, 0ec86d0e...) if that file behaved on your unit:**
+    `build/AR1_OS1.73_0000_0001_0008.syx` (`make samplefocus-cut`: image A' plus SMP CUT;
+-   sha256 below). It is the first 0008 code ever to run on an MK1: read "Image B test
+-   card", first-run cautions, and run S1 first. If it misbehaves, go back to image A'.
++   sha256 below). The D41 image B is the D39 image B plus the same chop_snap image A'
++   got, and its SMP CUT bytes, page gates and 0008 paths are byte-identical to 0ec86d0e
++   ("D41 - the first-hit snap", proof), so the step from file `5` is smaller than the step
++   from image A'. If you never ran file `5`, or it misbehaved, flash image A' first. A
++   first run of any 0008 code: read "Image B test card", first-run cautions, and run S1
++   first. If it misbehaves, go back to image A'.
+ 
+ If Transfer refuses a file as the same version, nothing has been written: either stop, or
+ send that file through the recovery route below (FUNC at power-on, TRIG 4, LEGACY OS
+@@ -1351,7 +1367,9 @@ withdrawn (r5b offsets O12).
+ 
+ **Current files - corp D41 (2026-10-09, chop_snap)**: guest VM `make samplefocus`, `make
+ chop-min`, `make samplefocus-cut`, `make control`, `make verify`, `make random`, `make
+-guard-check`, all PASS (logs `corp/snap-builder/logs/post_mk1_*.log`), sha256:
++guard-check`, all PASS (logs `corp/snap-builder/logs/post_mk1_*.log`; rebuilt by the
++corp integrator from a VM-local copy of the tree with the card fixes, every MK1, MK2 and
++Keys target the same hash, logs `corp/snap-integrator/logs/`), sha256:
+ `AR1_OS1.73_control.syx` 3407638c3f450daba0faedbddc0d4f08b154925a3ba162172346f51ef9ed6a8d
+ (unchanged),
+ `AR1_OS1.73_0000_0001.syx` (image A', 0000-shared lean since D41) dda5a4f8b63c58359da3f8f3f3fa70567273df74cd8d4ea136fd62bcd82a8c6f
+@@ -1361,9 +1379,16 @@ guard-check`, all PASS (logs `corp/snap-builder/logs/post_mk1_*.log`), sha256:
+ The default build (0d51f7cb...) and `random` (3dafc0bd...) are unchanged. Each D41 image
+ differs from its D39 predecessor below only in CHOP's blocks and its seven long-name
+ pointer patches ("D41 - the first-hit snap"; image A' also in 0000-shared's slot, now
+-lean). Never run on hardware: run "D41 rows" first.
+-
+-Superseded by D41 (no chop_snap: the first pad hit starts near the previous marker) -
++lean). Never run on hardware: run the rows in the order under "D41 rows" ("Run order on
++the D41 files"). Flash-folder names once staged (drafted in corp
++`snap-integrator/handoff/flash/`): image A' `4c_SAMPLE-FOCUS-no-STR_AR1_OS1.73_0000_0001.syx`,
++image B `5b_SAMPLE-FOCUS+SMP-CUT_AR1_OS1.73_0000_0001_0008.syx`. Until they are staged,
++`flash/4b_...` and `flash/5_...` are the D39 files below - check the sha256 before you send.
++
++Superseded by D41 (no chop_snap: the first pad hit starts near the previous marker; in the
++flash folder until 2026-10-09 as `4b_SAMPLE-FOCUS-no-STR_AR1_OS1.73_0000_0001.syx` and
++`5_SAMPLE-FOCUS+SMP-CUT_AR1_OS1.73_0000_0001_0008.syx`, drafted to move to
++`flash/_superseded/2026-10-09-pre-snap/`) -
+ **corp D39 (2026-10-08, press_gate)**: guest VM `make samplefocus`, `make
+ samplefocus-cut`, `make control`, `make verify`, `make random`, all PASS (logs
+ `corp/press-fixer/b1_*.log` .. `b8_*.log`), sha256:
+@@ -1403,7 +1428,7 @@ rebuild 4847571b92a036ca03cb50adcef3c200180b59dc4da4d7ee53bc755bc829271f, now in
+ round-3 files 3ea80d31... and 3c77f43b... have no step lock; the round-2 files 5614a93e...
+ and e19703af... do not pair note-offs.)
+ 
+-### D41 rows: the first-hit snap (H-T1..H-T10) - run these first on the D41 files
++### D41 rows: the first-hit snap (H-T1..H-T10) and the run order on the D41 files
+ 
+ Normal pad mode, CHOP ON for track T, END OFF unless a row says otherwise. Use a sample
+ whose start (0) and late part (110) sound clearly different, and the power-on markers:
+@@ -1411,15 +1436,31 @@ pad 1 = 0, pad 12 = 110 (DIV 12). "Pre-D41" is any earlier CHOP file (2b, 4b
+ 76a2f4d0..., 5 0ec86d0e...): running a row there too is the control - the RE predicts
+ what it gives, and if a pre-D41 file already plays the first hit right, the root cause is
+ wrong; report that.
++
++**Setup: a clean sound on the chop track, so that nothing but the marker moves where a hit
++starts.** Simplest: a fresh kit with only the sample assigned to T. Otherwise, on T: LFO
++DEP 0 (or its DST neither STA nor END); no velocity, aftertouch, performance-macro or
++scene modulation of STA or END (Elektron's release notes name all four as modulation
++sources: the 1.71 -> 1.72 fix list, not marked MKI- or MKII-only; copy in corp
++`evidence/elektron_analog-rytm-mkii_os-release-notes_read-2026-10-05.txt`); LOP (loop)
++OFF; the machine's own LEV at 0 so you hear the sample layer alone (the SAMPLE page's LEV
++stays up); and no trigs or STA/END p-locks on T's steps (H-T4 lays its own). Modulation of STA is added after the smoother on every
++interrupt run (report risk 3), so chop_snap cannot remove it, and it would make a hit
++start somewhere other than its marker on any file. **Do not use a kit saved under image
++A's STR for these rows:** STR wrote LFO DST STA, WAV RMP, MOD ONE at full depth into the
++chop track (round 7, the founder's own report), and those values stay in that kit.
+ - **H-T1 (the core, slow).** Sequencer stopped, no REC. Hit pad 1, wait 2 s, pad 12, wait
+   2 s, eight hits in all. D41: every hit plays its own slice, the first one included.
+   Pre-D41 (predicted): each hit plays (almost) the OTHER pad's slice, and the same pad again
+   0.2 s later plays its own.
+ - **H-T2 (rate).** Alternate pad 1 / pad 12 at 125 ms (16ths at 120 BPM), then as fast as
+   you can (30-50 ms). D41: own slice at every rate. Pre-D41: the previous slice at 125 ms,
+-  in-between starts when fast.
++  in-between starts when fast. Judge only where each hit that sounds starts: a silent hit
++  is not a D41 failure - fast alternation easily overlaps the pads, and an overlap can drop
++  a hit by H-b1, which D41 does not change; count silent hits under H-T7.
+ - **H-T3 (lock-in).** With pad 12 settled, roll pad 1 at about 30 ms, six hits. D41: every
+-  hit at 0. Pre-D41: about 110, then 27, 7, 2 (converging).
++  hit at 0. Pre-D41: about 110, then 27, 7, 2 (converging). As in H-T2, judge only where
++  each sounding hit starts and count silent hits under H-T7.
+ - **H-T4 (sequencer locks, the control).** LAY (F right) the slices onto the empty steps
+   of a 16-step pattern, hands off the pads, play it. Every step plays its exact slice on
+   every file (p-locks were always snapped). If this is smeared too, stop and report: the
+@@ -1434,7 +1475,9 @@ wrong; report that.
+   page on screen and once on another page. Drops only (or mostly) in the legato set =
+   H-b1, which F-4 would fix (D41: built only if this row shows drops).
+ - **H-T8 (H-b2, not changed by D41).** Give the chop track a long decay (1 s or more).
+-  Hold pad 1, hit pad 12, let go of pad 1: does pad 12's sound cut at that release?
++  Hold pad 1, hit pad 12, let go of pad 1: does pad 12's sound cut at that release? If it
++  cuts, H-b2 is confirmed: report it together with H-T7's counts (F-4, not built, is the
++  planned fix for both). It is not a D41 failure and does not stop the card.
+ - **H-T9 (low priority).** SAMPLE POS RES = HI, marker 55.50 against 56: no difference
+   in reliability expected.
+ - **H-T10 (acceptance).** On each D41 file: H-T1..H-T3 pass (the first hit plays its own
+@@ -1442,15 +1485,31 @@ wrong; report that.
+   (a) and (f): END snaps with STA, no click expected beyond stock's). Then the same rows
+   on the MK2 D41 files.
+ 
+-**Rows to re-run on the D41 files** (chop_put changed for every pad and END write; in
+-image A' 0000-shared is now lean, so RND's `shared_rnd` moved):
+-- image A' (`..._0000_0001.syx`, dda5a4f8...): H13 (H1, H3, H4, H6 (a)-(e), (g), (i)),
+-  H7 (e), H8 (a)-(d), (f), H11, H14 (a)-(b), then H-T1..H-T10;
+-- image B (`..._0000_0001_0008.syx`, ac094b30...): S1, S10 and the H rows on B ("Image B
+-  test card"), then H-T1..H-T3 and H-T10. SMP CUT's own bytes, the page gates and every
+-  0008 path are byte-identical to 0ec86d0e... ("D41 - the first-hit snap", proof), so
+-  results of S2-S9 on 0ec86d0e carry over; re-run them only if a CHOP row misbehaves;
+-- MK2: M2 with H-T1..H-T10 added, and in M3 the H13/S1/S10 part plus H-T1..H-T3.
++**Run order on the D41 files - the one order** (Flash order, the Image B test card and the
++MK2 test card point here; chop_put changed for every pad and END write, and in image A'
++0000-shared is now lean, so RND's `shared_rnd` moved):
++1. **Boot check:** the file is accepted, the unit boots and plays a project. Then the
++   setup above.
++2. **The fix:** H-T1, H-T2, H-T3, then H-T4 (the control).
++3. **The regression rows:** H13 (H1, H3, H4, H6 (a)-(e), (g), (i)), H7 (e), H8 (a)-(d),
++   (f), H11, H14 (a)-(b). On image B add S1 and S10.
++4. **The rest:** H-T5, H-T6, then H-T7 and H-T8 (diagnostics for H-b1 / H-b2: their
++   results decide F-4, they are not D41 pass / fail), H-T9, then H-T10 (the acceptance
++   summary, with its END ON check).
++
++Which file first (MK1): image A' (`4c_...`, `..._0000_0001.syx`, dda5a4f8...), then image
++B (`5b_...`, `..._0000_0001_0008.syx`, ac094b30...). **Image B may instead follow the D39
++image B (file `5`, 0ec86d0e...) directly if file `5` behaved on your unit:** its
++SMP CUT bytes, page gates and every 0008 path are byte-identical to 0ec86d0e ("D41 - the
++first-hit snap", proof), so S2-S9 results on file `5` carry over (re-run them only if a
++CHOP row misbehaves), and its chop_put and chop_snap are the same instructions as in image
++A' (`textcmp.out`).
++If you never ran file `5`, or it misbehaved, run image A' first, and on image B run the
++whole Image B test card after step 3 in its own order (S1-S6, S9, S10, then S7 and S8
++last). A failure in step 2 on both files, with H-T4 clean: report it (the root cause or
++the fix is wrong). A failure in step 3: go back one file (Flash order, item 3).
++MK2: after M0 (control) and M1 (the page) on file 2, steps 2-4 with M2's rows as step 3;
++on file 3, M3 as written, then steps 2 and 4.
+ 
+ ### The unknowns (test in the normal pad mode, D14)
+ 
+@@ -1829,8 +1888,10 @@ kHz (`1.2k`, `12k`).
+ 
+ File: `build/AR1_OS1.73_0000_0001_0008.syx`, sha256 ac094b30...c3b4 since corp D41 (full
+ hash under "If it does not boot"; the D39 file 0ec86d0e...977e has no chop_snap, the
+-round-7 file 86e1dd1b...fa9a1 no press gate either). D41: run "D41 rows" on it too.
+-Flash it only after image A' passed H13 (Flash order, item 4).
++round-7 file 86e1dd1b...fa9a1 no press gate either). On the D41 file the order is the one
++under "D41 rows" ("Run order on the D41 files"): after image A' behaved, or directly
++after file `5` (0ec86d0e...) if that file behaved (Flash order, item 4). The rows and the
++order below are for a first run of SMP CUT on your unit.
+ 
+ **First-run cautions.** No 0008 image has ever run on an MK1; the old one was
+ crash-prone (O8) and these offsets are proven only statically. Image B is also the first
+@@ -2185,9 +2246,13 @@ the page as read on 2026-10-05 is kept at
+ `corp-audits/2026-10-05-rytm-chop/corp/evidence/elektron_analog-rytm-mkii_os-release-notes_read-2026-10-05.txt`,
+ sha256 a7cfae1c...8040); these images are 1.73, so from 1.74 they would be a downgrade,
+ which the same notes say is not supported. Keep the stock 1.73 file and a **DIN** MIDI
+-interface at hand. The three files, the stock recovery file, their checksums and a short
+-start page are staged in `/Users/creative/analog rytm firmware/flash/MKII/`
+-(`START_HERE_MKII.md`).
++interface at hand. The stock recovery file, the control file, checksums and a short start
++page are in `/Users/creative/analog rytm firmware/flash/MKII/` (`START_HERE_MKII.md`).
++**Files 2 and 3 there are the superseded D39 files (016be9ea... / 0ce2fe92...) until the
++D41 files are staged:** the D41 files 2 and 3, their checksums and the start page's
++"Fixed 2026-10-09" note are drafted in corp `snap-integrator/handoff/flash/MKII/`, with
++the D39 files drafted to move to `flash/_superseded/2026-10-09-pre-snap/MKII/`. Check the
++sha256 against the list below before you send.
+ 
+ **Order** (normal route each time; the unit restarts by itself; do not power off during
+ the first boot):
+@@ -2214,7 +2279,8 @@ normal route with the stock file (a same-version reinstall; control, step 1, tes
+ Nothing CHOP keeps is saved; what it writes into patterns and kits is stock data.
+ 
+ Files since corp D41 (guest, 2026-10-09, `make DEVICE=mk2 control|samplefocus|samplefocus-cut`
+-all PASS, logs `corp/snap-builder/logs/post_mk2_*.log`), sha256:
++all PASS, logs `corp/snap-builder/logs/post_mk2_*.log`; rebuilt by the corp integrator,
++same hashes, `corp/snap-integrator/logs/mk2_*.log`), sha256:
+ `ARMK2_OS1.73_control.syx` f3f6aad0cad09a7c3d531fb36a34fc78ed45bee126b9aab84cfed93e51d99c04 (unchanged),
+ `ARMK2_OS1.73_0000_0001.syx` (CHOP only) 2ff96af2f5ed05f5884e0dfa74f806091a867be46254250c4b404da609de792d
+ (MAIN OS fc99a93b2fa59b1ab776862e85542fecc8bc0dbbb727e8a561d4d7dd864c390e),
+@@ -2222,7 +2288,10 @@ all PASS, logs `corp/snap-builder/logs/post_mk2_*.log`), sha256:
+ (MAIN OS 881ab3071f40f7275acf427bcf184c46f5850db5ba1d87616c30a228b3d5854d).
+ Each differs from its D39 predecessor only in CHOP's `.text`, the `bsr.w` displacements
+ into it and the seven long-name pointers ("D41 - the first-hit snap"). Never run.
+-Superseded by D41 (no chop_snap) - files since corp D39 (guest, 2026-10-08, `make DEVICE=mk2 control|samplefocus|samplefocus-cut`
++Superseded by D41 (no chop_snap; in `flash/MKII/` until 2026-10-09 as
++`2_CHOP_ARMK2_OS1.73_0000_0001.syx` and `3_CHOP+SMP-CUT_ARMK2_OS1.73_0000_0001_0008.syx`,
++drafted to move to `flash/_superseded/2026-10-09-pre-snap/MKII/`; the D41 files keep those
++two names) - files since corp D39 (guest, 2026-10-08, `make DEVICE=mk2 control|samplefocus|samplefocus-cut`
+ all PASS, logs `corp/press-fixer/b4_*.log` .. `b6_*.log`; copies in `corp/press-fixer/obj/`), sha256:
+ `ARMK2_OS1.73_control.syx` f3f6aad0cad09a7c3d531fb36a34fc78ed45bee126b9aab84cfed93e51d99c04
+ (unchanged; MAIN OS = stock, 28d9ef40c895e03f17dfce096543109adaf708947392db72818fc2a412d685d6),
+@@ -2262,7 +2331,10 @@ Normal pad mode throughout (D14). Stop at the first deviation and go back one fi
+   route; H12 is gone with STR; H13 is MK1's regression against the round-4 image and has
+   no MKII counterpart).
+   This is a first run on new hardware, so the crash rows count most: H4, H6 (i), H10 (g).
+-  **Since corp D41** M2 also runs H-T1..H-T10 ("D41 rows", MK1 section) on the D41 file.
++  **Since corp D41** the D41 file runs in the order under "D41 rows" ("Run order on the
++  D41 files", MK1 section): after M1, H-T1..H-T4, then the M2 rows above, then
++  H-T5..H-T10, with the setup there; on file 3, M3 below, then H-T1..H-T4 and
++  H-T5..H-T10 (steps 2 and 4).
+   MKII differences: STA popups print two decimals with a fraction (`40.25`), whole values
+   without (`40`), as the SAMP page's STA; with SAMPLE POS RES = HI the CHOP STA knob turns
+   like the SAMP page's STA (fine steps, same acceleration, FUNC = one whole step); with
+-- 
+2.47.1
+
+
+From 853a130b665dcccf5c6a1a7d72955b96bf60a05f Mon Sep 17 00:00:00 2001
+From: bandersong <134746909+bandersong@users.noreply.github.com>
+Date: Fri, 9 Oct 2026 21:52:17 -0400
+Subject: [PATCH 49/49] D41 card precision (integrator): image B vs file 5
+ stated exactly, STA modulation as traced
+
+No image change: design.md only.
+
+- Flash order item 4 and the run order said image B's "SMP CUT bytes, page gates and 0008
+  paths are byte-identical to 0ec86d0e". Measured on the built images: every byte that
+  differs is in a 0001-chop block or patch; SMP CUT's code, tables and 14 patches are
+  byte-identical; CHOP's delta_gate (a page gate) differs in three bsr.w displacements
+  moved by the 52-B insertion (same instructions). Both places now say exactly that
+  (corp snap-integrator/r2/fncmp_B.out, imgcheck.out).
+- The D41 setup said "Modulation of STA is added after the smoother"; the report's risk 3
+  traced LFO and velocity only. Now: LFO and velocity, the other sources not traced.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ mods/0001-chop/design.md | 23 ++++++++++++++---------
+ 1 file changed, 14 insertions(+), 9 deletions(-)
+
+diff --git a/mods/0001-chop/design.md b/mods/0001-chop/design.md
+index 5a116fb..a202a0f 100644
+--- a/mods/0001-chop/design.md
++++ b/mods/0001-chop/design.md
+@@ -1329,9 +1329,11 @@ byte compare: 0 differing bytes).
+    (file `5`, 0ec86d0e...) if that file behaved on your unit:**
+    `build/AR1_OS1.73_0000_0001_0008.syx` (`make samplefocus-cut`: image A' plus SMP CUT;
+    sha256 below). The D41 image B is the D39 image B plus the same chop_snap image A'
+-   got, and its SMP CUT bytes, page gates and 0008 paths are byte-identical to 0ec86d0e
+-   ("D41 - the first-hit snap", proof), so the step from file `5` is smaller than the step
+-   from image A'. If you never ran file `5`, or it misbehaved, flash image A' first. A
++   got: every byte that differs from 0ec86d0e is in a 0001-chop block or patch, SMP CUT's
++   code, tables and patches are byte-identical, and CHOP's page gates are the same
++   instructions (in delta_gate three `bsr.w` displacements moved with the 52-B insertion;
++   corp `snap-integrator/r2/fncmp_B.out`, "D41 - the first-hit snap", proof), so the step
++   from file `5` is smaller than the step from image A'. If you never ran file `5`, or it misbehaved, flash image A' first. A
+    first run of any 0008 code: read "Image B test card", first-run cautions, and run S1
+    first. If it misbehaves, go back to image A'.
+ 
+@@ -1444,9 +1446,10 @@ scene modulation of STA or END (Elektron's release notes name all four as modula
+ sources: the 1.71 -> 1.72 fix list, not marked MKI- or MKII-only; copy in corp
+ `evidence/elektron_analog-rytm-mkii_os-release-notes_read-2026-10-05.txt`); LOP (loop)
+ OFF; the machine's own LEV at 0 so you hear the sample layer alone (the SAMPLE page's LEV
+-stays up); and no trigs or STA/END p-locks on T's steps (H-T4 lays its own). Modulation of STA is added after the smoother on every
+-interrupt run (report risk 3), so chop_snap cannot remove it, and it would make a hit
+-start somewhere other than its marker on any file. **Do not use a kit saved under image
++stays up); and no trigs or STA/END p-locks on T's steps (H-T4 lays its own). LFO and
++velocity modulation of STA are added after the smoother on every interrupt run (report
++risk 3; the other sources were not traced), so chop_snap cannot remove them, and they
++would make a hit start somewhere other than its marker on any file. **Do not use a kit saved under image
+ A's STR for these rows:** STR wrote LFO DST STA, WAV RMP, MOD ONE at full depth into the
+ chop track (round 7, the founder's own report), and those values stay in that kit.
+ - **H-T1 (the core, slow).** Sequencer stopped, no REC. Hit pad 1, wait 2 s, pad 12, wait
+@@ -1499,9 +1502,11 @@ MK2 test card point here; chop_put changed for every pad and END write, and in i
+ 
+ Which file first (MK1): image A' (`4c_...`, `..._0000_0001.syx`, dda5a4f8...), then image
+ B (`5b_...`, `..._0000_0001_0008.syx`, ac094b30...). **Image B may instead follow the D39
+-image B (file `5`, 0ec86d0e...) directly if file `5` behaved on your unit:** its
+-SMP CUT bytes, page gates and every 0008 path are byte-identical to 0ec86d0e ("D41 - the
+-first-hit snap", proof), so S2-S9 results on file `5` carry over (re-run them only if a
++image B (file `5`, 0ec86d0e...) directly if file `5` behaved on your unit:** it
++differs from 0ec86d0e only in 0001-chop's blocks and patches; SMP CUT's code, tables and
++patches are byte-identical, and CHOP's page gates are the same instructions (three
++`bsr.w` displacements in delta_gate moved; "D41 - the first-hit snap", proof; corp
++`snap-integrator/r2/fncmp_B.out`), so S2-S9 results on file `5` carry over (re-run them only if a
+ CHOP row misbehaves), and its chop_put and chop_snap are the same instructions as in image
+ A' (`textcmp.out`).
+ If you never ran file `5`, or it misbehaved, run image A' first, and on image B run the
 -- 
 2.47.1
 

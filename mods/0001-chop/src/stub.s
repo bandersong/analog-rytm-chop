@@ -36,7 +36,11 @@
         | p-lock; and the pad's id in the UI message is rewritten to the chop track,
         | so stock plays (and records) the chop track exactly as if its own pad had
         | been hit. Pads never switch the selected track away from it, and no fire
-        | call is hand-built.
+        | call is hand-built. Since corp D41 every such write (chop_put: the pad's
+        | STA and END, END's restore) is followed by chop_snap, which makes the
+        | engine take the new STA and END at once, as the interrupt's lock pass
+        | does for a sequencer p-lock; before it, the interrupt's parameter
+        | smoother let the pad's own trig start near the previous marker.
         | With trig key(s) of the chop track held (D15), the STA call is replaced
         | by what stock's hold-trig + turn-STA does: an STA p-lock = marker k on
         | every held step (chop_held_lock); the base STA is then left alone.
@@ -91,6 +95,12 @@
         | symbols and stock code. Sections land per layout A
         | (registry/allocations_mk2.toml): .chst and .cave2 in `cave`, .text and
         | .cave3 in `cave2`; run-time state stays at the end of .chst, in `cave`.
+
+        | Analog Rytm code only. An Analog Keys build (DEVICE_KEYS, `make DEVICE=keys`)
+        | must never assemble it with Rytm constants (corp keys-sk-platform C2).
+        .ifdef  DEVICE_KEYS
+        .error  "Analog Rytm stub: it has no Analog Keys port (DEVICE_KEYS)"
+        .endif
 
         .include "symbols.inc"
         .include "shared.inc"                     | shared_rnd (0000-shared)
@@ -630,8 +640,9 @@ lock_gate:
         | Since corp round 7 (D29) it is a tail into chop_put (cave2) with id 43
         | and record 1: chop_put is this routine's body for any id and either
         | record flag (same guard, same calls, same arguments), so the two
-        | copies became one. UI task only. Clobbers d0/d1/a0/a1, keeps
-        | everything else.
+        | copies became one. Since corp D41 chop_put ends with chop_snap(T) (the
+        | engine takes STA and END at once). UI task only. Clobbers d0/d1/a0/a1,
+        | keeps everything else.
         | ------------------------------------------------------------------
         .align  2
 chop_set_sta:
@@ -907,7 +918,9 @@ chop_fn_mgr:
         | chop_put(d0 = T, d1 = V 8.8, a0 = param id, a1 = record 0/1):
         | param_set_value(kit_track_param_set(project_kit(project), T), id, V,
         | T, record, notify 1) - stock's STA-style writer call, for any id and
-        | either record flag (chop_set_sta is its tail with 43 and record 1).
+        | either record flag (chop_set_sta is its tail with 43 and record 1) -
+        | then (corp D41) chop_snap(T): the engine takes the new STA/END at once,
+        | as a sequencer p-lock does, instead of gliding to it.
         | T > 11 returns without writing (12+ is the FX set).
         | UI task only. Clobbers d0/d1/a0/a1, keeps everything else.
         | ------------------------------------------------------------------
@@ -931,8 +944,54 @@ chop_put:
         move.l  %d0,-(%sp)                        | set
         jsr     param_set_value
         lea     24(%sp),%sp
+        move.l  %d2,%d0                           | T, 0..11 (guarded above)
+        bsr.s   chop_snap                         | D41: STA and END snap to TARGET
         movem.l (%sp),%d2-%d3/%a2-%a3
         lea     16(%sp),%sp
+9:      rts
+
+        | ------------------------------------------------------------------
+        | chop_snap(d0 = T) (corp D41, chop-timing-re fix F-1): for track T, STA
+        | and then END, do what the audio interrupt's per-trig lock pass does
+        | for a p-locked parameter (MK1 0x40119538.., MK2 0x40120954..): STATE =
+        | v << 16 first, then EFFECTIVE = v, with v = the TARGET word that
+        | param_set_value has just written (its engine writer, MK1 0x401185fa /
+        | MK2 0x4011f3fa, stores TARGET and zeroes the slide word, nothing else).
+        | Without it the interrupt's smoother moves EFFECTIVE - what the sample
+        | voices start from - only 3% of the way to TARGET per run, so the
+        | pad's own trig (posted right after) started near the previous marker.
+        | Writes exactly four places: STATE[T][STA], STATE[T][END] (longs) and
+        | EFFECTIVE[T][STA], EFFECTIVE[T][END] (words); TARGET and the slide
+        | word are left as param_set_value wrote them. v is copied, never
+        | computed, so LO's floor and the writer's clamp carry over. Engine
+        | rows (symbols ENG_TARGET, ENG_STATE, PARAMS_EFF): entry T, cidx c at
+        | +84T+2c (TARGET, EFFECTIVE) and +168T+4c (STATE); STA is cidx
+        | SND_CIDX_STA (21), END the next one. T > 11 unsigned: nothing.
+        | The `bsr.w 1f` runs the body for STA and returns into it for END.
+        | UI task only. Clobbers d0/d1/a0/a1, keeps everything else.
+        | ------------------------------------------------------------------
+        .equ    SNAP_TGT,       ENG_TARGET + 2 * SND_CIDX_STA
+        .equ    SNAP_STATE,     ENG_STATE + 4 * SND_CIDX_STA
+        .equ    SNAP_EFF,       PARAMS_EFF - ENG_TARGET   | EFFECTIVE - TARGET
+        .align  2
+chop_snap:
+        moveq   #PADS-1,%d1
+        cmp.l   %d1,%d0
+        bhi.s   9f                                | T > 11 unsigned: nothing
+        moveq   #84,%d1                           | the row stride (TARGET, EFFECTIVE)
+        mulu.w  %d1,%d0                           | 84T
+        movea.l %d0,%a0
+        adda.l  #SNAP_TGT,%a0                     | &TARGET[T][STA]
+        movea.l %d0,%a1
+        adda.l  %d0,%a1                           | 168T, STATE's row stride
+        adda.l  #SNAP_STATE,%a1                   | &STATE[T][STA]
+        bsr.w   1f                                | STA; its rts lands on 1: for END
+1:      move.w  (%a0)+,%d1                        | v = TARGET
+        swap    %d1
+        clr.w   %d1                               | v << 16
+        move.l  %d1,(%a1)+                        | STATE = v << 16, first
+        swap    %d1                               | v
+        move.w  %d1,SNAP_EFF-2(%a0)               | EFFECTIVE = v
 9:      rts
 
         | chop_set_of(d0 = T) -> d0 = kit_track_param_set(project_kit(

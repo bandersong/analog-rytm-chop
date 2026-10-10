@@ -50,6 +50,15 @@ Focus only image A's STR has a hardware report (it did not sweep, so round 7 rem
 it); image A' and its rows (design.md H7-H11, H13, H14) have not run. Round 7 (D29)
 also removed image A's STA dial graphic (the CHOP STA dial is id 4's own) to fit image B,
 `make samplefocus-cut`: image A' plus 0008 SMP CUT, built, never run (design.md S1-S10).
+
+Corp D41 (2026-10-09): a pad hit used to start near the PREVIOUS marker (the founder's
+"hits land between markers, lock in after repeats"): the engine glides a sound parameter
+written through param_set_value - STA and END among them - 3% of the way per audio-interrupt
+run, and the pad's own trig is posted right after the write. chop_put now ends with chop_snap, which snaps the
+chop track's STA and END (the smoother's state and the effective value the sample voices
+read) to the value param_set_value has just written, exactly as the interrupt's lock pass
+does for a sequencer p-lock. MK1 and MK2. Image A' (`make samplefocus`) is built with
+0000-shared lean since D41, as image B is. Not yet run on hardware (design.md H-T1..H-T10).
 """
 
 [sources]
@@ -60,7 +69,10 @@ stub = "stub.s"
 # claim is the lean one at the end of its slot, and CHOP's .text claim runs on into
 # the slot's head (registry, 0001-chop). It must match 0000-shared's lean: with lean = 0
 # the two claims overlap and the build is refused; with lean = 1 and shared_lean = 0
-# the head is simply unused. Image A' (`make samplefocus`, `make chop-min`) is 0.
+# the head is simply unused. Since corp D41 (chop_snap) every CHOP target passes 1 with
+# 0000-shared lean = 1 (`make samplefocus`, `make chop-min`, `make samplefocus-cut`, and
+# MK2 always): CHOP's .text no longer fits the shared_lean = 0 claim (0x5b8), so a build
+# left at this default is refused by build.py ("widen the claim"), never built short.
 shared_lean = 0
 
 [requires]
@@ -73,6 +85,8 @@ shared_lean = 0
 # writes go through the active kit at project + 232 (project_kit), never through
 # 0000-shared's sound helpers. With 0008 as a provider it also jumps to 0008's
 # shared_cut_* handlers (assembled only when build/shared.inc defines them).
+# Corp D41 (chop_snap): ENG_TARGET, ENG_STATE, PARAMS_EFF and SND_CIDX_STA, the
+# engine's per-track TARGET / smoother STATE / EFFECTIVE rows and STA's container index.
 shared = true
 symbols = [
   "page_info_resume",
@@ -120,4 +134,8 @@ symbols = [
   "step_flag_test",
   "trig_create",
   "view_refresh_request",
+  "ENG_TARGET",
+  "ENG_STATE",
+  "PARAMS_EFF",
+  "SND_CIDX_STA",
 ]
