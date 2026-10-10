@@ -1,10 +1,10 @@
 # CHOP / Sample Focus for your MK1 (OS 1.73) — start here
 
-> **Fixed 2026-10-10: each live-REC hit gets its lock on its own step (keep the chop track selected); END mode removed, knob D blank.** New files: `5c` (5b plus this fix) and `4d` (4c plus this fix). Under live REC, a chop hit used to write its STA lock on the step the screen had cached. That was not always the step its trig was recorded on, so some trigs came out unlocked, and a stray lock landed on a nearby step. Now the lock is written on the trig's own step, right after the trig is recorded. END (knob D) is gone: D is blank, like H. The SAMPLE page's own END knob is stock. Everything else is the same as in 5b/4c: the first-hit fix, step lock, LAY, RND and SMP CUT. **5c and 4d have not run on a Rytm yet.** The old 5b/4c go to `_superseded/` once 5c behaves.
+> **Fixed 2026-10-10: each live-REC hit gets its lock on its own step (keep the chop track selected); END mode removed, knob D blank.** New files: `5c` (5b plus this fix) and `4d` (4c plus this fix). Under live REC, a chop hit used to write its STA lock on the step the screen had cached. That was not always the step its trig was recorded on, so some trigs came out unlocked, and a stray lock landed on a nearby step. Now the lock is written on the trig's own step, right after the trig is recorded. END (knob D) is gone: D is blank, like H. The SAMPLE page's own END knob is stock. Everything else is the same as in 5b/4c: the first-hit fix, step lock, LAY, RND and SMP CUT. **5c works on your MK1 (2026-10-10): live-REC locks and the fast 1→12 roll (L-T4) pass.** 4d hasn't run yet. The old 5b/4c are in `_superseded/2026-10-10-pre-recfix/`.
 
 **Keep the chop track selected while you record** (don't press [FX]): with another track selected, chop hits record without a lock. **If you used END mode on 5b**, check the chop track's END on the SAMPLE page and set it back to 120; 5c no longer resets it.
 
-**What to flash:** if you're on `5b` and it behaved, flash **`5c_SAMPLE-FOCUS+SMP-CUT_…syx`** directly. Otherwise flash `4d_SAMPLE-FOCUS-no-STR_…syx` first. Fallbacks: `5b` → `4c` → `2b` → recovery. Check the sha256 against `SHA256SUMS` first.
+**What to flash:** if you're on `5b` and it behaved, flash **`5c_SAMPLE-FOCUS+SMP-CUT_…syx`** directly. Otherwise flash `4d_SAMPLE-FOCUS-no-STR_…syx` first. Fallbacks: `5c` → `4d` → `2b` → recovery (5b/4c are in `_superseded/2026-10-10-pre-recfix/`). Check the sha256 against `SHA256SUMS` first.
 
 On 5c/4d these existing rows no longer apply, because there is no END: section D row 10, the END part of A3, and the D row of the knob table (D is now blank).
 
@@ -131,4 +131,5 @@ Checksums: `SHA256SUMS`.
 - 2026-10-06, step-lock build a96657b4…caf6: works (founder).
 - 2026-10-06, Sample Focus with STR (734607ae…14dc): STR writes the LFO but produces no sweep (founder) → STR removed.
 - 2026-10-09, all CHOP builds incl. 2b (founder): hits land between markers, lock in after repeats, some retriggers missing → first-hit fix in 4c/5b (section D); the missing retriggers are counted in D7/D8 before their fix is built.
-- 2026-10-10, file 5b (ac094b30…c3b4), first-hit fix: "the chopping works excellent" (founder). SMP CUT on file 5 the day before: worked so far (per-row detail pending).
+- 2026-10-10, file 5b (ac094b30…c3b4), first-hit fix: "the chopping works excellent" (founder). 
+- 2026-10-10, file 5c (f73f4239…70b8), live-REC lock fix + END removed: "everything works" (founder). SMP CUT on file 5 the day before: worked so far (per-row detail pending).

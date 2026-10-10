@@ -11,6 +11,7 @@ Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and M
 | Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
 | Sample Focus (hi-res, DIV, LAY, RND; END removed on MK1 2026-10-10) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
 | First-hit fix (a pad hit plays its marker at once, MK1 + MKII) | ✅ MK1 (file 5b): works on hardware, 2026-10-10. MKII: built, not yet hardware-tested |
+| Live-REC lock fix (every recorded chop hit gets its STA lock; END removed on MK1) | ✅ MK1 (file 5c): works on hardware, 2026-10-10 |
 | MKII (OS 1.73): CHOP + SMP CUT | 🧪 Built, reviewed, reproducible (`make DEVICE=mk2 samplefocus-cut`); not yet hardware-tested |
 | SMP CUT (FILTER ×2: low/high cut), fixed for MK1 | 🧪 Built, reviewed, reproducible; first MK1 run pending |
 | STR (time-stretch) | ❌ Removed: didn't work on hardware |
