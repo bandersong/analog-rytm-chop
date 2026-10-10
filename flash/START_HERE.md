@@ -1,10 +1,10 @@
 # CHOP / Sample Focus for your MK1 (OS 1.73) — start here
 
-> **Fixed 2026-10-09:** new files `4c` and `5b`. A pad hit now plays its own marker on the **first** hit (it used to start near the previous marker and "lock in" after repeats). The engine glided the start point to the new marker over ~100 ms; the pad now sets it at once, exactly as a sequencer p-lock does. The earlier `4b`/`5` are in `_superseded/2026-10-09-pre-snap/`. Not yet run on a Rytm — run section D first.
+> **Fixed 2026-10-09:** new files `4c` and `5b`. A pad hit now plays its own marker on the **first** hit (it used to start near the previous marker and "lock in" after repeats). The engine glided the start point to the new marker over ~100 ms; the pad now sets it at once, exactly as a sequencer p-lock does. The earlier `4b`/`5` are in `_superseded/2026-10-09-pre-snap/`. **5b works on your MK1 (2026-10-10).** 4c is the same fix without SMP CUT and hasn't been run yet.
 >
-> **Fixed 2026-10-08 (still in 4c/5b):** pressing a CHOP or SMP CUT knob while holding steps is ignored (it used to write a hidden lock). Files `2`/`2b` still have the old behaviour — don't *press* a CHOP knob while holding steps on those.
+> **Fixed 2026-10-08 (still in 4c/5b):** pressing a CHOP or SMP CUT knob while holding steps is ignored (it used to write a hidden lock). Files `2`, `2b` and `3` still have the old behaviour — don't *press* a CHOP knob while holding steps on those. They also have the old first-hit glide.
 
-Files **2** and **2b** are proven on your unit (see Hardware results at the bottom). Files **4c** and **5b** have never run on a Rytm; every check that can be done on a computer passed (built twice in the VM from scratch, same bytes; recovery code byte-for-byte stock).
+Files **2**, **2b** and **5b** have run on your unit (see Hardware results at the bottom). **4c** has not run on a Rytm yet; every check that can be done on a computer passed (built twice in the VM from scratch, same bytes; recovery code byte-for-byte stock).
 
 ## Before you flash
 1. In Transfer, back up your projects / +Drive.

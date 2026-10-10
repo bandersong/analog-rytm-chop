@@ -158,7 +158,7 @@ This route runs from the Rytm's recovery code in flash, which CHOP never touches
 **Do not flash rytm1_mods' SMP CUT or RANDOM builds on an MK1.** They use an MK2 memory offset that is wrong for the MK1.
 
 ## Tested on hardware (MK1, OS 1.73)
-- ⚠️ A pad hit plays from its marker on the first hit: passed on 2026-10-05 (file 2, build `3ea80d31…b00b`), but on 2026-10-09 every CHOP build, step-lock included, was heard landing between markers and locking in after repeats. Likely cause traced in the stock code (the engine glides a start point set like a knob turn; p-locks don't glide); fix built into `make samplefocus` / `make samplefocus-cut` (MK1 and MKII), not yet hardware-tested.
+- ⚠️ A pad hit plays from its marker on the first hit: passed on 2026-10-05 (file 2, build `3ea80d31…b00b`), but on 2026-10-09 every CHOP build, step-lock included, was heard landing between markers and locking in after repeats. Likely cause traced in the stock code (the engine glides a start point set like a knob turn; p-locks don't glide); fix built into `make samplefocus` / `make samplefocus-cut` (MK1 and MKII); ✅ works on the MK1 with file 5b (2026-10-10), MKII not yet tested.
 - ✅ Under live REC, the STA p-lock lands on the trig's step.
 - ✅ The CHOP page draws and switches back to the sample page.
 - ✅ No crashes or stuck notes under mashing and fast retriggers.
