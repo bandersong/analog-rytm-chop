@@ -1,5 +1,29 @@
 # CHOP / Sample Focus for your MK1 (OS 1.73) — start here
 
+> **Fixed 2026-10-10: each live-REC hit gets its lock on its own step (keep the chop track selected); END mode removed, knob D blank.** New files: `5c` (5b plus this fix) and `4d` (4c plus this fix). Under live REC, a chop hit used to write its STA lock on the step the screen had cached. That was not always the step its trig was recorded on, so some trigs came out unlocked, and a stray lock landed on a nearby step. Now the lock is written on the trig's own step, right after the trig is recorded. END (knob D) is gone: D is blank, like H. The SAMPLE page's own END knob is stock. Everything else is the same as in 5b/4c: the first-hit fix, step lock, LAY, RND and SMP CUT. **5c and 4d have not run on a Rytm yet.** The old 5b/4c go to `_superseded/` once 5c behaves.
+
+**Keep the chop track selected while you record** (don't press [FX]): with another track selected, chop hits record without a lock. **If you used END mode on 5b**, check the chop track's END on the SAMPLE page and set it back to 120; 5c no longer resets it.
+
+**What to flash:** if you're on `5b` and it behaved, flash **`5c_SAMPLE-FOCUS+SMP-CUT_…syx`** directly. Otherwise flash `4d_SAMPLE-FOCUS-no-STR_…syx` first. Fallbacks: `5b` → `4c` → `2b` → recovery. Check the sha256 against `SHA256SUMS` first.
+
+On 5c/4d these existing rows no longer apply, because there is no END: section D row 10, the END part of A3, and the D row of the knob table (D is now blank).
+
+## L. The live-REC fix (5c / 4d): run right after the boot check
+Use the clean kit from section D. Normal pad mode, CHOP ON on the chop track, power-on markers (pad 1 = 0, pad 12 = 110).
+
+| row | do | 5c/4d must show |
+|---|---|---|
+| E1 | Open the CHOP page and turn knob D | D shows nothing and does nothing (like H). A, B, C, E, F and G work as before. |
+| L-T1 | Empty pattern, live REC (REC + PLAY) at a slow tempo. Do 16 alternating hits of pad 1 and pad 12: some right on a step, some just before the next step lights. Then GRID REC: count the chop track's trigs and hold each one. | trigs = hits, each with STA = its pad's marker (0 or 110), and no extra trigs |
+| L-T2 | Same setup: 8 hits just after a step lights, then 8 just before the next one lights | every one of the 16 is locked |
+| L-T3 | The L-T1 rows at a slow and at a fast tempo, then let the pattern loop, hands off | never more trigs than hits; one trig on each step you hit, with the marker of the last pad hit on that step; no stray trigs. Keep live REC ON (REC + PLAY) for two full loops hands off, then stop and check in GRID REC that every trig still has its own pad's marker (not all the last pad's). The loop plays the recorded slices exactly; the base STA still follows the last pad you hit |
+| L-T4 | A fast 1→12 roll under live REC with the CHOP page on screen | each trig has its own pad's marker. **If any trig carries the NEXT pad's marker, tell me.** That is a known edge (a stalled screen loop), with a planned fix. |
+
+**Workaround on the older files (5b, 4c and before):** record chop slices with the step lock (GRID REC: hold the trig(s), hit the pad) or with LAY, and repair unlocked trigs the same way. Don't play pads over a pattern that still has unlocked chop trigs.
+
+Also worth knowing: with CHOP on and live REC running, a MIDI note into the chop track also gets the current pad's marker as its lock.
+
+
 > **Fixed 2026-10-09:** new files `4c` and `5b`. A pad hit now plays its own marker on the **first** hit (it used to start near the previous marker and "lock in" after repeats). The engine glided the start point to the new marker over ~100 ms; the pad now sets it at once, exactly as a sequencer p-lock does. The earlier `4b`/`5` are in `_superseded/2026-10-09-pre-snap/`. **5b works on your MK1 (2026-10-10).** 4c is the same fix without SMP CUT and hasn't been run yet.
 >
 > **Fixed 2026-10-08 (still in 4c/5b):** pressing a CHOP or SMP CUT knob while holding steps is ignored (it used to write a hidden lock). Files `2`, `2b` and `3` still have the old behaviour — don't *press* a CHOP knob while holding steps on those. They also have the old first-hit glide.

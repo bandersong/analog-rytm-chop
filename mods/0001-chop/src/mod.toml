@@ -29,7 +29,7 @@ go, pause, press again; not a quick double-tap, which is stock 1.73's sample-lis
 shortcut and stays stock) for the CHOP page: A PAD (1..12, the marker being
 edited), B STA (0..120 with stock STA's resolution: fine steps under SAMPLE POS
 RES = HI), C CHP (OFF/ON: right switches CHOP on for the track selected at that
-moment), D END (a pad also sets the slice end), E DIV (1..12 equal slices), F LAY
+moment), D END (MK2 only; blank on MK1 since corp D42), E DIV (1..12 equal slices), F LAY
 (turn right: the slices go onto the EMPTY steps of the chop track's pattern), G RND
 (turned while trig keys are held: each held step gets a random slice); H is blank
 (image A's STR, an LFO stretch macro, was removed in round 7: it did not sweep on
@@ -59,6 +59,16 @@ chop track's STA and END (the smoother's state and the effective value the sampl
 read) to the value param_set_value has just written, exactly as the interrupt's lock pass
 does for a sequencer p-lock. MK1 and MK2. Image A' (`make samplefocus`) is built with
 0000-shared lean since D41, as image B is. Not yet run on hardware (design.md H-T1..H-T10).
+
+Corp D42 (2026-10-10, MK1 only): live-REC chop hits were randomly recorded without their STA
+lock - the pad's STA call (record 1) locked the UI's cached step, while live REC records the
+trig on the note event's own step. Fix F-A: chop_set_sta passes record 0 (base STA only). Fix
+F-B: record_gate, a detour on live REC's trig writer call (0x4009f106), writes STA = the pad's
+marker as a p-lock on the step the trig was just recorded on (chop track, selected, STA
+lockable, a trig on that step). END mode is removed from MK1 (founder: "end is kind of useless
+as is"): knob D is blank, id 11 is stock's again, nothing in CHOP writes END. MK2 keeps END and
+builds byte for byte as before (every difference is .ifdef'd). Not yet run on hardware
+(design.md "D42", L-T1..L-T4).
 """
 
 [sources]
@@ -87,6 +97,8 @@ shared_lean = 0
 # shared_cut_* handlers (assembled only when build/shared.inc defines them).
 # Corp D41 (chop_snap): ENG_TARGET, ENG_STATE, PARAMS_EFF and SND_CIDX_STA, the
 # engine's per-track TARGET / smoother STATE / EFFECTIVE rows and STA's container index.
+# Corp D42 (record_gate, MK1 only): rec_trig_write (0x400b1770, re-issued) and
+# rec_gate_resume (0x4009f10c, the rejoin); not in re/symbols_mk2.toml (no MK2 gate).
 shared = true
 symbols = [
   "page_info_resume",
@@ -138,4 +150,6 @@ symbols = [
   "ENG_STATE",
   "PARAMS_EFF",
   "SND_CIDX_STA",
+  "rec_trig_write",
+  "rec_gate_resume",
 ]

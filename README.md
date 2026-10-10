@@ -7,9 +7,9 @@ Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and M
 | Status | |
 |---|---|
 | MK1, OS 1.73 | ✅ Working on hardware |
-| Builds reproducibly | ✅ Fresh clone + patch gives the same files (`ac094b30…c3b4`, `dda5a4f8…8c6f`) |
+| Builds reproducibly | ✅ Fresh clone + patch gives the same files (`f73f4239…70b8`, `36a017ba…2d05`) |
 | Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
-| Sample Focus (hi-res, END, DIV, LAY, RND) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
+| Sample Focus (hi-res, DIV, LAY, RND; END removed on MK1 2026-10-10) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
 | First-hit fix (a pad hit plays its marker at once, MK1 + MKII) | ✅ MK1 (file 5b): works on hardware, 2026-10-10. MKII: built, not yet hardware-tested |
 | MKII (OS 1.73): CHOP + SMP CUT | 🧪 Built, reviewed, reproducible (`make DEVICE=mk2 samplefocus-cut`); not yet hardware-tested |
 | SMP CUT (FILTER ×2: low/high cut), fixed for MK1 | 🧪 Built, reviewed, reproducible; first MK1 run pending |
@@ -20,8 +20,8 @@ Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and M
 
 ## Sample Focus + SMP CUT (newest, `make samplefocus-cut`)
 CHOP's page (below, minus STR) plus rytm1_mods' **SMP CUT** page on **FILTER ×2** (LCT low cut / HCT high cut on the sample layer), fixed for the MK1: the original uses the MK2's kit and sound offsets, which can crash an MK1. CHOP owns the shared page hooks and hands SMP CUT's knobs to its code. Fitted by code compaction; no features dropped except STR. **SMP CUT has not run on an MK1 yet**: see the test card (S1–S10).
-Expected sha256 of `build/AR1_OS1.73_0000_0001_0008.syx`: `ac094b30e7ea68022d00cd06c057229284df36dbc3176423fdd34b26dfffc3b4`.
-Without SMP CUT: `make samplefocus` → `build/AR1_OS1.73_0000_0001.syx`, `dda5a4f8b63c58359da3f8f3f3fa70567273df74cd8d4ea136fd62bcd82a8c6f`.
+Expected sha256 of `build/AR1_OS1.73_0000_0001_0008.syx`: `f73f4239c4b874e786b768d50698462477d0a4ccb029f9740040aad992dc70b8`.
+Without SMP CUT: `make samplefocus` → `build/AR1_OS1.73_0000_0001.syx`, `36a017ba8ef3712283342563a8a0cf14b374ea3c5b4d1c38babdf36901022d05`.
 
 ## Sample Focus (previous build; STR has since been removed)
 `make samplefocus` builds CHOP plus a full 8-knob page (0000-shared + CHOP only; no euclid/velocity):
@@ -31,7 +31,7 @@ Without SMP CUT: `make samplefocus` → `build/AR1_OS1.73_0000_0001.syx`, `dda5a
 | PAD | which marker you're editing |
 | STA | the marker, hi-res like stock STA (slow = decimals, FUNC = whole steps) |
 | CHP | CHOP on/off |
-| END | each pad also sets END to the next marker (slice playback) |
+| ~~END~~ | removed on the MK1 (2026-10-10); still on the MKII builds |
 | DIV | re-chop into 1–12 equal slices |
 | LAY | lay slices onto the empty steps of the pattern |
 | RND | GRID REC: hold steps + turn → random slice per step |
@@ -93,7 +93,7 @@ git checkout 2fae7ce
 git am /path/to/this-repo/mods/0001-chop/rytm1_mods-chop.patch
 cp /path/to/Analog-Rytm_OS1.73.syx stock/Analog-Rytm_OS1.73.syx
 make setup          # fetches and builds the firmware container tool
-make samplefocus-cut   # newest: CHOP (hi-res, END/DIV/LAY/RND) + SMP CUT; must end with PASS
+make samplefocus-cut   # newest: CHOP (hi-res, DIV/LAY/RND, live-REC lock fix) + SMP CUT; must end with PASS
 make samplefocus       # same without SMP CUT
 make control        # stock code repacked, for your first flash
 ```
@@ -108,9 +108,9 @@ PASS
 Then check your build is the same file this repo was tested with:
 ```bash
 shasum -a 256 build/AR1_OS1.73_0000_0001_0008.syx
-# ac094b30e7ea68022d00cd06c057229284df36dbc3176423fdd34b26dfffc3b4   (samplefocus-cut)
+# f73f4239c4b874e786b768d50698462477d0a4ccb029f9740040aad992dc70b8   (samplefocus-cut)
 shasum -a 256 build/AR1_OS1.73_0000_0001.syx
-# dda5a4f8b63c58359da3f8f3f3fa70567273df74cd8d4ea136fd62bcd82a8c6f   (samplefocus)
+# 36a017ba8ef3712283342563a8a0cf14b374ea3c5b4d1c38babdf36901022d05   (samplefocus)
 ```
 
 ### 3. Flash (Transfer)
