@@ -107,3 +107,4 @@ Checksums: `SHA256SUMS`.
 - 2026-10-06, step-lock build a96657b4…caf6: works (founder).
 - 2026-10-06, Sample Focus with STR (734607ae…14dc): STR writes the LFO but produces no sweep (founder) → STR removed.
 - 2026-10-09, all CHOP builds incl. 2b (founder): hits land between markers, lock in after repeats, some retriggers missing → first-hit fix in 4c/5b (section D); the missing retriggers are counted in D7/D8 before their fix is built.
+- 2026-10-10, file 5b (ac094b30…c3b4), first-hit fix: "the chopping works excellent" (founder). SMP CUT on file 5 the day before: worked so far (per-row detail pending).

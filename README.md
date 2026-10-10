@@ -10,7 +10,7 @@ Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and M
 | Builds reproducibly | ✅ Fresh clone + patch gives the same files (`ac094b30…c3b4`, `dda5a4f8…8c6f`) |
 | Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
 | Sample Focus (hi-res, END, DIV, LAY, RND) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
-| First-hit fix (a pad hit plays its marker at once, MK1 + MKII) | 🧪 Built 2026-10-09, reviewed, reproducible; not yet hardware-tested (`flash/START_HERE.md` section D) |
+| First-hit fix (a pad hit plays its marker at once, MK1 + MKII) | ✅ MK1 (file 5b): works on hardware, 2026-10-10. MKII: built, not yet hardware-tested |
 | MKII (OS 1.73): CHOP + SMP CUT | 🧪 Built, reviewed, reproducible (`make DEVICE=mk2 samplefocus-cut`); not yet hardware-tested |
 | SMP CUT (FILTER ×2: low/high cut), fixed for MK1 | 🧪 Built, reviewed, reproducible; first MK1 run pending |
 | STR (time-stretch) | ❌ Removed: didn't work on hardware |
