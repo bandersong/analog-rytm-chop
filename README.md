@@ -1,3 +1,13 @@
+# ⚠️ Deprecated: use CHOPSHOP instead
+
+**This repository is no longer maintained. Go to [CHOPSHOP](https://github.com/bandersong/chopshop) ([use it in your browser](https://chopshop-synth.pages.dev/)).**
+
+CHOPSHOP builds the same mods (CHOP, Sample Focus, SMP CUT, Analog Keys chord memory and JOY RANDOM) from your own copy of Elektron's OS file, in your browser, and checks the result against the published sha256. No toolchain, `make` or patching needed. New work happens there only.
+
+The text below is kept for history and for anyone who wants to build from source.
+
+---
+
 # CHOP for the Elektron Analog Rytm
 
 **Turn the 12 pads into sample-start markers.** Pick a track, open the CHOP page, and every pad plays that track's sample from its own start point. Record it live and each hit becomes an ordinary STA p-lock, so your patterns play back on stock firmware too.
