@@ -19,7 +19,7 @@ confirmed working on the founder's MK1 (hardware result 2026-10-06, below). `mak
 occupies (see Build).
 **MK2 (Analog Rytm MKII 1.73) is built too** (corp MK2 port, TRUTH D34-D38): `make
 DEVICE=mk2 samplefocus` (CHOP only) and `make DEVICE=mk2 samplefocus-cut` (CHOP + SMP CUT),
-PASS in the guest VM, 2026-10-07, never run on an MKII; MK1 builds unchanged byte for byte.
+PASS in the guest VM, 2026-10-07, file 3 later run on an MKII, 2026-10-13 (founder-reported rows 1-4 pass); MK1 builds unchanged byte for byte.
 See "MK2" below (pages: SAMPLE x3 for CHOP, FILTER x2 for SMP CUT; differences; MK2 test
 card M0-M3; recovery).
 **Corp D39 (2026-10-08): the knob-press lock path is gated on both devices.** Pressing a
@@ -2481,7 +2481,7 @@ ad46d220...), CHOP + SMP CUT 128b952ef082303c04790a6ecae33562089505336f1b072c105
 (MAIN OS c7cc6bd9...). Each D39 image differs from it only in the 6-byte jmp at 0x400387ba
 and press_gate's 30 B.
 
-### MK2 test card (never run)
+### MK2 test card (file 3 rows 1-4 passed 2026-10-13, founder-reported; rest not run)
 
 Normal pad mode throughout (D14). Stop at the first deviation and go back one file.
 

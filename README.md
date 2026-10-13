@@ -12,7 +12,7 @@ The text below is kept for history and for anyone who wants to build from source
 
 **Turn the 12 pads into sample-start markers.** Pick a track, open the CHOP page, and every pad plays that track's sample from its own start point. Record it live and each hit becomes an ordinary STA p-lock, so your patterns play back on stock firmware too.
 
-Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and MKII** (built, not yet hardware-tested), **OS 1.73**, plus **chord memory and a joystick randomizer for the Analog Keys** (OS 1.56, built, not yet hardware-tested), built on [gdeo607/rytm1_mods](https://github.com/gdeo607/rytm1_mods). Not affiliated with or endorsed by Elektron. **Flashing modified firmware is at your own risk.**
+Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and MKII** (file 3 tested on hardware, 2026-10-13, by the founder; see below), **OS 1.73**, plus **chord memory and a joystick randomizer for the Analog Keys** (OS 1.56, built, not yet hardware-tested), built on [gdeo607/rytm1_mods](https://github.com/gdeo607/rytm1_mods). Not affiliated with or endorsed by Elektron. **Flashing modified firmware is at your own risk.**
 
 | Status | |
 |---|---|
@@ -20,9 +20,9 @@ Unofficial firmware mod for the **Analog Rytm MK1** (proven on hardware) **and M
 | Builds reproducibly | ✅ Fresh clone + patch gives the same files (`f73f4239…70b8`, `36a017ba…2d05`) |
 | Step-lock (GRID REC: hold steps + pad) | ✅ Working on hardware |
 | Sample Focus (hi-res, DIV, LAY, RND; END removed on MK1 2026-10-10) | 🧪 Built, reviewed, reproducible; not yet hardware-tested |
-| First-hit fix (a pad hit plays its marker at once, MK1 + MKII) | ✅ MK1 (file 5b): works on hardware, 2026-10-10. MKII: built, not yet hardware-tested |
+| First-hit fix (a pad hit plays its marker at once, MK1 + MKII) | ✅ MK1 (file 5b): works on hardware, 2026-10-10. MKII (file 3): first-hit row passed on hardware, 2026-10-13 (founder-reported) |
 | Live-REC lock fix (every recorded chop hit gets its STA lock; END removed on MK1) | ✅ MK1 (file 5c): works on hardware, 2026-10-10 |
-| MKII (OS 1.73): CHOP + SMP CUT | 🧪 Built, reviewed, reproducible (`make DEVICE=mk2 samplefocus-cut`); not yet hardware-tested |
+| MKII (OS 1.73): CHOP + SMP CUT | ✅ File 3 flashed on a real MKII, 2026-10-13: boots, LCT/HCT OFF at first boot, and the CHOP page, first-hit fix, LAY and SMP CUT passed the 4-row test card (founder-reported). Save/power-cycle test and the longer rows not yet run. Reproducible (`make DEVICE=mk2 samplefocus-cut`) |
 | SMP CUT (FILTER ×2: low/high cut), fixed for MK1 | 🧪 Built, reviewed, reproducible; first MK1 run pending |
 | STR (time-stretch) | ❌ Removed: didn't work on hardware |
 | Analog Keys (OS 1.56): chord memory | 🧪 Built, reviewed, reproducible (`make DEVICE=keys chord`); not yet hardware-tested |
@@ -136,7 +136,7 @@ The hardware-proven step-lock build (CHOP + step-lock + euclid/velocity, sha256 
 If Transfer refuses a file as "same version", nothing was written. Use the recovery route below to send it.
 
 ### MKII (OS 1.73)
-Not yet run on an MKII. Order and first-run checks: [`flash/MKII/START_HERE_MKII.md`](flash/MKII/START_HERE_MKII.md).
+File 3 has run on an MKII (2026-10-13, founder-reported: boot check, CHOP, first-hit fix, LAY and SMP CUT pass; save test and longer rows still to do). Order and first-run checks: [`flash/MKII/START_HERE_MKII.md`](flash/MKII/START_HERE_MKII.md).
 1. The unit must run **stock 1.73** (not 1.74). Elektron's MKII 1.73 file: `Analog-Rytm_MKII_OS1.73.syx`, sha256 `8ad671087ec30433d5407c7380d2396e0915ab931c5d3dd18a78bf284d3d1e52` → copy it to `stock/`.
 2. Build:
 ```bash
