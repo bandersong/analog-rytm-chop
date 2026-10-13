@@ -4,7 +4,7 @@
 
 # CHOP / Sample Focus for your MKII (OS 1.73) — start here
 
-**None of these files has run on an MKII yet.** Every check that can be done on a computer passed (built and verified in the VM several times, same bytes each time; the MKII's bootstrap section, and the embedded firmware the OS sends to another device at startup, are byte-for-byte stock in every file). Same features as the MK1's file 5: the CHOP page and SMP CUT.
+**File 3 has run on an MKII (2026-10-13, founder-reported; details under Hardware results at the bottom).** Files 0, 1 and 2 have not been run separately. Every check that can be done on a computer passed (built and verified in the VM several times, same bytes each time; the MKII's bootstrap section, and the embedded firmware the OS sends to another device at startup, are byte-for-byte stock in every file). Same features as the MK1's file 5: the CHOP page and SMP CUT.
 
 **These files are for the MKII only.** Never send an `ARMK2_…` file to the MK1, or an MK1 (`AR1_…`) file to the MKII.
 
@@ -69,3 +69,7 @@ Hold **FUNC** while powering on → **TRIG 4** (OS UPGRADE) → Transfer > CONNE
 
 ## More
 Full MKII test card (M0–M3, with the MK1 rows it reuses), what differs from the MK1, and the proofs: `../../upstream/rytm1_mods/mods/0001-chop/design.md`, section "MK2" (branch `chop`). Checksums: `SHA256SUMS` in this folder.
+
+## Hardware results
+- 2026-10-13, MKII (was on OS 1.72 before the flash), file 3 (`78295576…6e8a`) flashed. Founder-reported: boot check LCT = OFF and HCT = OFF on an untouched sound; test card rows 1 (CHOP page and SMPL WAVEFORM page), 2 (first-hit, 8 slow alternating hits), 3 (LAY control) and 4 (SMP CUT LCT/HCT) all pass. **Not yet run:** the save and power-cycle test (S4), D rows 5-10 (rapid hits, live REC, missing hits), files 1 and 2 on their own. The MKII files do not have the MK1's live-REC lock fix (5c) and still have END mode. The exact post-flash OS version line was not pasted.
+- 2026-10-13 (later), MKII, founder-reported: step keys 1 and 9 flash in the record menu (GRID REC, sequencer stopped) on a track with automated STA (p-locks) and 16 steps filled. It also happens on file 1 (stock code, repacked), so it is the unit's own display, **intentional and not a mod issue**. No action needed.
